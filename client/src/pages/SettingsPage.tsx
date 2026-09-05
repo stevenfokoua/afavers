@@ -6,6 +6,7 @@ import { useLanguage } from '../store/languageStore';
 import { useAuthStore } from '../store/authStore';
 import { usePreferencesStore, ALL_NEWS_TOPICS, type NewsTopic } from '../store/preferencesStore';
 import { useUnsavedChangesGuard } from '../hooks/useUnsavedChangesGuard';
+import { refreshAppCache } from '../utils/cacheRecovery';
 
 const FEED_PRESETS = [
   { label: 'Tech / IT',    kw: ['developer', 'software engineer', 'data analyst', 'DevOps', 'IT'] },
@@ -16,8 +17,16 @@ const FEED_PRESETS = [
   { label: 'Marketing',   kw: ['marketing', 'social media', 'SEO', 'content', 'brand'] },
 ];
 
+function normalizeCommaList(value: string): string {
+  return value
+    .split(',')
+    .map((item) => item.trim())
+    .filter(Boolean)
+    .join(', ');
+}
+
 export const SettingsPage = () => {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const isDemo = useAuthStore((s) => s.isDemo);
   const [settings, setSettings] = useState<Settings>({ keywords: '', locations: '' });
   const [jobAlert, setJobAlert] = useState<JobAlert>(DEFAULT_JOB_ALERT);
@@ -43,6 +52,7 @@ export const SettingsPage = () => {
   const { showPrompt, confirmLeave, cancelLeave } = useUnsavedChangesGuard(isDirty);
   const [pwForm, setPwForm] = useState({ current: '', next: '', confirm: '' });
   const [pwSaving, setPwSaving] = useState(false);
+  const [cacheResetting, setCacheResetting] = useState(false);
   const [pwMsg, setPwMsg] = useState<{ text: string; ok: boolean } | null>(null);
 
   // Feed filter preferences (local, persisted)
@@ -101,18 +111,42 @@ export const SettingsPage = () => {
   }, []);
 
   const handleSave = async () => {
+    const normalizedSettings = {
+      keywords: normalizeCommaList(settings.keywords),
+      locations: normalizeCommaList(settings.locations),
+    };
+    const normalizedAlert = {
+      ...jobAlert,
+      keywords: normalizeCommaList(jobAlert.keywords),
+      locations: normalizeCommaList(jobAlert.locations),
+    };
+
     setSaving(true);
     setError('');
     try {
-      const savedAlertData = await jobAlertsService.save(jobAlert);
-      await settingsService.save(settings);
-      setSavedSnapshot(settings);
-      setJobAlert(savedAlertData);
-      setSavedAlertSnapshot(savedAlertData);
+      await settingsService.save(normalizedSettings);
+      setSettings(normalizedSettings);
+      setSavedSnapshot(normalizedSettings);
+
+      try {
+        const savedAlertData = await jobAlertsService.save(normalizedAlert);
+        setJobAlert(savedAlertData);
+        setSavedAlertSnapshot(savedAlertData);
+      } catch (alertError) {
+        setJobAlert(normalizedAlert);
+        setSavedAlertSnapshot(normalizedAlert);
+        setError(
+          lang === 'de'
+            ? 'Deine Suchbegriffe wurden gespeichert, aber die E-Mail-Benachrichtigungen konnten nicht aktualisiert werden.'
+            : 'Your search settings were saved, but priority email alerts could not be updated.'
+        );
+        console.warn('Priority alerts failed to save:', alertError);
+      }
+
       setSaved(true);
       setTimeout(() => setSaved(false), 2500);
-    } catch {
-      setError(t('failedToSave'));
+    } catch (saveError) {
+      setError(saveError instanceof Error ? saveError.message : t('failedToSave'));
     } finally {
       setSaving(false);
     }
@@ -136,7 +170,7 @@ export const SettingsPage = () => {
           <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 text-sm text-blue-800 flex gap-3">
             <span className="text-lg shrink-0">ℹ️</span>
             <div>
-              <strong>How it works:</strong> Jobs are fetched from Bundesagentur für Arbeit every 2 hours using your keywords and locations. Separate values with commas. Changes apply on the next fetch.
+              <strong>{t('howItWorks')}</strong> {t('settingsInfo')}
             </div>
           </div>
 
@@ -189,9 +223,9 @@ export const SettingsPage = () => {
           <div className="bg-white rounded-2xl border border-gray-200 p-6 space-y-5">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <h2 className="text-base font-semibold text-gray-900">Priority email alerts</h2>
+                <h2 className="text-base font-semibold text-gray-900">{t('priorityAlerts')}</h2>
                 <p className="text-xs text-gray-400 mt-0.5">
-                  Get a compact email when new high-match jobs fit what you are focused on right now.
+                  {t('priorityAlertsDesc')}
                 </p>
               </div>
               <button
@@ -204,12 +238,12 @@ export const SettingsPage = () => {
             </div>
 
             <div className="bg-orange-50 border border-orange-200 rounded-xl p-4 text-sm text-orange-900">
-              <strong>Example:</strong> Werkstudent roles in NRW for IT, GIS, data analysis, or similar keywords. Afavers only emails jobs that clear your match score and have not already been sent to you.
+              <strong>{t('priorityAlertsExample')}</strong> {t('priorityAlertsExampleText')}
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">Alert keywords</label>
-              <p className="text-xs text-gray-400 mb-2">Use your current search focus. Separate values with commas.</p>
+              <label className="block text-sm font-semibold text-gray-700 mb-1">{t('alertKeywords')}</label>
+              <p className="text-xs text-gray-400 mb-2">{t('alertKeywordsDesc')}</p>
               <textarea
                 rows={3}
                 value={jobAlert.keywords}
@@ -220,8 +254,8 @@ export const SettingsPage = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">Alert locations</label>
-              <p className="text-xs text-gray-400 mb-2">NRW is understood as Düsseldorf, Köln, Essen, Dortmund, Bochum, Bonn, Duisburg, Münster, and nearby cities.</p>
+              <label className="block text-sm font-semibold text-gray-700 mb-1">{t('alertLocations')}</label>
+              <p className="text-xs text-gray-400 mb-2">{t('alertLocationsDesc')}</p>
               <textarea
                 rows={2}
                 value={jobAlert.locations}
@@ -233,34 +267,34 @@ export const SettingsPage = () => {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">How often</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">{t('howOften')}</label>
                 <select
                   value={jobAlert.frequency}
                   onChange={e => setJobAlert((alert) => ({ ...alert, frequency: e.target.value as JobAlertFrequency }))}
                   className="w-full px-4 py-2.5 border border-gray-300 rounded-xl text-sm bg-white outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:border-transparent"
                 >
-                  <option value="instant">Every job fetch</option>
-                  <option value="daily">Daily digest</option>
+                  <option value="instant">{t('everyJobFetch')}</option>
+                  <option value="daily">{t('dailyDigest')}</option>
                 </select>
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Minimum match</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">{t('minimumMatch')}</label>
                 <select
                   value={jobAlert.min_score}
                   onChange={e => setJobAlert((alert) => ({ ...alert, min_score: Number(e.target.value) }))}
                   className="w-full px-4 py-2.5 border border-gray-300 rounded-xl text-sm bg-white outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:border-transparent"
                 >
-                  <option value={65}>Good match and above</option>
-                  <option value={70}>High match and above</option>
-                  <option value={80}>Very high match only</option>
+                  <option value={65}>{t('goodMatchAbove')}</option>
+                  <option value={70}>{t('highMatchAbove')}</option>
+                  <option value={80}>{t('veryHighMatchOnly')}</option>
                 </select>
               </div>
             </div>
 
             {jobAlert.last_sent_at && (
               <p className="text-xs text-gray-400">
-                Last alert sent {new Date(jobAlert.last_sent_at).toLocaleString()}.
+                {t('lastAlertSent')} {new Date(jobAlert.last_sent_at).toLocaleString()}.
               </p>
             )}
           </div>
@@ -296,8 +330,8 @@ export const SettingsPage = () => {
           <div className="bg-white rounded-2xl border border-gray-200 p-6 space-y-4">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <h2 className="text-base font-semibold text-gray-900">Job Feed Filters</h2>
-                <p className="text-xs text-gray-400 mt-0.5">Filter which jobs appear in story bubbles and Hot Picks.</p>
+                <h2 className="text-base font-semibold text-gray-900">{t('jobFeedFilters')}</h2>
+                <p className="text-xs text-gray-400 mt-0.5">{t('jobFeedFiltersDesc')}</p>
               </div>
               {/* Toggle */}
               <button
@@ -313,10 +347,10 @@ export const SettingsPage = () => {
             <div>
               <p className="text-xs text-gray-500 mb-2">
                 {filterEnabled && filterKeywords.length === 0
-                  ? 'Add at least one keyword to activate filtering.'
+                  ? t('addKeywordHint')
                   : filterEnabled
-                  ? 'Only jobs matching these keywords will appear in stories and Hot Picks.'
-                  : 'Filtering is off — all jobs are shown.'}
+                  ? t('filterEnabledHint')
+                  : t('filterDisabledHint')}
               </p>
               <div className="flex flex-wrap gap-2 mb-3">
                 {filterKeywords.map((kw) => (
@@ -335,7 +369,7 @@ export const SettingsPage = () => {
                   </span>
                 ))}
                 {filterKeywords.length === 0 && (
-                  <span className="text-xs text-gray-300 italic">No keywords yet</span>
+                  <span className="text-xs text-gray-300 italic">{t('noKeywordsYet')}</span>
                 )}
               </div>
               {/* Add keyword input */}
@@ -354,7 +388,7 @@ export const SettingsPage = () => {
                       setFeedInput('');
                     }
                   }}
-                  placeholder="Type keyword, press Enter"
+                  placeholder={t('typeKeywordEnter')}
                   className="flex-1 px-4 py-2.5 border border-gray-300 rounded-xl text-sm outline-none focus-visible:ring-2 focus-visible:ring-green-500 focus-visible:border-transparent bg-white"
                 />
                 <button
@@ -368,14 +402,14 @@ export const SettingsPage = () => {
                   disabled={!feedInput.trim()}
                   className="px-4 py-2.5 bg-green-600 hover:bg-green-700 disabled:opacity-40 text-white text-sm font-semibold rounded-xl transition"
                 >
-                  Add
+                  {t('add')}
                 </button>
               </div>
             </div>
 
             {/* Quick-add presets */}
             <div>
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Quick-add preset</p>
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">{t('quickAddPreset')}</p>
               <div className="flex flex-wrap gap-2">
                 {FEED_PRESETS.map(({ label, kw }) => (
                   <button
@@ -395,7 +429,7 @@ export const SettingsPage = () => {
                     onClick={() => setFilterKeywords([])}
                     className="px-3 py-1.5 text-xs font-medium rounded-xl border border-red-100 bg-red-50 text-red-500 hover:bg-red-100 transition"
                   >
-                    Clear all
+                    {t('clearAll')}
                   </button>
                 )}
               </div>
@@ -406,16 +440,16 @@ export const SettingsPage = () => {
           <div className="bg-white rounded-2xl border border-gray-200 p-6 space-y-5">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <h2 className="text-base font-semibold text-gray-900">News Preferences</h2>
-                <p className="text-xs text-gray-400 mt-0.5">Choose which news topics appear and where.</p>
+                <h2 className="text-base font-semibold text-gray-900">{t('newsPreferences')}</h2>
+                <p className="text-xs text-gray-400 mt-0.5">{t('newsPreferencesDesc')}</p>
               </div>
             </div>
 
             {/* Show on dashboard toggle */}
             <div className="flex items-center justify-between gap-4 py-1">
               <div>
-                <p className="text-sm font-medium text-gray-700">Show news on Dashboard</p>
-                <p className="text-xs text-gray-400 mt-0.5">Displays a rotating headline carousel after your greeting</p>
+                <p className="text-sm font-medium text-gray-700">{t('showNewsDashboard')}</p>
+                <p className="text-xs text-gray-400 mt-0.5">{t('showNewsDashboardDesc')}</p>
               </div>
               <button
                 onClick={() => setNewsOnDashboard(!newsOnDashboard)}
@@ -428,9 +462,9 @@ export const SettingsPage = () => {
 
             {/* Topic selection */}
             <div>
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Topics to show</p>
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">{t('topicsToShow')}</p>
               <p className="text-xs text-gray-400 mb-3">
-                {newsTopics.length === 0 ? 'All topics shown — select specific ones to filter.' : `${newsTopics.length} topic${newsTopics.length > 1 ? 's' : ''} selected`}
+                {newsTopics.length === 0 ? t('allTopicsShown') : `${newsTopics.length} ${t('selectedTopics')}`}
               </p>
               <div className="space-y-2">
                 {ALL_NEWS_TOPICS.map(({ key, label, emoji, desc }) => {
@@ -473,7 +507,7 @@ export const SettingsPage = () => {
                   onClick={() => setNewsTopics([])}
                   className="mt-3 text-xs text-gray-400 hover:text-gray-600 transition"
                 >
-                  Clear selection (show all topics)
+                  {t('clearSelectionShowAll')}
                 </button>
               )}
             </div>
@@ -509,6 +543,28 @@ export const SettingsPage = () => {
                 className="px-6 py-2.5 bg-gray-900 hover:bg-black disabled:opacity-40 text-white text-sm font-semibold rounded-xl transition"
               >
                 {pwSaving ? t('saving') : t('updatePassword')}
+              </button>
+            </div>
+          </div>
+
+          {/* App recovery */}
+          <div className="bg-white rounded-2xl border border-gray-200 p-6 space-y-4">
+            <div>
+              <h2 className="text-base font-semibold text-gray-900">{t('appRecovery')}</h2>
+              <p className="text-xs text-gray-400 mt-0.5">{t('appRecoveryDesc')}</p>
+            </div>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <p className="text-xs text-gray-500">{t('resetAppCacheNote')}</p>
+              <button
+                type="button"
+                onClick={() => {
+                  setCacheResetting(true);
+                  refreshAppCache();
+                }}
+                disabled={cacheResetting}
+                className="px-5 py-2.5 bg-gray-900 hover:bg-black disabled:opacity-50 text-white text-sm font-semibold rounded-xl transition"
+              >
+                {cacheResetting ? t('resettingCache') : t('resetAppCache')}
               </button>
             </div>
           </div>

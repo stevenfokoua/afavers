@@ -1,7 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
+import { useLanguage } from '../store/languageStore';
 import { getPublicJobs } from '../services/publicJobs.service';
+import { LanguageToggle } from '../components/common/LanguageToggle';
 
 const CARD_COLORS = ['bg-emerald-500','bg-blue-500','bg-violet-500','bg-orange-500','bg-cyan-500','bg-green-600','bg-pink-500','bg-amber-500','bg-teal-500','bg-indigo-500'];
 
@@ -30,6 +32,7 @@ function useInView(threshold = 0.2) {
 
 // 1. Typing animation visual
 const TypingVisual = () => {
+  const { t } = useLanguage();
   const words = ['nachhaltigkeit', 'renewable energy', 'gis', 'umwelt', 'consulting'];
   const [wordIdx, setWordIdx] = useState(0);
   const [displayed, setDisplayed] = useState('');
@@ -53,25 +56,25 @@ const TypingVisual = () => {
 
   return (
     <div className="bg-white rounded-2xl border border-gray-200 shadow-xl p-6 w-full max-w-sm">
-      <p className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-4">Set your preferences</p>
+      <p className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-4">{t('landingSetPrefs')}</p>
       <div className="mb-4">
-        <label className="text-xs text-gray-500 font-medium block mb-1.5">Job keywords</label>
+        <label className="text-xs text-gray-500 font-medium block mb-1.5">{t('landingJobKeywords')}</label>
         <div className="border-2 border-[#16a34a] rounded-xl px-4 py-3 bg-green-50/30 flex items-center gap-1 min-h-[44px]">
           <span className="text-sm font-medium text-gray-800">{displayed}</span>
           <span className="w-0.5 h-4 bg-[#16a34a] animate-pulse" />
         </div>
       </div>
       <div className="mb-4">
-        <label className="text-xs text-gray-500 font-medium block mb-1.5">Cities</label>
+        <label className="text-xs text-gray-500 font-medium block mb-1.5">{t('landingCities')}</label>
         <div className="flex flex-wrap gap-1.5">
           {['Düsseldorf','Köln','Essen','Remote'].map(c => (
             <span key={c} className="px-2.5 py-1 bg-[#0a1a25] text-white text-xs font-semibold rounded-full">{c}</span>
           ))}
-          <span className="px-2.5 py-1 bg-gray-100 text-gray-500 text-xs rounded-full">+ Add</span>
+          <span className="px-2.5 py-1 bg-gray-100 text-gray-500 text-xs rounded-full">{t('landingAdd')}</span>
         </div>
       </div>
       <button className="w-full py-2.5 bg-[#16a34a] text-white text-sm font-bold rounded-xl mt-2 hover:bg-green-700 transition">
-        Find my jobs →
+        {t('landingFindJobs')}
       </button>
     </div>
   );
@@ -131,6 +134,7 @@ const SwipeVisual = () => {
 
 // 3. Save/Click animation visual
 const SaveVisual = () => {
+  const { t } = useLanguage();
   const [saved, setSaved] = useState<number | null>(null);
   const [ripple, setRipple] = useState<number | null>(null);
 
@@ -141,7 +145,7 @@ const SaveVisual = () => {
 
   return (
     <div className="bg-white rounded-2xl border border-gray-200 shadow-xl p-5 w-full max-w-sm">
-      <p className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-4">Latest Jobs</p>
+      <p className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-4">{t('landingLatestJobs')}</p>
       {SAMPLE_JOBS.slice(0, 4).map((j, i) => (
         <div key={i} className="flex items-center gap-3 py-3 border-b border-gray-50 last:border-0">
           <div className={`w-9 h-9 rounded-xl ${CARD_COLORS[i]} flex items-center justify-center text-white text-xs font-black shrink-0`}>{j.company[0]}</div>
@@ -157,13 +161,14 @@ const SaveVisual = () => {
           </button>
         </div>
       ))}
-      <p className="text-xs text-gray-400 text-center mt-3">Click the bookmark to save a job</p>
+      <p className="text-xs text-gray-400 text-center mt-3">{t('landingClickBookmark')}</p>
     </div>
   );
 };
 
 // 4. Hide/dismiss visual
 const HideVisual = () => {
+  const { t } = useLanguage();
   const [hidden, setHidden] = useState<number[]>([]);
   const [hiding, setHiding] = useState<number | null>(null);
 
@@ -175,8 +180,8 @@ const HideVisual = () => {
   return (
     <div className="bg-white rounded-2xl border border-gray-200 shadow-xl p-5 w-full max-w-sm">
       <div className="flex items-center justify-between mb-4">
-        <p className="text-xs font-bold text-gray-400 uppercase tracking-wide">Job Feed</p>
-        {hidden.length > 0 && <span className="text-xs text-gray-400">{hidden.length} hidden</span>}
+        <p className="text-xs font-bold text-gray-400 uppercase tracking-wide">{t('jobFeedFilters')}</p>
+        {hidden.length > 0 && <span className="text-xs text-gray-400">{hidden.length} {t('landingHidden')}</span>}
       </div>
       {SAMPLE_JOBS.slice(0, 4).map((j, i) => (
         <div key={i} className="flex items-center gap-3 py-2.5 border-b border-gray-50 last:border-0 overflow-hidden"
@@ -191,8 +196,8 @@ const HideVisual = () => {
       ))}
       {hidden.length === SAMPLE_JOBS.slice(0, 4).length && (
         <div className="text-center py-4">
-          <p className="text-xs text-gray-400 mb-2">All hidden! They won't clutter your feed.</p>
-          <button onClick={() => setHidden([])} className="text-xs text-[#16a34a] font-semibold">Restore all</button>
+          <p className="text-xs text-gray-400 mb-2">{t('landingAllHidden')}</p>
+          <button onClick={() => setHidden([])} className="text-xs text-[#16a34a] font-semibold">{t('landingRestoreAll')}</button>
         </div>
       )}
     </div>
@@ -201,12 +206,13 @@ const HideVisual = () => {
 
 // 5. Kanban drag visual
 const KanbanVisual = () => {
+  const { t } = useLanguage();
   const [active, setActive] = useState(0);
   const cols = [
-    { label: 'Saved', color: 'bg-blue-100 text-blue-700', dot: 'bg-blue-400' },
-    { label: 'Applied', color: 'bg-violet-100 text-violet-700', dot: 'bg-violet-400' },
-    { label: 'Interview', color: 'bg-orange-100 text-orange-700', dot: 'bg-orange-400' },
-    { label: 'Offer', color: 'bg-green-100 text-green-700', dot: 'bg-green-400' },
+    { label: t('saved'), color: 'bg-blue-100 text-blue-700', dot: 'bg-blue-400' },
+    { label: t('applied'), color: 'bg-violet-100 text-violet-700', dot: 'bg-violet-400' },
+    { label: t('interviewing'), color: 'bg-orange-100 text-orange-700', dot: 'bg-orange-400' },
+    { label: t('offered'), color: 'bg-green-100 text-green-700', dot: 'bg-green-400' },
   ];
 
   useEffect(() => {
@@ -216,7 +222,7 @@ const KanbanVisual = () => {
 
   return (
     <div className="bg-white rounded-2xl border border-gray-200 shadow-xl p-5 w-full max-w-sm">
-      <p className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-4">Application Pipeline</p>
+      <p className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-4">{t('landingPipeline')}</p>
       <div className="relative mb-4">
         <div className="flex gap-2 mb-3">
           {cols.map((c, i) => (
@@ -228,7 +234,7 @@ const KanbanVisual = () => {
           <span className="text-xs font-bold">{cols[active].label}</span>
           <span className="ml-auto text-xs font-bold opacity-60">GreenConsult</span>
         </div>
-        <div className="text-xs text-gray-400 text-center mt-2">↑ auto-advancing through stages</div>
+        <div className="text-xs text-gray-400 text-center mt-2">↑ {t('landingAutoStages')}</div>
       </div>
       {cols.map((c, i) => (
         <div key={i} className={`flex items-center gap-2 px-3 py-2 rounded-xl mb-1.5 transition-all duration-300 ${i === active ? `${c.color} shadow-sm` : 'bg-gray-50'}`}>
@@ -242,15 +248,15 @@ const KanbanVisual = () => {
 };
 
 const USE_CASES = [
-  { tag: 'Smart setup', headline: 'Type your field. We handle the rest.', body: 'Tell us what you\'re looking for in seconds. afavers learns your keywords and cities, then automatically fetches matching jobs from Bundesagentur für Arbeit every 2 hours.', Visual: TypingVisual },
-  { tag: 'Hot Picks · Swipe', headline: 'Triage jobs like swiping on Tinder.', body: 'Drag right to save a job, drag left to skip it. No scrolling through endless lists — just fast, satisfying decisions. Clear your inbox in under 2 minutes.', Visual: SwipeVisual },
-  { tag: 'One-click save', headline: 'Spot something good? Save it instantly.', body: 'Tap the bookmark on any job and it lands in your saved list immediately. No sign-up friction, no lost tabs, no "where did I see that job?" moments.', Visual: SaveVisual },
-  { tag: 'Hide & clean', headline: 'Not relevant? Make it disappear.', body: 'Hide jobs you\'re not interested in. They vanish from your feed and never come back. Your dashboard stays clean and focused on what actually matters.', Visual: HideVisual },
-  { tag: 'Track progress', headline: 'Watch your pipeline move forward.', body: 'Every application moves through Saved → Applied → Interview → Offer. See exactly where each opportunity stands — at a glance, every day.', Visual: KanbanVisual },
+  { tagKey: 'landingUcSetupTag', headlineKey: 'landingUcSetupHead', bodyKey: 'landingUcSetupBody', Visual: TypingVisual },
+  { tagKey: 'landingUcSwipeTag', headlineKey: 'landingUcSwipeHead', bodyKey: 'landingUcSwipeBody', Visual: SwipeVisual },
+  { tagKey: 'landingUcSaveTag', headlineKey: 'landingUcSaveHead', bodyKey: 'landingUcSaveBody', Visual: SaveVisual },
+  { tagKey: 'landingUcHideTag', headlineKey: 'landingUcHideHead', bodyKey: 'landingUcHideBody', Visual: HideVisual },
+  { tagKey: 'landingUcTrackTag', headlineKey: 'landingUcTrackHead', bodyKey: 'landingUcTrackBody', Visual: KanbanVisual },
 ];
 
 // Wrapper so useInView is called at component level (not inside .map)
-const UseCaseRow = ({ uc, i }: { uc: typeof USE_CASES[number]; i: number }) => {
+const UseCaseRow = ({ uc, i }: { uc: { tag: string; headline: string; body: string; Visual: React.ComponentType }; i: number }) => {
   const { ref, inView } = useInView(0.2);
   const isEven = i % 2 === 0;
   return (
@@ -261,7 +267,7 @@ const UseCaseRow = ({ uc, i }: { uc: typeof USE_CASES[number]; i: number }) => {
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-[#0a1a25] leading-tight mt-3 mb-5">{uc.headline}</h2>
           <p className="text-gray-500 text-base md:text-lg leading-relaxed">{uc.body}</p>
           <Link to="/register" className="inline-flex items-center gap-2 mt-8 text-[#0a1a25] font-semibold text-sm hover:gap-3 transition-all">
-            Try it free <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
+            {useLanguage.getState().t('landingTryFree')} <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
           </Link>
         </div>
         <div className={`flex justify-center ${isEven ? 'order-2' : 'order-2 md:order-1'}`} style={{ opacity: inView ? 1 : 0, transform: inView ? 'translateY(0) scale(1)' : 'translateY(24px) scale(0.96)', transition: 'all 0.8s cubic-bezier(0.16,1,0.3,1) 120ms' }}>
@@ -274,8 +280,15 @@ const UseCaseRow = ({ uc, i }: { uc: typeof USE_CASES[number]; i: number }) => {
 
 export const LandingPage = () => {
   const isAuthenticated = useAuthStore(s => s.isAuthenticated);
+  const { t } = useLanguage();
   const [selectedJob, setSelectedJob] = useState<PublicJob | null>(null);
   const [jobs, setJobs] = useState<PublicJob[]>([]);
+  const useCases = USE_CASES.map((uc) => ({
+    tag: t(uc.tagKey),
+    headline: t(uc.headlineKey),
+    body: t(uc.bodyKey),
+    Visual: uc.Visual,
+  }));
 
   const heroRef = useInView(0.1);
   const statsRef = useInView(0.3);
@@ -308,14 +321,17 @@ export const LandingPage = () => {
 
       {/* ── Announcement bar + Nav (sticky together) ── */}
       <div className="sticky top-0 z-50">
-      <div className="bg-[#0a1a25] text-white text-xs font-semibold py-2.5 px-4 text-center flex items-center justify-center gap-3">
+      <div className="relative bg-[#0a1a25] text-white text-xs font-semibold py-2.5 px-4 text-center flex items-center justify-center gap-3">
         <span className="hidden sm:flex items-center gap-1.5">
           <svg viewBox="0 0 24 24" className="w-3.5 h-3.5 fill-green-400"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/></svg>
-          Chrome &amp; Firefox extension now available
+          {t('landingExtensionBar')}
         </span>
-        <span className="sm:hidden">Browser extension available</span>
+        <span className="sm:hidden">{t('landingExtensionBarMobile')}</span>
         <span className="text-white/30">·</span>
-        <a href="#extension" className="underline underline-offset-2 text-green-400 hover:text-green-300 transition">Install free →</a>
+        <a href="#extension" className="underline underline-offset-2 text-green-400 hover:text-green-300 transition">{t('landingInstallFree')}</a>
+        <div className="absolute right-3 top-1/2 hidden -translate-y-1/2 lg:block">
+          <LanguageToggle />
+        </div>
       </div>
 
       {/* ── Nav (OVO pill style) ── */}
@@ -324,17 +340,17 @@ export const LandingPage = () => {
           <img src="/logo.png" alt="afavers" className="h-16 w-auto"
             onError={e => { const t = e.target as HTMLImageElement; t.style.display = 'none'; (t.parentElement as HTMLElement).insertAdjacentHTML('afterbegin', '<span style="font-size:1.2rem;font-weight:900;color:#0a1a25;letter-spacing:-0.5px">afavers</span>'); }} />
           <div className="hidden md:flex items-center gap-1">
-            {[['Features','#use-cases'],['Extension','#extension'],['Live Jobs','#jobs']].map(([label, href]) => (
+            {[[t('landingFeatures'),'#use-cases'],[t('landingExtension'),'#extension'],[t('landingLiveJobs'),'#jobs']].map(([label, href]) => (
               <a key={label} href={href} className="px-4 py-2 text-sm text-gray-500 hover:text-gray-900 hover:bg-gray-100/70 rounded-full transition font-medium">{label}</a>
             ))}
           </div>
           <div className="flex items-center gap-2">
             {isAuthenticated ? (
-              <Link to="/dashboard" className="px-5 py-2 bg-[#0a1a25] hover:bg-gray-800 text-white text-sm font-semibold rounded-full transition">Dashboard →</Link>
+              <Link to="/dashboard" className="px-5 py-2 bg-[#0a1a25] hover:bg-gray-800 text-white text-sm font-semibold rounded-full transition">{t('landingDashboardCta')}</Link>
             ) : (
               <>
-                <Link to="/login" className="px-4 py-2 text-sm font-medium text-gray-500 hover:text-gray-900 transition rounded-full">Log in</Link>
-                <Link to="/register" className="px-5 py-2 bg-[#16a34a] hover:bg-green-700 text-white text-sm font-bold rounded-full transition shadow-sm">Get started</Link>
+                <Link to="/login" className="hidden sm:inline px-4 py-2 text-sm font-medium text-gray-500 hover:text-gray-900 transition rounded-full">{t('landingLogin')}</Link>
+                <Link to="/register" className="px-5 py-2 bg-[#16a34a] hover:bg-green-700 text-white text-sm font-bold rounded-full transition shadow-sm">{t('landingGetStarted')}</Link>
               </>
             )}
           </div>
@@ -353,23 +369,23 @@ export const LandingPage = () => {
         <div ref={heroRef.ref} className="relative max-w-5xl mx-auto">
           <div className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white border border-green-200 text-green-700 text-xs font-semibold mb-8 shadow-sm ${heroRef.inView ? 'fade-up' : 'opacity-0'}`}>
             <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-            Auto-updated every 2 hours · Germany's green jobs
+            {t('landingBadge')}
           </div>
 
           <h1 className={`text-4xl sm:text-6xl lg:text-8xl font-black text-[#0a1a25] leading-[0.95] tracking-tight mb-6 ${heroRef.inView ? 'fade-up' : 'opacity-0'}`} style={{ animationDelay: '80ms' }}>
-            Your job search,<br /><span className="shimmer-text">on autopilot.</span>
+            {t('landingHeadlineTop')}<br /><span className="shimmer-text">{t('landingHeadlineAccent')}</span>
           </h1>
 
           <p className={`text-gray-500 text-base sm:text-xl leading-relaxed max-w-2xl mx-auto mb-10 ${heroRef.inView ? 'fade-up' : 'opacity-0'}`} style={{ animationDelay: '160ms' }}>
-            afavers fetches, filters, and tracks every relevant green job in Germany — automatically. You focus on applying.
+            {t('landingSubtitle')}
           </p>
 
           <div className={`flex flex-col sm:flex-row gap-3 justify-center mb-10 ${heroRef.inView ? 'fade-up' : 'opacity-0'}`} style={{ animationDelay: '240ms' }}>
             <Link to="/register" className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-[#0a1a25] hover:bg-gray-800 text-white font-bold rounded-2xl text-base transition-all hover:shadow-2xl hover:-translate-y-0.5">
-              Start for free <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
+              {t('landingStartFree')} <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
             </Link>
             <Link to="/demo" className="inline-flex items-center justify-center px-8 py-4 bg-white/80 border border-gray-200 hover:bg-white text-gray-700 font-semibold rounded-2xl text-base transition shadow-sm">
-              Browse live jobs
+              {t('landingBrowseLive')}
             </Link>
           </div>
 
@@ -379,9 +395,9 @@ export const LandingPage = () => {
                 <div key={i} className="w-7 h-7 sm:w-8 sm:h-8 rounded-full border-2 border-white flex items-center justify-center text-[10px] font-black text-white" style={{ background: c }}>{['M','A','J','T','S'][i]}</div>
               ))}
             </div>
-            <span className="text-xs sm:text-sm">200+ job seekers trust afavers</span>
+            <span className="text-xs sm:text-sm">{t('landingTrust')}</span>
             <span className="hidden sm:inline text-gray-200">·</span>
-            <span className="text-[#16a34a] font-semibold text-xs sm:text-sm">Free forever</span>
+            <span className="text-[#16a34a] font-semibold text-xs sm:text-sm">{t('landingFreeForever')}</span>
           </div>
         </div>
 
@@ -393,22 +409,22 @@ export const LandingPage = () => {
               <div className="flex-1 bg-white rounded-lg px-3 py-1.5 text-xs text-gray-400 text-center border border-gray-200">afavers.online/dashboard</div>
             </div>
             <div className="bg-[#f4f6fa] p-5 grid grid-cols-4 gap-3">
-              {[{ label:'Total Jobs',value:'2,418',c:'text-[#16a34a]'},{label:'Saved',value:'12',c:'text-blue-600'},{label:'Applied',value:'7',c:'text-violet-600'},{label:'Interviews',value:'2',c:'text-orange-500'}].map(s => (
+              {[{ label:t('totalJobs'),value:'2,418',c:'text-[#16a34a]'},{label:t('saved'),value:'12',c:'text-blue-600'},{label:t('applied'),value:'7',c:'text-violet-600'},{label:t('interviewing'),value:'2',c:'text-orange-500'}].map(s => (
                 <div key={s.label} className="bg-white rounded-xl border border-gray-200 p-4"><p className="text-xs text-gray-500 mb-1">{s.label}</p><p className={`text-2xl font-black ${s.c}`}>{s.value}</p></div>
               ))}
               <div className="col-span-3 bg-white rounded-xl border border-gray-200 p-4">
-                <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-3">Latest Jobs</p>
+                <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-3">{t('landingLatestJobs')}</p>
                 {SAMPLE_JOBS.slice(0,3).map((j,i)=>(
                   <div key={i} className="flex items-center gap-3 py-2 border-b border-gray-50 last:border-0">
                     <div className={`w-8 h-8 rounded-lg ${CARD_COLORS[i]} flex items-center justify-center text-white text-xs font-black shrink-0`}>{j.company[0]}</div>
                     <div className="flex-1 min-w-0"><p className="text-xs font-semibold text-gray-900 truncate">{j.title}</p><p className="text-xs text-gray-400">{j.company}</p></div>
-                    <span className="shrink-0 px-2 py-0.5 bg-green-50 text-green-700 text-[10px] font-semibold rounded-full border border-green-100">New</span>
+                    <span className="shrink-0 px-2 py-0.5 bg-green-50 text-green-700 text-[10px] font-semibold rounded-full border border-green-100">{t('landingNew')}</span>
                   </div>
                 ))}
               </div>
               <div className="bg-white rounded-xl border border-gray-200 p-4">
-                <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-3">Pipeline</p>
-                {[['Saved','bg-blue-100 text-blue-700','12'],['Applied','bg-violet-100 text-violet-700','7'],['Interview','bg-orange-100 text-orange-700','2']].map(([l,c,n])=>(
+                <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-3">{t('landingPipeline')}</p>
+                {[[t('saved'),'bg-blue-100 text-blue-700','12'],[t('applied'),'bg-violet-100 text-violet-700','7'],[t('interviewing'),'bg-orange-100 text-orange-700','2']].map(([l,c,n])=>(
                   <div key={l} className="flex items-center justify-between mb-2"><span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${c}`}>{l}</span><span className="text-xs font-black text-gray-700">{n}</span></div>
                 ))}
               </div>
@@ -421,7 +437,7 @@ export const LandingPage = () => {
       {/* ── Stats ── */}
       <section className="py-16 sm:py-20 bg-white border-y border-gray-100">
         <div ref={statsRef.ref} className="max-w-4xl mx-auto px-6 grid grid-cols-1 sm:grid-cols-3 gap-8 text-center">
-          {[{num:'2,400+',label:'Active green jobs',sub:'Updated every 2 hours'},{num:'50+',label:'Cities covered',sub:'Across Germany'},{num:'< 60s',label:'Setup time',sub:'Really, we promise'}].map((s,i)=>(
+          {[{num:'2,400+',label:t('landingStatsJobs'),sub:t('landingStatsJobsSub')},{num:'50+',label:t('landingStatsCities'),sub:t('landingStatsCitiesSub')},{num:'< 60s',label:t('landingStatsSetup'),sub:t('landingStatsSetupSub')}].map((s,i)=>(
             <div key={s.label} style={{opacity:statsRef.inView?1:0,transform:statsRef.inView?'translateY(0)':'translateY(24px)',transition:`all 0.7s cubic-bezier(0.16,1,0.3,1) ${i*100}ms`}}>
               <div className="text-5xl sm:text-6xl font-black text-[#0a1a25] mb-2">{s.num}</div>
               <div className="text-sm font-semibold text-gray-700">{s.label}</div>
@@ -433,19 +449,19 @@ export const LandingPage = () => {
 
       {/* ── Use cases ── */}
       <section id="use-cases" className="bg-white">
-        {USE_CASES.map((uc, i) => <UseCaseRow key={i} uc={uc} i={i} />)}
+        {useCases.map((uc, i) => <UseCaseRow key={i} uc={uc} i={i} />)}
       </section>
 
       {/* ── Live Jobs ── */}
       <section id="jobs" className="py-16 sm:py-24 bg-[#f4f6fa] border-y border-gray-100">
         <div className="max-w-6xl mx-auto px-6 mb-8 sm:mb-10 flex items-end justify-between">
           <div>
-            <p className="text-[#16a34a] text-xs font-bold uppercase tracking-widest mb-2">Live right now</p>
-            <h2 className="text-2xl sm:text-4xl font-black text-[#0a1a25]">Jobs available today</h2>
-            <p className="text-gray-400 text-sm mt-1">{jobs.length > 0 ? `${jobs.length} listings · refreshed every 2h` : 'Loading…'}</p>
+            <p className="text-[#16a34a] text-xs font-bold uppercase tracking-widest mb-2">{t('landingLiveNow')}</p>
+            <h2 className="text-2xl sm:text-4xl font-black text-[#0a1a25]">{t('landingJobsToday')}</h2>
+            <p className="text-gray-400 text-sm mt-1">{jobs.length > 0 ? `${jobs.length} ${t('landingListings')}` : t('landingLoading')}</p>
           </div>
           <Link to={isAuthenticated ? '/jobs' : '/demo'} className="text-sm font-semibold text-[#0a1a25] hover:text-gray-600 transition flex items-center gap-1 shrink-0">
-            See all <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
+            {t('landingSeeAll')} <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
           </Link>
         </div>
         <div className="flex gap-4 overflow-x-auto px-6 pb-4 scrollbar-hide snap-x snap-mandatory">
@@ -461,7 +477,7 @@ export const LandingPage = () => {
               <p className="text-gray-400 text-xs mb-4">{job.company} · {job.location}</p>
               <div className="mt-auto">
                 {job.salary ? <span className="inline-block px-2.5 py-1 bg-gray-100 text-gray-600 text-xs font-medium rounded-lg">{job.salary}</span>
-                  : <span className="inline-block px-2.5 py-1 bg-green-50 text-green-700 text-xs font-semibold rounded-lg border border-green-100">View job →</span>}
+                  : <span className="inline-block px-2.5 py-1 bg-green-50 text-green-700 text-xs font-semibold rounded-lg border border-green-100">{t('viewFullListing')}</span>}
               </div>
             </button>
           ))}
@@ -469,8 +485,8 @@ export const LandingPage = () => {
             <div className="w-11 h-11 rounded-xl bg-gray-100 flex items-center justify-center">
               <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
             </div>
-            <div><p className="text-gray-900 font-bold text-sm mb-1">See all jobs</p><p className="text-gray-400 text-xs">Track & apply in one place</p></div>
-            <Link to="/register" className="w-full text-center px-4 py-2.5 bg-[#0a1a25] hover:bg-gray-800 text-white text-sm font-bold rounded-xl transition">Sign up free →</Link>
+            <div><p className="text-gray-900 font-bold text-sm mb-1">{t('landingSeeAllJobs')}</p><p className="text-gray-400 text-xs">{t('landingTrackApply')}</p></div>
+            <Link to="/register" className="w-full text-center px-4 py-2.5 bg-[#0a1a25] hover:bg-gray-800 text-white text-sm font-bold rounded-xl transition">{t('landingSignupFree')}</Link>
           </div>
         </div>
       </section>
@@ -479,19 +495,19 @@ export const LandingPage = () => {
       <section id="extension" className="py-16 sm:py-24 px-6 bg-white border-y border-gray-100">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-12 sm:mb-16">
-            <p className="text-[#16a34a] text-xs font-bold uppercase tracking-widest mb-3">Browser Extension</p>
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-[#0a1a25] mb-4">Save any job from any website.<br className="hidden sm:block" /> In one click.</h2>
-            <p className="text-gray-500 text-base sm:text-lg max-w-xl mx-auto">Browsing LinkedIn, StepStone, or any job board? Click the afavers extension and save that job straight to your tracker — no copy-pasting.</p>
+            <p className="text-[#16a34a] text-xs font-bold uppercase tracking-widest mb-3">{t('landingExtension')}</p>
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-[#0a1a25] mb-4">{t('landingExtensionTitle')}</h2>
+            <p className="text-gray-500 text-base sm:text-lg max-w-xl mx-auto">{t('landingExtensionBody')}</p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 mt-8">
               <a href="/afavers-chrome-extension.zip" download="afavers-chrome-extension.zip"
                 className="w-full sm:w-auto inline-flex items-center justify-center gap-3 px-6 py-3 bg-[#0a1a25] hover:bg-gray-800 text-white font-semibold rounded-2xl transition hover:shadow-lg hover:-translate-y-0.5">
                 <svg viewBox="0 0 24 24" className="w-5 h-5 fill-white"><path d="M12 0C8.21 0 4.831 1.757 2.632 4.501l3.953 6.848A5.454 5.454 0 0 1 12 6.545h10.691A12 12 0 0 0 12 0zM1.931 5.47A11.943 11.943 0 0 0 0 12c0 6.012 4.42 10.991 10.189 11.864l3.953-6.847a5.45 5.45 0 0 1-6.865-2.29zm13.342 2.166a5.446 5.446 0 0 1 1.45 7.09l.002.001h-.002l-5.344 9.257c.206.01.413.016.621.016 6.627 0 12-5.373 12-12 0-1.54-.29-3.011-.818-4.364zM12 10.545a1.455 1.455 0 1 0 0 2.91 1.455 1.455 0 0 0 0-2.91z"/></svg>
-                Download for Chrome
+                {t('landingDownloadChrome')}
               </a>
               <a href="https://addons.mozilla.org/firefox/addon/afavers-job-capture/" target="_blank" rel="noopener noreferrer"
                 className="w-full sm:w-auto inline-flex items-center justify-center gap-3 px-6 py-3 bg-white border border-gray-200 hover:border-gray-300 hover:bg-gray-50 text-gray-700 font-semibold rounded-2xl transition">
                 <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none"><path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2z" fill="#FF6611"/><path d="M12 4.5c-1.8 0-3.45.63-4.75 1.67.48-.1.98-.17 1.5-.17 3.59 0 6.5 2.91 6.5 6.5 0 1.2-.33 2.33-.9 3.3A7.5 7.5 0 0 0 12 4.5z" fill="white" opacity="0.6"/></svg>
-                Add to Firefox
+                {t('landingAddFirefox')}
               </a>
             </div>
           </div>
@@ -504,24 +520,24 @@ export const LandingPage = () => {
                 icon: (
                   <svg className="w-6 h-6 text-[#16a34a]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
                 ),
-                title: 'Install the extension',
-                desc: 'Add afavers to Chrome or Firefox in seconds. It sits quietly in your browser toolbar.',
+                title: t('landingStepInstall'),
+                desc: t('landingStepInstallDesc'),
               },
               {
                 step: '02',
                 icon: (
                   <svg className="w-6 h-6 text-[#16a34a]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
                 ),
-                title: 'Browse any job board',
-                desc: 'LinkedIn, StepStone, Indeed, XING — browse wherever you normally look for jobs.',
+                title: t('landingStepBrowse'),
+                desc: t('landingStepBrowseDesc'),
               },
               {
                 step: '03',
                 icon: (
                   <svg className="w-6 h-6 text-[#16a34a]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" /></svg>
                 ),
-                title: 'Click to save & track',
-                desc: 'Hit the afavers icon on any job page. It\'s instantly saved to your dashboard — title, company, URL and all.',
+                title: t('landingStepSave'),
+                desc: t('landingStepSaveDesc'),
               },
             ].map((s, i) => (
               <div key={i} className="relative bg-[#f4f6fa] rounded-2xl p-7 border border-gray-100 hover:border-green-200 hover:shadow-md transition-all">
@@ -543,16 +559,16 @@ export const LandingPage = () => {
                   <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" /></svg>
                 </div>
                 <span className="text-sm font-bold text-[#0a1a25]">afavers</span>
-                <span className="ml-auto text-[10px] font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded-full border border-green-100">● Connected</span>
+                <span className="ml-auto text-[10px] font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded-full border border-green-100">● {t('landingConnected')}</span>
               </div>
-              <p className="text-xs text-gray-500 mb-1 font-medium">Job detected on this page</p>
+              <p className="text-xs text-gray-500 mb-1 font-medium">{t('landingDetected')}</p>
               <p className="text-sm font-bold text-[#0a1a25] mb-0.5 truncate">Sustainability Manager (m/w/d)</p>
               <p className="text-xs text-gray-400 mb-4">GreenConsult GmbH · LinkedIn</p>
               <button className="w-full py-2.5 bg-[#16a34a] hover:bg-green-700 text-white text-sm font-bold rounded-xl transition flex items-center justify-center gap-2">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" /></svg>
-                Save to afavers
+                {t('landingSaveToAfavers')}
               </button>
-              <p className="text-[10px] text-gray-400 text-center mt-2">Saved jobs sync to your dashboard instantly</p>
+              <p className="text-[10px] text-gray-400 text-center mt-2">{t('landingSync')}</p>
             </div>
           </div>
         </div>
@@ -562,12 +578,12 @@ export const LandingPage = () => {
       <section className="py-20 sm:py-32 px-6 bg-white">
         <div ref={ctaRef.ref} className="max-w-3xl mx-auto text-center" style={{ opacity: ctaRef.inView ? 1 : 0, transform: ctaRef.inView ? 'translateY(0)' : 'translateY(32px)', transition: 'all 0.8s cubic-bezier(0.16,1,0.3,1)' }}>
           <h2 className="text-4xl sm:text-5xl md:text-7xl font-black text-[#0a1a25] leading-tight mb-6">
-            Your next job<br /><span className="shimmer-text">starts here.</span>
+            {t('landingFinalTop')}<br /><span className="shimmer-text">{t('landingFinalAccent')}</span>
           </h2>
-          <p className="text-gray-500 text-base sm:text-xl mb-10 sm:mb-12">Free forever · No credit card · Set up in 60 seconds.</p>
+          <p className="text-gray-500 text-base sm:text-xl mb-10 sm:mb-12">{t('landingFinalSub')}</p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link to="/register" className="px-10 py-4 bg-[#0a1a25] hover:bg-gray-800 text-white font-bold rounded-2xl text-base transition-all hover:shadow-2xl hover:-translate-y-0.5">Start for free →</Link>
-            <Link to="/login" className="px-10 py-4 border border-gray-200 hover:border-gray-300 hover:bg-gray-50 text-gray-700 font-semibold rounded-2xl text-base transition">Already have an account</Link>
+            <Link to="/register" className="px-10 py-4 bg-[#0a1a25] hover:bg-gray-800 text-white font-bold rounded-2xl text-base transition-all hover:shadow-2xl hover:-translate-y-0.5">{t('landingStartFree')} →</Link>
+            <Link to="/login" className="px-10 py-4 border border-gray-200 hover:border-gray-300 hover:bg-gray-50 text-gray-700 font-semibold rounded-2xl text-base transition">{t('landingAlreadyAccount')}</Link>
           </div>
         </div>
       </section>
@@ -577,11 +593,11 @@ export const LandingPage = () => {
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-5">
           <img src="/logo.png" alt="afavers" className="h-16 w-auto"
             onError={e => { const t = e.target as HTMLImageElement; t.style.display = 'none'; (t.parentElement as HTMLElement).insertAdjacentHTML('afterbegin', '<span style="font-size:1.1rem;font-weight:900;color:#0a1a25">afavers</span>'); }} />
-          <p className="text-gray-400 text-sm">© {new Date().getFullYear()} afavers · Green job tracker for Germany</p>
+          <p className="text-gray-400 text-sm">© {new Date().getFullYear()} afavers · {t('landingFooter')}</p>
           <div className="flex gap-6 text-sm font-medium text-gray-400">
-            {!isAuthenticated && <Link to="/login" className="hover:text-gray-900 transition">Log in</Link>}
-            {!isAuthenticated && <Link to="/register" className="hover:text-gray-900 transition">Sign up</Link>}
-            <Link to="/disclaimer" className="hover:text-gray-900 transition">Privacy</Link>
+            {!isAuthenticated && <Link to="/login" className="hover:text-gray-900 transition">{t('landingLogin')}</Link>}
+            {!isAuthenticated && <Link to="/register" className="hover:text-gray-900 transition">{t('createAccount')}</Link>}
+            <Link to="/disclaimer" className="hover:text-gray-900 transition">{t('landingPrivacy')}</Link>
           </div>
         </div>
       </footer>
@@ -599,9 +615,9 @@ export const LandingPage = () => {
             </div>
             <h2 className="text-xl font-black text-gray-900 mb-4 leading-snug">{selectedJob.title}</h2>
             {selectedJob.salary && <span className="inline-block px-3 py-1.5 bg-gray-100 text-gray-700 text-sm font-semibold rounded-xl mb-6">{selectedJob.salary}</span>}
-            <a href={selectedJob.url} target="_blank" rel="noopener noreferrer" className="block w-full text-center py-3.5 bg-[#0a1a25] hover:bg-gray-800 text-white font-bold text-sm rounded-2xl mb-3 transition">Go to job posting ↗</a>
-            <Link to="/register" className="block w-full text-center py-3 border border-gray-200 hover:border-gray-400 text-gray-600 font-semibold text-sm rounded-2xl transition">Sign up to track this application</Link>
-            <p className="text-center text-xs text-gray-400 mt-3">Free · No credit card required</p>
+            <a href={selectedJob.url} target="_blank" rel="noopener noreferrer" className="block w-full text-center py-3.5 bg-[#0a1a25] hover:bg-gray-800 text-white font-bold text-sm rounded-2xl mb-3 transition">{t('landingGoPosting')}</a>
+            <Link to="/register" className="block w-full text-center py-3 border border-gray-200 hover:border-gray-400 text-gray-600 font-semibold text-sm rounded-2xl transition">{t('landingTrackApplication')}</Link>
+            <p className="text-center text-xs text-gray-400 mt-3">{t('landingNoCard')}</p>
           </div>
         </div>
       )}

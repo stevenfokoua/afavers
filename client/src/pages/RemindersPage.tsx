@@ -1,14 +1,23 @@
 import { useState, useEffect } from 'react';
 import { useReminderStore, type Reminder, type ReminderType } from '../store/reminderStore';
 import { scheduleReminder, cancelReminder, requestNotificationPermission } from '../services/notification.service';
+import { useLanguage } from '../store/languageStore';
 
 // ── Type config ────────────────────────────────────────────────────────────────
-const TYPE_CONFIG: Record<ReminderType, { label: string; color: string; ring: string; bg: string }> = {
-  interview: { label: 'Interview',  color: 'bg-purple-500', ring: 'ring-purple-400', bg: 'bg-purple-50' },
-  followup:  { label: 'Follow-up',  color: 'bg-amber-500',  ring: 'ring-amber-400',  bg: 'bg-amber-50'  },
-  deadline:  { label: 'Deadline',   color: 'bg-red-500',    ring: 'ring-red-400',    bg: 'bg-red-50'    },
-  custom:    { label: 'Reminder',   color: 'bg-blue-500',   ring: 'ring-blue-400',   bg: 'bg-blue-50'   },
+const TYPE_CONFIG: Record<ReminderType, { labelKey: string; color: string; ring: string; bg: string }> = {
+  interview: { labelKey: 'calendarInterview',  color: 'bg-purple-500', ring: 'ring-purple-400', bg: 'bg-purple-50' },
+  followup:  { labelKey: 'calendarFollowUp',  color: 'bg-amber-500',  ring: 'ring-amber-400',  bg: 'bg-amber-50'  },
+  deadline:  { labelKey: 'deadline',   color: 'bg-red-500',    ring: 'ring-red-400',    bg: 'bg-red-50'    },
+  custom:    { labelKey: 'reminder',   color: 'bg-blue-500',   ring: 'ring-blue-400',   bg: 'bg-blue-50'   },
 };
+
+const groupLabelKey = (label: string) => ({
+  Today: 'today',
+  Tomorrow: 'tomorrow',
+  'This Week': 'thisWeek',
+  Upcoming: 'upcoming',
+  Overdue: 'overdue',
+}[label] ?? label);
 
 // ── Group helpers ──────────────────────────────────────────────────────────────
 function groupReminders(reminders: Reminder[]) {
@@ -58,6 +67,7 @@ const CheckCircle = ({ completed, color }: { completed: boolean; color: string }
 
 // ── New reminder form ──────────────────────────────────────────────────────────
 const NewReminderForm = ({ onSave, onCancel }: { onSave: (r: Omit<Reminder, 'id' | 'completed'>) => void; onCancel: () => void }) => {
+  const { t } = useLanguage();
   const todayStr = new Date().toISOString().slice(0, 10);
   const nowTime  = new Date().toTimeString().slice(0, 5);
 
@@ -77,14 +87,14 @@ const NewReminderForm = ({ onSave, onCancel }: { onSave: (r: Omit<Reminder, 'id'
       <div className="bg-white w-full sm:max-w-md sm:rounded-2xl rounded-t-2xl shadow-2xl overflow-hidden animate-slide-up">
         {/* Header */}
         <div className="flex items-center justify-between px-5 pt-5 pb-3">
-          <button onClick={onCancel} className="text-sm text-gray-400 hover:text-gray-600 transition">Cancel</button>
-          <h2 className="text-base font-bold text-gray-900">New Reminder</h2>
+          <button onClick={onCancel} className="text-sm text-gray-400 hover:text-gray-600 transition">{t('cancel')}</button>
+          <h2 className="text-base font-bold text-gray-900">{t('newReminder')}</h2>
           <button
             onClick={handleSave}
             disabled={!title.trim()}
             className="text-sm font-bold text-green-600 disabled:text-gray-300 transition"
           >
-            Add
+            {t('add')}
           </button>
         </div>
 
@@ -96,7 +106,7 @@ const NewReminderForm = ({ onSave, onCancel }: { onSave: (r: Omit<Reminder, 'id'
             value={title}
             onChange={e => setTitle(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && handleSave()}
-            placeholder="Title"
+            placeholder={t('title')}
             className="w-full text-lg font-medium text-gray-900 placeholder-gray-300 border-b border-gray-200 pb-2 outline-none focus-visible:border-green-500 transition bg-transparent"
           />
 
@@ -104,7 +114,7 @@ const NewReminderForm = ({ onSave, onCancel }: { onSave: (r: Omit<Reminder, 'id'
           <textarea
             value={notes}
             onChange={e => setNotes(e.target.value)}
-            placeholder="Notes"
+            placeholder={t('notes')}
             rows={2}
             className="w-full text-sm text-gray-700 placeholder-gray-300 border-b border-gray-200 pb-2 outline-none resize-none focus-visible:border-green-500 transition bg-transparent"
           />
@@ -112,7 +122,7 @@ const NewReminderForm = ({ onSave, onCancel }: { onSave: (r: Omit<Reminder, 'id'
           {/* Date + Time */}
           <div className="grid grid-cols-2 gap-3">
             <div className="bg-gray-50 rounded-xl p-3">
-              <p className="text-xs text-gray-400 font-medium mb-1">Date</p>
+              <p className="text-xs text-gray-400 font-medium mb-1">{t('date')}</p>
               <input
                 type="date"
                 value={date}
@@ -121,7 +131,7 @@ const NewReminderForm = ({ onSave, onCancel }: { onSave: (r: Omit<Reminder, 'id'
               />
             </div>
             <div className="bg-gray-50 rounded-xl p-3">
-              <p className="text-xs text-gray-400 font-medium mb-1">Time</p>
+              <p className="text-xs text-gray-400 font-medium mb-1">{t('time')}</p>
               <input
                 type="time"
                 value={time}
@@ -133,7 +143,7 @@ const NewReminderForm = ({ onSave, onCancel }: { onSave: (r: Omit<Reminder, 'id'
 
           {/* Type pills */}
           <div>
-            <p className="text-xs text-gray-400 font-medium mb-2">Type</p>
+            <p className="text-xs text-gray-400 font-medium mb-2">{t('type')}</p>
             <div className="flex flex-wrap gap-2">
               {(Object.entries(TYPE_CONFIG) as [ReminderType, typeof TYPE_CONFIG[ReminderType]][]).map(([k, v]) => (
                 <button
@@ -146,7 +156,7 @@ const NewReminderForm = ({ onSave, onCancel }: { onSave: (r: Omit<Reminder, 'id'
                   }`}
                 >
                   <span className={`w-2 h-2 rounded-full ${v.color}`} />
-                  {v.label}
+                  {t(v.labelKey)}
                 </button>
               ))}
             </div>
@@ -167,6 +177,7 @@ const ReminderRow = ({
   onToggle: () => void;
   onDelete: () => void;
 }) => {
+  const { t } = useLanguage();
   const cfg = TYPE_CONFIG[reminder.type];
   const [showDelete, setShowDelete] = useState(false);
 
@@ -206,7 +217,7 @@ const ReminderRow = ({
           onClick={onDelete}
           className="shrink-0 text-xs font-semibold text-red-500 bg-red-50 px-2.5 py-1 rounded-lg hover:bg-red-100 transition"
         >
-          Delete
+          {t('delete')}
         </button>
       )}
     </div>
@@ -215,6 +226,7 @@ const ReminderRow = ({
 
 // ── Main page ──────────────────────────────────────────────────────────────────
 export const RemindersPage = () => {
+  const { t } = useLanguage();
   const { reminders, addReminder, toggleComplete, removeReminder } = useReminderStore();
   const [showForm, setShowForm] = useState(false);
   const [showCompleted, setShowCompleted] = useState(false);
@@ -247,8 +259,8 @@ export const RemindersPage = () => {
       <div className="bg-white border-b border-gray-100 px-5 pt-6 pb-4">
         <div className="flex items-end justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Reminders</h1>
-            <p className="text-sm text-gray-400 mt-0.5">{active.length} remaining</p>
+            <h1 className="text-3xl font-bold text-gray-900 tracking-tight">{t('reminders')}</h1>
+            <p className="text-sm text-gray-400 mt-0.5">{active.length} {t('remaining')}</p>
           </div>
           <button
             onClick={() => setShowForm(true)}
@@ -268,7 +280,7 @@ export const RemindersPage = () => {
             return (
               <div key={k} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold shrink-0 ${v.bg} text-gray-700`}>
                 <span className={`w-2 h-2 rounded-full ${v.color}`} />
-                {v.label} · {count}
+                {t(v.labelKey)} · {count}
               </div>
             );
           })}
@@ -285,13 +297,13 @@ export const RemindersPage = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
               </svg>
             </div>
-            <p className="text-lg font-bold text-gray-900 mb-1">No reminders yet</p>
-            <p className="text-sm text-gray-400 mb-6">Tap + to create your first reminder. It will notify you at the right time.</p>
+            <p className="text-lg font-bold text-gray-900 mb-1">{t('noReminders')}</p>
+            <p className="text-sm text-gray-400 mb-6">{t('noRemindersHint')}</p>
             <button
               onClick={() => setShowForm(true)}
               className="px-6 py-2.5 bg-green-600 text-white text-sm font-semibold rounded-xl hover:bg-green-700 active:scale-95 transition shadow-sm"
             >
-              New Reminder
+              {t('newReminder')}
             </button>
           </div>
         )}
@@ -304,7 +316,7 @@ export const RemindersPage = () => {
                 group.label === 'Overdue' ? 'text-red-500' :
                 group.label === 'Today' ? 'text-green-600' : 'text-gray-400'
               }`}>
-                {group.label}
+                {t(groupLabelKey(group.label))}
               </span>
             </div>
             <div className="bg-white rounded-2xl shadow-sm overflow-hidden mx-4 divide-y divide-gray-100">
@@ -330,7 +342,7 @@ export const RemindersPage = () => {
               <svg className={`w-3.5 h-3.5 transition-transform ${showCompleted ? 'rotate-90' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
               </svg>
-              Completed · {completed.length}
+              {t('completed')} · {completed.length}
             </button>
             {showCompleted && (
               <div className="bg-white rounded-2xl shadow-sm overflow-hidden divide-y divide-gray-100">

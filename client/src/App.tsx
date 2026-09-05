@@ -57,7 +57,6 @@ function App() {
         <Route path="/kanban"       element={<ProtectedLayout><KanbanPage /></ProtectedLayout>} />
         <Route path="/settings"     element={<ProtectedLayout><SettingsPage /></ProtectedLayout>} />
         <Route path="/setup"        element={<ProtectedLayout><SetupPage /></ProtectedLayout>} />
-        <Route path="/english-jobs" element={<Navigate to="/jobs?language=en" replace />} />
         <Route path="/analytics"    element={<ProtectedLayout><AnalyticsPage /></ProtectedLayout>} />
         <Route path="/hotpicks"        element={<ProtectedLayout><HotpicksPage /></ProtectedLayout>} />
         <Route path="/interview-prep" element={<ProtectedLayout><InterviewPrepPage /></ProtectedLayout>} />

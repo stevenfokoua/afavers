@@ -225,6 +225,11 @@ export const JobDetailPage = () => {
               <div className="flex items-start justify-between gap-4 mb-5">
                 <div>
                   <h1 className="text-xl font-bold text-gray-900 leading-tight">{job.title}</h1>
+                  {job.is_active === false && (
+                    <span className="inline-block mt-1.5 px-2.5 py-0.5 rounded-full bg-gray-100 text-gray-500 text-xs font-medium">
+                      {t('noLongerListed')}
+                    </span>
+                  )}
                   <p className="text-base text-gray-700 mt-1 font-medium">{job.company}</p>
                   {job.location && (
                     <p className="text-sm text-gray-400 mt-0.5 flex items-center gap-1">

@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { friendlyErrorMessage } from '../utils/errorMessage';
 import { useLanguage } from '../store/languageStore';
+import { LanguageToggle } from '../components/common/LanguageToggle';
 
 export const RegisterPage = () => {
   const [email, setEmail] = useState('');
@@ -44,6 +45,9 @@ export const RegisterPage = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 via-blue-50 to-indigo-100">
+      <div className="absolute right-4 top-4">
+        <LanguageToggle />
+      </div>
       <div className="max-w-md w-full mx-4">
         <div className="bg-white rounded-2xl shadow-xl p-8">
           <div className="text-center mb-8">

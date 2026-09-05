@@ -13,10 +13,33 @@ export interface ExternalJob {
   salary?: string;
 }
 
+export interface SourceFetchResult {
+  jobs: ExternalJob[];
+  /** False when the run stopped early (time budget) — cleanup must be skipped. */
+  complete: boolean;
+}
+
 const BA_URL = 'https://rest.arbeitsagentur.de/jobboerse/jobsuche-service/pc/v4/app/jobs';
 const ADZUNA_URL = 'https://api.adzuna.com/v1/api/jobs/de/search';
 const DEFAULT_KEYWORDS = ['consulting', 'beratung', 'nachhaltigkeit', 'umwelt', 'gis', 'energy'];
 const DEFAULT_LOCATIONS = ['Düsseldorf', 'Köln', 'Essen', 'Bochum', 'Dortmund'];
+
+// Edge workers are killed at ~150s of wall clock. Budget the run so results are
+// always saved before that: stop issuing search requests at FETCH_BUDGET_MS and
+// stop cleanup deletes at RUN_BUDGET_MS.
+export const FETCH_BUDGET_MS = 85_000;
+export const RUN_BUDGET_MS = 135_000;
+const BA_CONCURRENCY = 6;
+const REQUEST_TIMEOUT_MS = 8_000;
+const WRITE_CHUNK = 500;
+// external_id in() filters travel in the URL; keep chunks small enough to
+// stay under gateway URL-length limits (~30 chars per id).
+const ID_FILTER_CHUNK = 150;
+const SELECT_PAGE = 1000;
+// A job is stale when no fetch has refreshed its updated_at for this long.
+// The cron runs every 2 hours, so 3 days ≈ 36 chances to be re-listed.
+const STALE_AFTER_MS = 3 * 24 * 60 * 60 * 1000;
+const MAX_DELETES_PER_RUN = 5000;
 
 function env(name: string): string {
   return Deno.env.get(name) ?? '';
@@ -28,8 +51,12 @@ export function adminClient() {
   });
 }
 
-function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
+function chunk<T>(items: T[], size: number): T[][] {
+  const chunks: T[][] = [];
+  for (let i = 0; i < items.length; i += size) {
+    chunks.push(items.slice(i, i + size));
+  }
+  return chunks;
 }
 
 function cleanText(value = ''): string {
@@ -52,18 +79,45 @@ export async function getSearchConfig(): Promise<{ keywords: string[]; locations
   const { data, error } = await supabase.rpc('get_search_config').single();
   if (error || !data) return { keywords: DEFAULT_KEYWORDS, locations: DEFAULT_LOCATIONS };
   return {
-    keywords: data.keywords ?? DEFAULT_KEYWORDS,
-    locations: data.locations ?? DEFAULT_LOCATIONS,
+    keywords: keywords.size ? [...keywords].slice(0, 80) : DEFAULT_KEYWORDS,
+    locations: locations.size ? [...locations].slice(0, 32) : DEFAULT_LOCATIONS,
   };
 }
 
-export async function fetchBundesagenturJobs(keywords: string[], locations: string[]): Promise<ExternalJob[]> {
-  const jobs: ExternalJob[] = [];
-  const apiKey = env('BUNDESAGENTUR_API_KEY');
-  if (!apiKey) throw new Error('BUNDESAGENTUR_API_KEY is not configured');
+export async function fetchBundesagenturJobs(
+  keywords: string[],
+  locations: string[],
+  deadlineAt: number = Number.POSITIVE_INFINITY,
+): Promise<SourceFetchResult> {
+  const apiKey = env('BUNDESAGENTUR_API_KEY') || 'jobboerse-jobsuche';
+  const pairs: Array<{ keyword: string; location: string }> = [];
+  for (const keyword of keywords.slice(0, 40)) {
+    for (const location of locations.slice(0, 20)) {
+      pairs.push({ keyword, location });
+    }
+  }
 
-  for (const keyword of keywords.slice(0, 20)) {
-    for (const location of locations.slice(0, 12)) {
+  // Rotate the starting point per cron cycle so that when a run is cut off by
+  // the time budget, it is not always the same tail of pairs that never runs.
+  if (pairs.length > 1) {
+    const offset = Math.floor(Date.now() / 7_200_000) % pairs.length;
+    pairs.push(...pairs.splice(0, offset));
+  }
+
+  const jobs: ExternalJob[] = [];
+  let complete = true;
+  let next = 0;
+
+  async function worker(): Promise<void> {
+    while (true) {
+      const index = next++;
+      if (index >= pairs.length) return;
+      if (Date.now() > deadlineAt) {
+        complete = false;
+        return;
+      }
+
+      const { keyword, location } = pairs[index];
       const url = new URL(BA_URL);
       url.searchParams.set('was', keyword);
       url.searchParams.set('wo', location);
@@ -72,14 +126,27 @@ export async function fetchBundesagenturJobs(keywords: string[], locations: stri
       url.searchParams.set('pav', 'false');
       url.searchParams.set('umkreis', '25');
 
-      for (let page = 1; page <= 5; page++) {
-        url.searchParams.set('page', String(page));
-        try {
-          const response = await fetch(url, {
-            headers: {
-              'User-Agent': 'afavers-job-fetch/1.0 (+ops@afavers.online)',
-              'X-API-Key': apiKey,
-            },
+      try {
+        const response = await fetch(url, {
+          headers: {
+            'User-Agent': 'Jobsuche/2.9.2 (de.arbeitsagentur.jobboerse; build:1077; iOS 15.1.0) Alamofire/5.4.4',
+            'X-API-Key': apiKey,
+          },
+          signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+        });
+        if (!response.ok) continue;
+        const data = await response.json();
+        for (const item of data?.stellenangebote ?? []) {
+          const city = item.arbeitsort?.ort || location || 'Germany';
+          const plz = item.arbeitsort?.plz || '';
+          jobs.push({
+            id: `bundesagentur_${item.refnr}`,
+            title: item.titel || item.beruf || 'No title',
+            company: item.arbeitgeber || 'Not specified',
+            location: plz ? `${city} (${plz})` : city,
+            description: `Position: ${item.beruf || 'Not specified'}`,
+            url: `https://www.arbeitsagentur.de/jobsuche/jobdetail/${item.refnr}`,
+            postedDate: item.aktuelleVeroeffentlichungsdatum || item.modifikationsTimestamp,
           });
           if (!response.ok) break;
           const data = await response.json();
@@ -102,25 +169,30 @@ export async function fetchBundesagenturJobs(keywords: string[], locations: stri
           break;
         }
       }
-
-      await sleep(250);
     }
   }
 
-  return jobs;
+  await Promise.all(Array.from({ length: BA_CONCURRENCY }, () => worker()));
+  return { jobs, complete };
 }
 
-export async function fetchAdzunaJobs(keywords: string[], locations: string[]): Promise<ExternalJob[]> {
+export async function fetchAdzunaJobs(deadlineAt: number = Number.POSITIVE_INFINITY): Promise<SourceFetchResult> {
   const appId = env('ADZUNA_APP_ID');
   const appKey = env('ADZUNA_APP_KEY');
-  if (!appId || !appKey) return [];
+  if (!appId || !appKey) return { jobs: [], complete: true };
 
   const keywordsToQuery = keywords.slice(0, 12);
   const locationsToQuery = locations.slice(0, 8);
   const jobs: ExternalJob[] = [];
+  let complete = true;
 
-  for (const keyword of keywordsToQuery) {
-    for (const location of locationsToQuery) {
+  for (const keyword of keywords) {
+    for (const location of locations) {
+      if (Date.now() > deadlineAt) {
+        complete = false;
+        return { jobs, complete };
+      }
+
       const url = new URL(`${ADZUNA_URL}/1`);
       url.searchParams.set('app_id', appId);
       url.searchParams.set('app_key', appKey);
@@ -129,7 +201,7 @@ export async function fetchAdzunaJobs(keywords: string[], locations: string[]): 
       url.searchParams.set('where', location);
 
       try {
-        const response = await fetch(url);
+        const response = await fetch(url, { signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS) });
         if (!response.ok) continue;
         const data = await response.json();
         for (const item of data?.results ?? []) {
@@ -150,12 +222,10 @@ export async function fetchAdzunaJobs(keywords: string[], locations: string[]): 
       } catch (error) {
         console.error('fetchAdzunaJobs failed', { keyword, location, error });
       }
-
-      await sleep(250);
     }
   }
 
-  return jobs;
+  return { jobs, complete };
 }
 
 function dedupe(jobs: ExternalJob[]): ExternalJob[] {
@@ -168,63 +238,95 @@ function dedupe(jobs: ExternalJob[]): ExternalJob[] {
 }
 
 /**
- * Remove jobs from a given source that are no longer returned by the latest fetch,
- * as long as no user has interacted with them (status still 'new' or missing).
- * Safety: if the latest fetch returned no IDs for the source we keep everything
- * (prevents wiping the table when an upstream API is temporarily failing).
+ * Handle fetched jobs that no upstream feed has returned recently (their
+ * updated_at was last bumped by a fetch more than STALE_AFTER_MS ago).
+ *
+ * Deleting a jobs row CASCADEs into user_jobs, which destroys saved statuses,
+ * notes, cover letters and history — so:
+ *   - stale jobs ANY user has tracked are soft-deleted (is_active = false and
+ *     shown as "no longer listed" in the client; re-listing revives them),
+ *   - only completely untracked stale jobs are hard-deleted.
+ * Manual jobs are never touched (the cron never refreshes them). All reads are
+ * paginated (a single PostgREST request is capped at 1000 rows, which
+ * previously hid most of the table from this cleanup), and deletes stop at the
+ * run deadline and are capped per run.
  */
-export async function deleteStaleJobs(source: string, activeExternalIds: string[]): Promise<number> {
-  if (!activeExternalIds.length) return 0;
+export async function cleanupStaleJobs(
+  deadlineAt: number = Number.POSITIVE_INFINITY,
+): Promise<{ deleted: number; deactivated: number }> {
   const supabase = adminClient();
+  const cutoff = new Date(Date.now() - STALE_AFTER_MS).toISOString();
 
-  // Find candidate stale rows for this source (not in the active id list).
-  const chunks: string[][] = [];
-  const chunkSize = 500;
-  for (let i = 0; i < activeExternalIds.length; i += chunkSize) {
-    chunks.push(activeExternalIds.slice(i, i + chunkSize));
+  const staleIds: number[] = [];
+  for (let from = 0; ; from += SELECT_PAGE) {
+    const { data, error } = await supabase
+      .from('jobs')
+      .select('id')
+      .neq('source', 'manual')
+      .lt('updated_at', cutoff)
+      .order('id', { ascending: true })
+      .range(from, from + SELECT_PAGE - 1);
+    if (error) throw error;
+    for (const row of data ?? []) staleIds.push(row.id);
+    if ((data ?? []).length < SELECT_PAGE) break;
+  }
+  if (!staleIds.length) return { deleted: 0, deactivated: 0 };
+
+  const trackedJobIds = new Set<number>();
+  for (let from = 0; ; from += SELECT_PAGE) {
+    const { data, error } = await supabase
+      .from('user_jobs')
+      .select('job_id')
+      .order('job_id', { ascending: true })
+      .range(from, from + SELECT_PAGE - 1);
+    if (error) throw error;
+    for (const row of data ?? []) trackedJobIds.add(row.job_id);
+    if ((data ?? []).length < SELECT_PAGE) break;
   }
 
-  // Pull all ids for this source, then filter client-side for any not in the active set.
-  const { data: currentRows, error: selectError } = await supabase
-    .from('jobs')
-    .select('id, external_id')
-    .eq('source', source);
-  if (selectError) throw selectError;
+  const toDeactivate = staleIds.filter((id) => trackedJobIds.has(id));
+  const toDelete = staleIds
+    .filter((id) => !trackedJobIds.has(id))
+    .slice(0, MAX_DELETES_PER_RUN);
 
-  const activeSet = new Set(activeExternalIds);
-  const candidateIds = (currentRows ?? [])
-    .filter((row) => row.external_id && !activeSet.has(row.external_id))
-    .map((row) => row.id);
-  if (!candidateIds.length) return 0;
-
-  // Only delete rows that no user has touched (all user_jobs rows for that job are either absent or status='new').
-  const { data: touched, error: touchedError } = await supabase
-    .from('user_jobs')
-    .select('job_id,status')
-    .in('job_id', candidateIds);
-  if (touchedError) throw touchedError;
-  const touchedIds = new Set((touched ?? []).filter((row) => row.status && row.status !== 'new').map((row) => row.job_id));
-  const deletable = candidateIds.filter((id) => !touchedIds.has(id));
-  if (!deletable.length) return 0;
+  let deactivated = 0;
+  for (const batch of chunk(toDeactivate, WRITE_CHUNK)) {
+    if (Date.now() > deadlineAt) break;
+    const { error, count } = await supabase
+      .from('jobs')
+      .update({ is_active: false }, { count: 'exact' })
+      .eq('is_active', true)
+      .in('id', batch);
+    if (error) throw error;
+    deactivated += count ?? 0;
+  }
 
   let deleted = 0;
-  for (let i = 0; i < deletable.length; i += chunkSize) {
-    const batch = deletable.slice(i, i + chunkSize);
+  for (const batch of chunk(toDelete, WRITE_CHUNK)) {
+    if (Date.now() > deadlineAt) break;
     const { error, count } = await supabase.from('jobs').delete({ count: 'exact' }).in('id', batch);
     if (error) throw error;
     deleted += count ?? 0;
   }
-  return deleted;
+  return { deleted, deactivated };
 }
 
-export async function saveJobs(jobs: ExternalJob[]): Promise<{ total: number; inserted: number; updated: number; failed: number; deleted: number }> {
+export async function saveJobs(
+  jobs: ExternalJob[],
+): Promise<{ total: number; inserted: number; updated: number; failed: number }> {
   const supabase = adminClient();
   const unique = dedupe(jobs);
-  const ids = unique.map((job) => job.id);
-  const { data: existing } = ids.length
-    ? await supabase.from('jobs').select('external_id').in('external_id', ids)
-    : { data: [] as { external_id: string }[] };
-  const existingIds = new Set((existing ?? []).map((row) => row.external_id));
+
+  if (!unique.length) {
+    return { total: 0, inserted: 0, updated: 0, failed: 0 };
+  }
+
+  const existingIds = new Set<string>();
+  for (const ids of chunk(unique.map((job) => job.id), ID_FILTER_CHUNK)) {
+    const { data, error } = await supabase.from('jobs').select('external_id').in('external_id', ids);
+    if (error) throw error;
+    for (const row of data ?? []) existingIds.add(row.external_id);
+  }
 
   const rows = unique.map((job) => ({
     external_id: job.id,
@@ -238,30 +340,14 @@ export async function saveJobs(jobs: ExternalJob[]): Promise<{ total: number; in
     deadline: toIsoDateOrNull(job.deadline),
     salary: job.salary ?? null,
     language: detectLanguage(job.title, job.description),
+    // A job returned by a feed is listed again — revive it if it was stale.
+    is_active: true,
     updated_at: new Date().toISOString(),
   }));
 
-  if (!rows.length) {
-    return { total: 0, inserted: 0, updated: 0, failed: 0, deleted: 0 };
-  }
-
-  const { error } = await supabase.from('jobs').upsert(rows, { onConflict: 'external_id' });
-  if (error) throw error;
-
-  // Clean up stale jobs per source (only ones no user has tracked).
-  const bySource = new Map<string, string[]>();
-  for (const job of unique) {
-    const source = job.id.split('_')[0];
-    if (!bySource.has(source)) bySource.set(source, []);
-    bySource.get(source)!.push(job.id);
-  }
-  let deleted = 0;
-  for (const [source, activeIds] of bySource) {
-    try {
-      deleted += await deleteStaleJobs(source, activeIds);
-    } catch (error) {
-      console.error(`deleteStaleJobs(${source}) failed:`, error);
-    }
+  for (const batch of chunk(rows, WRITE_CHUNK)) {
+    const { error } = await supabase.from('jobs').upsert(batch, { onConflict: 'external_id' });
+    if (error) throw error;
   }
 
   return {
@@ -269,6 +355,5 @@ export async function saveJobs(jobs: ExternalJob[]): Promise<{ total: number; in
     inserted: unique.filter((job) => !existingIds.has(job.id)).length,
     updated: unique.filter((job) => existingIds.has(job.id)).length,
     failed: 0,
-    deleted,
   };
 }

@@ -139,6 +139,11 @@ const KanbanCard = ({ job, onClick, faded, t, locale, dragHandleProps, compact =
     </h3>
     <p className="text-xs font-medium text-gray-600 mb-1 line-clamp-1">{job.company}</p>
     <p className="text-xs text-gray-400 line-clamp-1">📍 {job.location}</p>
+    {job.is_active === false && (
+      <span className="inline-block mt-1 text-[10px] bg-gray-100 text-gray-500 rounded-full px-2 py-0.5 font-medium">
+        {t('noLongerListed')}
+      </span>
+    )}
     {job.notes && !compact && (
       <p className="text-xs text-gray-500 mt-2 pt-2 border-t border-gray-100 line-clamp-2 italic">
         "{job.notes}"

@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { settingsService } from '../services/settings.service';
 import { markSetupSeen } from '../routes/OnboardingRedirect';
 import { useAuthStore } from '../store/authStore';
+import { useLanguage } from '../store/languageStore';
+import { LanguageToggle } from '../components/common/LanguageToggle';
 
 const FIELD_PRESETS = [
   { label: 'Tech / IT',     keywords: 'developer,software engineer,data analyst,DevOps,IT',            emoji: '💻' },
@@ -62,6 +64,7 @@ const ProgressDots = ({ current }: { current: number }) => (
 
 export const SetupPage = () => {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const userId = useAuthStore((state) => state.user?.id);
   const [step, setStep] = useState(0);
   const [keywords, setKeywords] = useState('');
@@ -133,6 +136,9 @@ export const SetupPage = () => {
 
   return (
     <div className="min-h-screen bg-[#f4f6fa] flex items-center justify-center p-4" style={{ fontFamily: "'Lato', 'Inter', sans-serif" }}>
+      <div className="absolute right-4 top-4">
+        <LanguageToggle />
+      </div>
       <div className="max-w-md w-full">
 
         {step > 0 && step < TOTAL_STEPS && <ProgressDots current={step - 1} />}
@@ -149,15 +155,15 @@ export const SetupPage = () => {
                     <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
                   </svg>
                 </div>
-                <h1 className="text-[26px] font-black text-[#0a1a25] leading-tight">Welcome to afavers</h1>
-                <p className="text-[#6f839c] text-[14px] mt-2">Let's set up your personalised job feed.</p>
+                <h1 className="text-[26px] font-black text-[#0a1a25] leading-tight">{t('setupWelcome')}</h1>
+                <p className="text-[#6f839c] text-[14px] mt-2">{t('setupSubtitle')}</p>
               </div>
 
               <div className="space-y-3 mb-8">
                 {[
-                  { icon: '⏱️', title: 'Auto-fetched every 2 hours', desc: 'Jobs from Bundesagentur für Arbeit, refreshed automatically' },
-                  { icon: '📋', title: 'Track every application', desc: 'Kanban board, follow-ups, interview dates — all in one place' },
-                  { icon: '🎯', title: 'Personalised for you', desc: 'Match score, cities, job types, language, and weekly goals' },
+                  { icon: '⏱️', title: t('setupAutoTitle'), desc: t('setupAutoDesc') },
+                  { icon: '📋', title: t('setupTrackTitle'), desc: t('setupTrackDesc') },
+                  { icon: '🎯', title: t('setupPersonalTitle'), desc: t('setupPersonalDesc') },
                 ].map(({ icon, title, desc }) => (
                   <div key={title} className="flex items-start gap-3 p-3 rounded-xl bg-[#f4f6fa]">
                     <span className="text-xl shrink-0 mt-0.5">{icon}</span>
@@ -173,13 +179,13 @@ export const SetupPage = () => {
                 onClick={() => setStep(1)}
                 className="w-full bg-[#16a34a] hover:bg-green-700 text-white font-black py-3.5 px-4 rounded-xl transition text-[15px] shadow-[0_2px_8px_0_rgba(22,163,74,0.3)] active:scale-[0.98]"
               >
-                Set up my feed →
+                {t('setupFeed')}
               </button>
               <button
                 onClick={() => { markSetupSeen(userId); navigate('/dashboard'); }}
                 className="w-full text-[13px] text-[#c1cbd5] hover:text-[#6f839c] transition mt-3 py-1.5 font-bold"
               >
-                Skip — I'll set up later
+                {t('setupSkip')}
               </button>
             </div>
           )}
@@ -189,8 +195,8 @@ export const SetupPage = () => {
             <div className="p-8">
               <div className="text-center mb-7">
                 <div className="text-4xl mb-3">🎯</div>
-                <h2 className="text-[22px] font-black text-[#0a1a25]">What kind of jobs?</h2>
-                <p className="text-[#6f839c] text-[13px] mt-1.5">Pick a field or type your own keywords</p>
+                <h2 className="text-[22px] font-black text-[#0a1a25]">{t('setupWhatJobs')}</h2>
+                <p className="text-[#6f839c] text-[13px] mt-1.5">{t('setupWhatJobsDesc')}</p>
               </div>
 
               <div className="grid grid-cols-2 gap-2.5 mb-5">
@@ -213,20 +219,20 @@ export const SetupPage = () => {
 
               <div>
                 <label className="block text-[12px] font-black text-[#6f839c] uppercase tracking-wide mb-1.5">
-                  Custom keywords <span className="normal-case font-normal">(comma-separated)</span>
+                  {t('setupCustomKeywords')} <span className="normal-case font-normal">{t('setupComma')}</span>
                 </label>
                 <textarea
                   rows={2}
                   value={keywords}
                   onChange={e => { setKeywords(e.target.value); setSelectedField(null); }}
                   className="w-full px-3 py-2.5 border border-[#dfe3eb] rounded-xl focus-visible:ring-2 focus-visible:ring-[#16a34a] focus-visible:border-transparent outline-none text-[13px] resize-none text-[#0a1a25] bg-[#f4f6fa]"
-                  placeholder="e.g. project manager, analyst, Ingenieur"
+                  placeholder={t('setupKeywordPlaceholder')}
                 />
               </div>
 
               <div className="mt-4">
                 <label className="block text-[12px] font-black text-[#6f839c] uppercase tracking-wide mb-2">
-                  Job types
+                  {t('setupJobTypes')}
                 </label>
                 <div className="flex flex-wrap gap-2">
                   {JOB_TYPE_PRESETS.map(type => (
@@ -248,14 +254,14 @@ export const SetupPage = () => {
 
               <div className="flex justify-between items-center mt-6">
                 <button onClick={() => setStep(0)} className="text-[13px] font-bold text-[#c1cbd5] hover:text-[#6f839c] transition">
-                  ← Back
+                  {t('setupBack')}
                 </button>
                 <button
                   onClick={() => setStep(2)}
                   disabled={!keywords.trim()}
                   className="px-6 py-2.5 bg-[#0a1a25] hover:bg-[#223a5a] disabled:opacity-30 disabled:cursor-not-allowed text-white font-black rounded-xl transition text-[13px] active:scale-[0.98]"
                 >
-                  Next →
+                  {t('setupNext')}
                 </button>
               </div>
             </div>
@@ -266,8 +272,8 @@ export const SetupPage = () => {
             <div className="p-8">
               <div className="text-center mb-7">
                 <div className="text-4xl mb-3">📍</div>
-                <h2 className="text-[22px] font-black text-[#0a1a25]">Where are you looking?</h2>
-                <p className="text-[#6f839c] text-[13px] mt-1.5">Select cities — pick as many as you like</p>
+                <h2 className="text-[22px] font-black text-[#0a1a25]">{t('setupWhere')}</h2>
+                <p className="text-[#6f839c] text-[13px] mt-1.5">{t('setupWhereDesc')}</p>
               </div>
 
               <div className="flex flex-wrap gap-2 mb-4">
@@ -288,20 +294,20 @@ export const SetupPage = () => {
 
               <div className="mb-5">
                 <label className="block text-[12px] font-black text-[#6f839c] uppercase tracking-wide mb-1.5">
-                  Other cities
+                  {t('setupOtherCities')}
                 </label>
                 <input
                   type="text"
                   value={locations}
                   onChange={e => setLocations(e.target.value)}
                   className="w-full px-3 py-2.5 border border-[#dfe3eb] rounded-xl focus-visible:ring-2 focus-visible:ring-[#16a34a] focus-visible:border-transparent outline-none text-[13px] text-[#0a1a25] bg-[#f4f6fa]"
-                  placeholder="e.g. Bonn, Wuppertal, remote"
+                  placeholder={t('setupOtherCitiesPlaceholder')}
                 />
               </div>
 
               <div className="mb-5">
                 <label className="block text-[12px] font-black text-[#6f839c] uppercase tracking-wide mb-2">
-                  Search radius
+                  {t('setupRadius')}
                 </label>
                 <div className="grid grid-cols-4 gap-2">
                   {['10', '25', '50', '100'].map(value => (
@@ -323,7 +329,7 @@ export const SetupPage = () => {
 
               <div>
                 <label className="block text-[12px] font-black text-[#6f839c] uppercase tracking-wide mb-2">
-                  Working language
+                  {t('setupLanguage')}
                 </label>
                 <div className="space-y-2">
                   {LANGUAGE_PRESETS.map(option => (
@@ -346,14 +352,14 @@ export const SetupPage = () => {
 
               <div className="flex justify-between items-center mt-6">
                 <button onClick={() => setStep(1)} className="text-[13px] font-bold text-[#c1cbd5] hover:text-[#6f839c] transition">
-                  ← Back
+                  {t('setupBack')}
                 </button>
                 <button
                   onClick={() => setStep(3)}
                   disabled={saving || (!locations.trim() && selectedCities.length === 0)}
                   className="px-6 py-2.5 bg-[#16a34a] hover:bg-green-700 disabled:opacity-30 disabled:cursor-not-allowed text-white font-black rounded-xl transition text-[13px] shadow-[0_2px_8px_0_rgba(22,163,74,0.3)] active:scale-[0.98] flex items-center gap-2"
                 >
-                  Next →
+                  {t('setupNext')}
                 </button>
               </div>
             </div>
@@ -364,13 +370,13 @@ export const SetupPage = () => {
             <div className="p-8">
               <div className="text-center mb-7">
                 <div className="text-4xl mb-3">📆</div>
-                <h2 className="text-[22px] font-black text-[#0a1a25]">Keep momentum</h2>
-                <p className="text-[#6f839c] text-[13px] mt-1.5">Set a goal and tell afavers how to prioritize jobs.</p>
+                <h2 className="text-[22px] font-black text-[#0a1a25]">{t('setupMomentum')}</h2>
+                <p className="text-[#6f839c] text-[13px] mt-1.5">{t('setupMomentumDesc')}</p>
               </div>
 
               <div className="mb-5">
                 <label className="block text-[12px] font-black text-[#6f839c] uppercase tracking-wide mb-2">
-                  Weekly application goal
+                  {t('setupWeeklyGoal')}
                 </label>
                 <div className="grid grid-cols-4 gap-2">
                   {['3', '5', '8', '12'].map(value => (
@@ -392,7 +398,7 @@ export const SetupPage = () => {
 
               <div>
                 <label className="block text-[12px] font-black text-[#6f839c] uppercase tracking-wide mb-2">
-                  Work status <span className="normal-case font-normal">(optional)</span>
+                  {t('setupWorkStatus')} <span className="normal-case font-normal">{t('setupOptional')}</span>
                 </label>
                 <div className="space-y-2">
                   {WORK_STATUS_PRESETS.map(option => (
@@ -413,15 +419,15 @@ export const SetupPage = () => {
               </div>
 
               <div className="mt-5 rounded-xl bg-[#f4f6fa] border border-[#dfe3eb] p-3">
-                <p className="text-[13px] font-black text-[#0a1a25]">After setup</p>
+                <p className="text-[13px] font-black text-[#0a1a25]">{t('setupAfter')}</p>
                 <p className="text-[12px] text-[#6f839c] leading-snug mt-1">
-                  You will land on your strongest matches first. Hot Picks will use this profile for swipe decisions.
+                  {t('setupAfterDesc')}
                 </p>
               </div>
 
               <div className="flex justify-between items-center mt-6">
                 <button onClick={() => setStep(2)} className="text-[13px] font-bold text-[#c1cbd5] hover:text-[#6f839c] transition">
-                  ← Back
+                  {t('setupBack')}
                 </button>
                 <button
                   onClick={handleSave}
@@ -434,9 +440,9 @@ export const SetupPage = () => {
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
                       </svg>
-                      Setting up…
+                      {t('setupSettingUp')}
                     </>
-                  ) : 'Find my jobs 🚀'}
+                  ) : t('setupFindJobs')}
                 </button>
               </div>
             </div>
@@ -445,7 +451,7 @@ export const SetupPage = () => {
         </div>
 
         <p className="text-center text-[12px] text-[#c1cbd5] mt-5 font-bold">
-          You can change all preferences anytime in Settings
+          {t('setupChangeLater')}
         </p>
       </div>
     </div>

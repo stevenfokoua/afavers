@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { useLanguage } from '../store/languageStore';
 import { friendlyErrorMessage } from '../utils/errorMessage';
+import { LanguageToggle } from '../components/common/LanguageToggle';
 
 export const LoginPage = () => {
   const [email, setEmail] = useState('');
@@ -46,6 +47,9 @@ export const LoginPage = () => {
 
   return (
     <div className="min-h-screen flex bg-gradient-to-br from-green-50 via-white to-emerald-50">
+      <div className="absolute right-4 top-4 z-20">
+        <LanguageToggle />
+      </div>
 
       {/* Left panel — branding (hidden on mobile) */}
       <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-green-600 to-emerald-700 flex-col justify-between p-12 relative overflow-hidden">

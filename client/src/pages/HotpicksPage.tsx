@@ -18,37 +18,55 @@ const IconFire = ({ size = 24 }: { size?: number }) => (
   </svg>
 );
 
-const IconRefresh = ({ size = 20 }: { size?: number }) => (
+const IconRefresh = ({ size = 18 }: { size?: number }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M1 4v6h6M23 20v-6h-6"/>
     <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4-4.64 4.36A9 9 0 0 1 3.51 15"/>
   </svg>
 );
 
-const IconStar = ({ size = 18 }: { size?: number }) => (
+const IconStar = ({ size = 16 }: { size?: number }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
     <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
   </svg>
 );
 
+const IconArrowUp = ({ size = 16 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M12 19V5" />
+    <path d="m5 12 7-7 7 7" />
+  </svg>
+);
+
+const IconCheck = ({ size = 16 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M20 6 9 17l-5-5" />
+  </svg>
+);
+
+const IconX = ({ size = 16 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M18 6 6 18" />
+    <path d="m6 6 12 12" />
+  </svg>
+);
+
 const SOURCE_LABELS: Record<string, { label: string; cls: string }> = {
   bundesagentur: { label: 'Bundesagentur', cls: 'bg-blue-50 text-blue-600 border-blue-100' },
-  adzuna:        { label: 'Adzuna',        cls: 'bg-purple-50 text-purple-600 border-purple-100' },
+  adzuna: { label: 'Adzuna', cls: 'bg-purple-50 text-purple-600 border-purple-100' },
 };
 
 export const HotpicksPage = () => {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const { filterKeywords, filterEnabled } = usePreferencesStore();
   const { show: showToast } = useToastStore();
-  const { t } = useLanguage();
   const [queue, setQueue] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
   const [exhausted, setExhausted] = useState(false);
   const [lastAction, setLastAction] = useState<'saved' | 'passed' | 'soon' | null>(null);
   const [lastSwiped, setLastSwiped] = useState<{ job: Job; direction: SwipeDirection } | null>(null);
   const [sessionStats, setSessionStats] = useState({ saved: 0, passed: 0, soon: 0 });
-
-  // Swipe state
   const [dragOffset, setDragOffset] = useState(0);
   const [isSwiping, setIsSwiping] = useState(false);
   const [flying, setFlying] = useState<SwipeDirection | null>(null);
@@ -64,19 +82,17 @@ export const HotpicksPage = () => {
     fetchMore();
   }, []);
 
-  // Pre-fetch next batch when queue runs low
   useEffect(() => {
     if (!loading && queue.length < 5 && !exhausted) {
       fetchMore();
     }
-  }, [queue.length, exhausted]);
+  }, [queue.length, exhausted, loading]);
 
-  // Keyboard navigation (desktop)
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (flying || queue.length === 0) return;
       if (e.key === 'ArrowRight' || e.key === 'd') triggerAction('right');
-      if (e.key === 'ArrowLeft'  || e.key === 'a') triggerAction('left');
+      if (e.key === 'ArrowLeft' || e.key === 'a') triggerAction('left');
       if (e.key === 'ArrowUp' || e.key === 'w') triggerAction('up');
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'z') handleUndo();
     };
@@ -98,8 +114,8 @@ export const HotpicksPage = () => {
       if (response.jobs.length === 0) {
         setExhausted(true);
       } else {
-        const filtered = response.jobs.filter(j => jobMatchesFilter(j, filterKeywords, filterEnabled));
-        setQueue(prev => [...prev, ...filtered]);
+        const filtered = response.jobs.filter((job) => jobMatchesFilter(job, filterKeywords, filterEnabled));
+        setQueue((prev) => [...prev, ...filtered]);
         fetchOffsetRef.current += response.jobs.length;
       }
     } catch (err) {
@@ -126,7 +142,7 @@ export const HotpicksPage = () => {
     setFlying(direction);
     const job = queue[0];
     setTimeout(async () => {
-      setQueue(prev => prev.slice(1));
+      setQueue((prev) => prev.slice(1));
       setDragOffset(0);
       dragOffsetRef.current = 0;
       dragYRef.current = 0;
@@ -134,7 +150,7 @@ export const HotpicksPage = () => {
       setIsSwiping(false);
       lockedDir.current = null;
       setLastSwiped({ job, direction });
-      setSessionStats(prev => ({
+      setSessionStats((prev) => ({
         saved: prev.saved + (direction === 'right' ? 1 : 0),
         passed: prev.passed + (direction === 'left' ? 1 : 0),
         soon: prev.soon + (direction === 'up' ? 1 : 0),
@@ -159,9 +175,9 @@ export const HotpicksPage = () => {
   const handleUndo = async () => {
     if (!lastSwiped || flying) return;
     const { job, direction } = lastSwiped;
-    setQueue(prev => [job, ...prev.filter(item => item.id !== job.id)]);
+    setQueue((prev) => [job, ...prev.filter((item) => item.id !== job.id)]);
     setLastSwiped(null);
-    setSessionStats(prev => ({
+    setSessionStats((prev) => ({
       saved: Math.max(0, prev.saved - (direction === 'right' ? 1 : 0)),
       passed: Math.max(0, prev.passed - (direction === 'left' ? 1 : 0)),
       soon: Math.max(0, prev.soon - (direction === 'up' ? 1 : 0)),
@@ -178,7 +194,6 @@ export const HotpicksPage = () => {
     }
   };
 
-  // Touch handlers
   const onTouchStart = (e: React.TouchEvent) => {
     if (flying) return;
     startX.current = e.touches[0].clientX;
@@ -212,7 +227,8 @@ export const HotpicksPage = () => {
       if (dragOffsetRef.current > SWIPE_THRESHOLD) {
         triggerAction('right');
         return;
-      } else if (dragOffsetRef.current < -SWIPE_THRESHOLD) {
+      }
+      if (dragOffsetRef.current < -SWIPE_THRESHOLD) {
         triggerAction('left');
         return;
       }
@@ -228,62 +244,50 @@ export const HotpicksPage = () => {
     lockedDir.current = null;
   };
 
-  const rotation = dragOffset * 0.07;
-  const saveOpacity = Math.min(Math.max(dragOffset / SWIPE_THRESHOLD, 0), 1);
-  const passOpacity = Math.min(Math.max(-dragOffset / SWIPE_THRESHOLD, 0), 1);
-
+  const rotation = dragOffset * 0.05;
   const cardStyle = flying
     ? {
         transform: flying === 'up'
-          ? 'translateY(-760px) scale(0.96)'
-          : `translateX(${flying === 'right' ? 700 : -700}px) rotate(${flying === 'right' ? 30 : -30}deg)`,
+          ? 'translateY(-520px) scale(0.98)'
+          : `translateX(${flying === 'right' ? 520 : -520}px) rotate(${flying === 'right' ? 16 : -16}deg)`,
         transition: 'transform 0.32s ease',
-        zIndex: 10,
       }
     : {
         transform: `translateX(${dragOffset}px) rotate(${rotation}deg)`,
         transition: isSwiping ? 'none' : 'transform 0.25s ease',
         touchAction: 'pan-y' as const,
-        zIndex: 10,
       };
 
-  // ── Loading ──
   if (loading) {
     return (
-      <div className="flex items-center justify-center bg-gradient-to-b from-orange-50 to-rose-50" style={{ height: 'calc(100dvh - 5rem)' }}>
+      <div className="flex items-center justify-center bg-gray-50" style={{ height: 'calc(100dvh - 5rem)' }}>
         <div className="text-center">
-          <div className="text-rose-500 mb-4"><IconFire size={48} /></div>
-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-rose-500"></div>
+          <div className="mb-4 text-green-600"><IconFire size={42} /></div>
+          <div className="inline-block h-8 w-8 animate-spin rounded-full border-b-2 border-green-600" />
         </div>
       </div>
     );
   }
 
-  // ── Empty ──
   if (!loading && queue.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center bg-gradient-to-b from-orange-50 to-rose-50 px-6 text-center" style={{ height: 'calc(100dvh - 5rem)' }}>
-        <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mb-4 mx-auto">
-          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-            <polyline points="22 4 12 14.01 9 11.01"/>
-          </svg>
+      <div className="flex flex-col items-center justify-center bg-gray-50 px-6 text-center" style={{ height: 'calc(100dvh - 5rem)' }}>
+        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
+          <IconCheck size={32} />
         </div>
-        <h2 className="text-xl font-bold text-gray-900 mb-2">All caught up!</h2>
-        <p className="text-gray-500 text-sm mb-8">
-          You've seen all the latest jobs.<br />Check back later for fresh picks.
-        </p>
+        <h2 className="mb-2 text-xl font-bold text-gray-900">{t('allCaughtUp')}</h2>
+        <p className="mb-8 text-sm text-gray-500">{t('freshPicksHint')}</p>
         <button
           onClick={handleRefresh}
-          className="px-6 py-3 bg-rose-500 hover:bg-rose-600 text-white font-semibold rounded-2xl shadow-lg transition active:scale-95"
+          className="rounded-lg bg-green-600 px-6 py-3 font-semibold text-white shadow-sm transition hover:bg-green-700 active:scale-95"
         >
-          <span className="flex items-center gap-2"><IconRefresh size={16} /> Start over</span>
+          <span className="flex items-center gap-2"><IconRefresh size={16} /> {t('startOver')}</span>
         </button>
         <button
           onClick={() => navigate('/jobs')}
-          className="mt-4 text-sm text-gray-400 hover:text-gray-600 transition"
+          className="mt-4 text-sm text-gray-500 transition hover:text-gray-700"
         >
-          Browse all jobs →
+          {t('browseAllJobs')}
         </button>
       </div>
     );
@@ -292,191 +296,249 @@ export const HotpicksPage = () => {
   const currentJob = queue[0];
   const nextJob = queue[1];
   const afterJob = queue[2];
-  const src = SOURCE_LABELS[currentJob?.source?.toLowerCase()] ?? { label: currentJob?.source, cls: 'bg-gray-100 text-gray-500 border-gray-200' };
+  const src = SOURCE_LABELS[currentJob?.source?.toLowerCase()] ?? { label: currentJob?.source || 'Source', cls: 'bg-gray-100 text-gray-500 border-gray-200' };
 
   return (
-    <div
-      className="flex flex-col bg-gradient-to-b from-orange-50 to-rose-50 overflow-hidden"
-      style={{ height: 'calc(100dvh - 5rem)' }}
-    >
-      {/* Header */}
-      <div className="flex items-center justify-between px-5 pt-4 pb-2 shrink-0">
-        <div>
-          <h1 className="text-lg font-bold text-gray-900 flex items-center gap-1.5"><span className="text-rose-500"><IconFire size={20} /></span> Hot Picks</h1>
-          <p className="text-xs text-gray-400">{queue.length} in today's deck</p>
-        </div>
-        <button
-          onClick={handleUndo}
-          disabled={!lastSwiped || !!flying}
-          className="text-xs font-bold px-3 py-1.5 rounded-full bg-white border border-gray-200 text-gray-500 disabled:opacity-30 hover:text-gray-900 transition"
-        >
-          Undo
-        </button>
-        {lastAction && (
-          <span className={`text-base font-bold px-4 py-1.5 rounded-full animate-pulse ${
-            lastAction === 'saved' ? 'bg-yellow-100 text-yellow-700' : lastAction === 'soon' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-500'
-          }`}>
-            {lastAction === 'saved'
-              ? <span className="flex items-center gap-1"><IconStar size={14} /> Saved!</span>
-              : lastAction === 'soon'
-                ? 'Apply soon'
-                : '✕ Passed'}
-          </span>
-        )}
-      </div>
-
-      {/* Swipe hint (shows briefly at first) */}
-      <p className="text-center text-xs text-gray-400 mb-1 shrink-0">← Pass · Save ⭐ → · ↑ Apply soon</p>
-
-      {/* Card stack */}
-      <div className="flex-1 flex items-center justify-center px-5 relative min-h-0">
-
-        {/* Card 3 (furthest back) */}
-        {afterJob && (
-          <div
-            className="absolute w-full max-w-sm rounded-3xl bg-white border border-gray-100 shadow-sm"
-            style={{ transform: 'scale(0.92) translateY(18px)', zIndex: 2 }}
-          />
-        )}
-
-        {/* Card 2 (middle) */}
-        {nextJob && (
-          <div
-            className="absolute w-full max-w-sm rounded-3xl bg-white border border-gray-100 shadow-md"
-            style={{ transform: 'scale(0.96) translateY(9px)', zIndex: 3 }}
-          />
-        )}
-
-        {/* Card 1 — active, swipeable */}
-        {currentJob && (
-          <div
-            className="absolute w-full max-w-sm bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden cursor-grab active:cursor-grabbing"
-            style={cardStyle}
-            onTouchStart={onTouchStart}
-            onTouchMove={onTouchMove}
-            onTouchEnd={onTouchEnd}
-          >
-            {/* SAVE label */}
-            {saveOpacity > 0.05 && (
-              <div
-                className="absolute top-6 left-5 pointer-events-none z-20"
-                style={{ opacity: saveOpacity }}
-              >
-                <span className="text-xl font-black text-yellow-500 border-[3px] border-yellow-400 rounded-xl px-3 py-1.5"
-                  style={{ transform: 'rotate(-12deg)', display: 'inline-block' }}>
-                  SAVE ⭐
-                </span>
-              </div>
-            )}
-
-            {/* PASS label */}
-            {passOpacity > 0.05 && (
-              <div
-                className="absolute top-6 right-5 pointer-events-none z-20"
-                style={{ opacity: passOpacity }}
-              >
-                <span className="text-xl font-black text-red-500 border-[3px] border-red-400 rounded-xl px-3 py-1.5"
-                  style={{ transform: 'rotate(12deg)', display: 'inline-block' }}>
-                  PASS ✕
-                </span>
-              </div>
-            )}
-
-            <div className="p-6">
-              {/* Source + date */}
-              <div className="flex items-center justify-between mb-5">
-                <span className={`text-xs font-semibold px-2.5 py-1 rounded-full border ${src.cls}`}>
-                  {src.label}
-                </span>
-                <span className="text-xs font-black text-green-700">{currentJob.match_score ?? 0}% match</span>
-              </div>
-
-              {/* Title */}
-              <h2 className="text-xl font-bold text-gray-900 leading-snug mb-2 line-clamp-3">
-                {currentJob.title}
-              </h2>
-
-              {/* Company & location */}
-              <p className="text-sm font-semibold text-gray-600 mb-0.5">{currentJob.company}</p>
-              <p className="text-sm text-gray-400 mb-5">📍 {currentJob.location}</p>
-
-              {currentJob.salary && (
-                <p className="text-sm font-bold text-green-600 mb-4">{currentJob.salary}</p>
-              )}
-
-              <div className="mb-4 rounded-xl bg-green-50 border border-green-100 px-3 py-2">
-                <p className="text-xs font-black text-green-800 mb-1">Why this pick</p>
-                <div className="flex flex-wrap gap-1.5">
-                  {(currentJob.match_reasons ?? []).slice(0, 3).map(reason => (
-                    <span key={reason} className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-white text-green-700 border border-green-100">
-                      {reason}
-                    </span>
-                  ))}
-                  {(currentJob.match_gaps ?? []).slice(0, 1).map(gap => (
-                    <span key={gap} className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-white text-amber-700 border border-amber-100">
-                      Missing: {gap}
-                    </span>
-                  ))}
-                </div>
-              </div>
-
-              <div className="h-px bg-gray-100 mb-4" />
-
-              {/* Description */}
-              {currentJob.description && (
-                <p className="text-sm text-gray-500 leading-relaxed line-clamp-4">
-                  {stripHtml(currentJob.description)}
-                </p>
-              )}
+    <div className="min-h-[calc(100dvh-5rem)] bg-gray-50 pb-24 sm:pb-0">
+      <div className="border-b border-gray-200 bg-white">
+        <div className="mx-auto max-w-6xl px-4 py-4 sm:px-6 sm:py-5">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <h1 className="flex items-center gap-2 text-xl font-bold text-gray-900 sm:text-2xl">
+                <span className="text-green-600"><IconFire size={20} /></span>
+                {t('hotPicks')}
+              </h1>
+              <p className="mt-1 max-w-2xl text-xs text-gray-500 sm:text-sm">{t('hotPicksSubtitle')}</p>
             </div>
-
-            {/* View full job */}
-            <div className="px-6 pb-6">
+            <div className="flex items-center gap-2 self-start">
+              {lastAction && (
+                <span className={`rounded-md border px-2.5 py-1.5 text-xs font-semibold sm:px-3 sm:py-2 sm:text-sm ${
+                  lastAction === 'saved'
+                    ? 'border-yellow-200 bg-yellow-50 text-yellow-800'
+                    : lastAction === 'soon'
+                      ? 'border-blue-200 bg-blue-50 text-blue-800'
+                      : 'border-gray-200 bg-gray-100 text-gray-700'
+                }`}>
+                  {lastAction === 'saved' ? t('savedBang') : lastAction === 'soon' ? t('applySoon') : t('passed')}
+                </span>
+              )}
               <button
-                onClick={() => navigate(`/jobs/${currentJob.id}`)}
-                className="w-full py-2.5 text-sm text-blue-600 bg-blue-50 border border-blue-100 rounded-2xl font-medium hover:bg-blue-100 active:scale-95 transition"
+                onClick={handleUndo}
+                disabled={!lastSwiped || !!flying}
+                className="rounded-md border border-gray-300 bg-white px-2.5 py-1.5 text-xs font-semibold text-gray-600 transition hover:border-gray-400 hover:text-gray-900 disabled:opacity-40 sm:px-3 sm:py-2 sm:text-sm"
               >
-                View full listing →
+                {t('undo')}
               </button>
             </div>
           </div>
-        )}
-      </div>
-
-      {/* Action buttons */}
-      <div className="shrink-0 pb-safe px-6 py-5 flex items-center justify-center gap-12">
-        {/* Pass */}
-        <button
-          onClick={() => triggerAction('left')}
-          disabled={!!flying}
-          className="w-16 h-16 bg-white rounded-full border-2 border-gray-200 shadow-md flex items-center justify-center text-2xl hover:border-red-300 hover:bg-red-50 active:scale-90 transition disabled:opacity-50"
-        >
-          ✕
-        </button>
-
-        <div className="text-center">
-          <p className="text-xl font-bold text-gray-500 tabular-nums">{queue.length}</p>
-          <p className="text-sm text-gray-300 font-medium">{sessionStats.saved} saved · {sessionStats.soon} soon</p>
         </div>
-
-        {/* Save */}
-        <button
-          onClick={() => triggerAction('right')}
-          disabled={!!flying}
-          className="w-16 h-16 bg-yellow-400 rounded-full border-2 border-yellow-400 shadow-md flex items-center justify-center text-2xl hover:bg-yellow-500 active:scale-90 transition disabled:opacity-50"
-        >
-          ⭐
-        </button>
       </div>
 
-      <div className="shrink-0 px-6 pb-3 -mt-3 flex justify-center">
-        <button
-          onClick={() => triggerAction('up')}
-          disabled={!!flying}
-          className="px-4 py-2 rounded-full bg-blue-50 border border-blue-100 text-blue-700 text-xs font-black hover:bg-blue-100 active:scale-95 transition disabled:opacity-50"
-        >
-          Apply soon tomorrow
-        </button>
+      <div className="mx-auto grid max-w-6xl gap-4 px-4 py-4 sm:gap-6 sm:px-6 sm:py-6 lg:grid-cols-[18rem_minmax(0,1fr)]">
+        <aside className="order-2 space-y-4 lg:order-1">
+          <div className="rounded-lg border border-gray-200 bg-white p-4">
+            <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">{t('reviewQueue')}</p>
+            <p className="mt-2 text-3xl font-bold text-gray-900">{queue.length}</p>
+            <p className="mt-1 text-sm text-gray-500">{t('hotPicksDeck')}</p>
+            <div className="mt-4 grid grid-cols-3 gap-2">
+              <div className="rounded-md bg-yellow-50 px-3 py-2 text-center">
+                <p className="text-lg font-bold text-yellow-700">{sessionStats.saved}</p>
+                <p className="text-[11px] font-semibold text-yellow-800">{t('saved')}</p>
+              </div>
+              <div className="rounded-md bg-gray-100 px-3 py-2 text-center">
+                <p className="text-lg font-bold text-gray-700">{sessionStats.passed}</p>
+                <p className="text-[11px] font-semibold text-gray-700">{t('passed')}</p>
+              </div>
+              <div className="rounded-md bg-blue-50 px-3 py-2 text-center">
+                <p className="text-lg font-bold text-blue-700">{sessionStats.soon}</p>
+                <p className="text-[11px] font-semibold text-blue-800">{t('soon')}</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="rounded-lg border border-gray-200 bg-white p-4">
+            <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">{t('upNext')}</p>
+            <p className="mt-2 line-clamp-2 text-sm font-semibold text-gray-900">
+              {nextJob?.title || t('allCaughtUp')}
+            </p>
+            {nextJob && (
+              <p className="mt-1 line-clamp-2 text-xs text-gray-500">
+                {nextJob.company} · {nextJob.location}
+              </p>
+            )}
+            <p className="mt-4 text-xs text-gray-500">{t('swipeStillWorks')}</p>
+          </div>
+
+          <div className="flex gap-2">
+            <button
+              onClick={handleRefresh}
+              className="flex-1 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-gray-700 transition hover:border-gray-400 hover:text-gray-900"
+            >
+              <span className="flex items-center justify-center gap-2"><IconRefresh size={16} /> {t('startOver')}</span>
+            </button>
+            <button
+              onClick={() => navigate('/jobs')}
+              className="flex-1 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-gray-700 transition hover:border-gray-400 hover:text-gray-900"
+            >
+              {t('browseAllJobs')}
+            </button>
+          </div>
+        </aside>
+
+        <section className="order-1 min-w-0 lg:order-2">
+          <div className="mb-3 flex items-center justify-between gap-3 rounded-lg border border-green-100 bg-green-50 px-3 py-2.5 sm:mb-4 sm:px-4 sm:py-3">
+            <p className="text-xs font-medium text-green-800 sm:text-sm">{t('hotPicksHint')}</p>
+            <span className="hidden rounded-md bg-white px-3 py-1.5 text-xs font-semibold text-green-800 sm:inline-block">
+              {t('reviewQueue')}
+            </span>
+          </div>
+
+          <div className="relative min-h-[28rem] sm:min-h-[34rem]">
+            {afterJob && (
+              <div
+                className="absolute inset-x-5 top-4 h-[calc(100%-1rem)] rounded-lg border border-gray-200 bg-white/70 sm:inset-x-8"
+                style={{ transform: 'scale(0.98)', zIndex: 1 }}
+              />
+            )}
+            {nextJob && (
+              <div
+                className="absolute inset-x-2 top-2 h-[calc(100%-0.5rem)] rounded-lg border border-gray-200 bg-white/85 sm:inset-x-4"
+                style={{ transform: 'scale(0.99)', zIndex: 2 }}
+              />
+            )}
+
+            {currentJob && (
+              <div
+                className="relative z-10 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm"
+                style={cardStyle}
+                onTouchStart={onTouchStart}
+                onTouchMove={onTouchMove}
+                onTouchEnd={onTouchEnd}
+              >
+                <div className="border-b border-gray-100 px-4 py-4 sm:px-6 sm:py-5">
+                  <div className="mb-3 flex flex-wrap items-center justify-between gap-2 sm:mb-4 sm:gap-3">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className={`rounded-full border px-2.5 py-1 text-xs font-semibold ${src.cls}`}>
+                        {src.label}
+                      </span>
+                      <span className="rounded-full border border-green-200 bg-green-50 px-2.5 py-1 text-xs font-semibold text-green-800">
+                        {currentJob.match_score ?? 0}% {t('match')}
+                      </span>
+                    </div>
+                    <span className="text-xs font-medium text-gray-400">
+                      {queue.length} {t('hotPicksDeck')}
+                    </span>
+                  </div>
+
+                  <h2 className="text-xl font-bold leading-tight text-gray-900 sm:text-2xl">{currentJob.title}</h2>
+                  <p className="mt-3 text-sm font-semibold text-gray-700 sm:text-base">{currentJob.company}</p>
+                  <p className="mt-1 text-sm text-gray-500">{currentJob.location}</p>
+                  {currentJob.salary && (
+                    <p className="mt-3 text-sm font-semibold text-green-700">{currentJob.salary}</p>
+                  )}
+                </div>
+
+                <div className="space-y-4 px-4 py-4 sm:space-y-5 sm:px-6 sm:py-5">
+                  <div className="rounded-lg border border-green-100 bg-green-50 px-4 py-3">
+                    <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-green-800">{t('whyThisPick')}</p>
+                    <div className="flex flex-wrap gap-2">
+                      {(currentJob.match_reasons ?? []).slice(0, 4).map((reason) => (
+                        <span key={reason} className="rounded-full border border-green-200 bg-white px-2.5 py-1 text-xs font-semibold text-green-800">
+                          {reason}
+                        </span>
+                      ))}
+                      {(currentJob.match_gaps ?? []).slice(0, 2).map((gap) => (
+                        <span key={gap} className="rounded-full border border-amber-200 bg-white px-2.5 py-1 text-xs font-semibold text-amber-800">
+                          {t('missing')}: {gap}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  {currentJob.description && (
+                    <div>
+                      <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-400">{t('jobSummary')}</p>
+                      <p className="line-clamp-5 text-sm leading-6 text-gray-600 sm:line-clamp-6 sm:leading-7">
+                        {stripHtml(currentJob.description)}
+                      </p>
+                    </div>
+                  )}
+
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <button
+                      onClick={() => navigate(`/jobs/${currentJob.id}`)}
+                      className="rounded-md border border-gray-300 bg-white px-4 py-3 text-sm font-semibold text-gray-700 transition hover:border-gray-400 hover:text-gray-900"
+                    >
+                      {t('viewFullListing')}
+                    </button>
+                    <button
+                      onClick={() => navigate('/kanban')}
+                      className="rounded-md border border-gray-300 bg-white px-4 py-3 text-sm font-semibold text-gray-700 transition hover:border-gray-400 hover:text-gray-900"
+                    >
+                      {t('applicationsBoard')}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="mt-4 hidden gap-3 sm:grid sm:grid-cols-3">
+            <button
+              onClick={() => triggerAction('left')}
+              disabled={!!flying}
+              className="flex items-center justify-center gap-2 rounded-md border border-gray-300 bg-white px-4 py-3 text-sm font-semibold text-gray-700 transition hover:border-gray-400 hover:text-gray-900 disabled:opacity-50"
+            >
+              <IconX size={16} />
+              {t('passForNow')}
+            </button>
+            <button
+              onClick={() => triggerAction('right')}
+              disabled={!!flying}
+              className="flex items-center justify-center gap-2 rounded-md border border-yellow-300 bg-yellow-50 px-4 py-3 text-sm font-semibold text-yellow-800 transition hover:bg-yellow-100 disabled:opacity-50"
+            >
+              <IconStar size={16} />
+              {t('saveToBoard')}
+            </button>
+            <button
+              onClick={() => triggerAction('up')}
+              disabled={!!flying}
+              className="flex items-center justify-center gap-2 rounded-md border border-blue-300 bg-blue-50 px-4 py-3 text-sm font-semibold text-blue-800 transition hover:bg-blue-100 disabled:opacity-50"
+            >
+              <IconArrowUp size={16} />
+              {t('applySoon')}
+            </button>
+          </div>
+
+          <div className="fixed inset-x-0 bottom-0 z-20 border-t border-gray-200 bg-white/95 px-4 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-3 shadow-[0_-8px_24px_rgba(15,23,42,0.08)] backdrop-blur sm:hidden">
+            <div className="grid grid-cols-3 gap-2">
+              <button
+                onClick={() => triggerAction('left')}
+                disabled={!!flying}
+                className="flex min-h-[3.25rem] flex-col items-center justify-center gap-1 rounded-md border border-gray-300 bg-white px-2 py-2 text-xs font-semibold text-gray-700 transition hover:border-gray-400 disabled:opacity-50"
+              >
+                <IconX size={16} />
+                {t('passed')}
+              </button>
+              <button
+                onClick={() => triggerAction('right')}
+                disabled={!!flying}
+                className="flex min-h-[3.25rem] flex-col items-center justify-center gap-1 rounded-md border border-yellow-300 bg-yellow-50 px-2 py-2 text-xs font-semibold text-yellow-800 transition hover:bg-yellow-100 disabled:opacity-50"
+              >
+                <IconStar size={16} />
+                {t('saved')}
+              </button>
+              <button
+                onClick={() => triggerAction('up')}
+                disabled={!!flying}
+                className="flex min-h-[3.25rem] flex-col items-center justify-center gap-1 rounded-md border border-blue-300 bg-blue-50 px-2 py-2 text-xs font-semibold text-blue-800 transition hover:bg-blue-100 disabled:opacity-50"
+              >
+                <IconArrowUp size={16} />
+                {t('applySoon')}
+              </button>
+            </div>
+          </div>
+        </section>
       </div>
     </div>
   );

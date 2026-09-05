@@ -25,6 +25,8 @@ export interface Job {
   language: 'en' | 'de' | null;
   owner_user_id?: number | null;
   is_manual?: boolean;
+  /** False when the upstream feed stopped listing this job (soft-deleted). */
+  is_active?: boolean;
   checklist?: Record<string, boolean>;
   history?: JobHistoryEvent[];
   created_at: string;
@@ -53,6 +55,7 @@ export interface DashboardStats {
   archived: number;
   new_today: number;
   applied_today: number;
+  last_fetch_at: string | null;
 }
 
 export interface FollowUpAlert {
@@ -92,6 +95,5 @@ export interface JobFilters {
   remoteOnly?: boolean;
   location?: string;
   studentOnly?: boolean;
-  englishOnly?: boolean;
   highMatchOnly?: boolean;
 }

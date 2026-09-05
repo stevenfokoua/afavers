@@ -69,17 +69,17 @@ const IconTrophy = ({ className = 'w-4 h-4' }: { className?: string }) => (
   </svg>
 );
 
+const IconRefresh = ({ className = 'w-4 h-4' }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor">
+    <polyline points="23 4 23 10 17 10" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+    <path d="M20.49 15a9 9 0 11-2.12-9.36L23 10" strokeWidth="1.5" strokeLinecap="round"/>
+  </svg>
+);
+
 const IconSearch = ({ className = 'w-4 h-4' }: { className?: string }) => (
   <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor">
     <circle cx="11" cy="11" r="8" strokeWidth="1.5"/>
     <path d="M21 21l-4.35-4.35" strokeWidth="1.5" strokeLinecap="round"/>
-  </svg>
-);
-
-const IconGlobe = ({ className = 'w-4 h-4' }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor">
-    <circle cx="12" cy="12" r="10" strokeWidth="1.5"/>
-    <path d="M2 12h20M12 2a15.3 15.3 0 010 20M12 2a15.3 15.3 0 000 20" strokeWidth="1.5"/>
   </svg>
 );
 
@@ -648,6 +648,7 @@ const TodayFocus = ({
   onTracker: () => void;
   onHotPicks: () => void;
 }) => {
+  const { t } = useLanguage();
   const trackerCount = (stats.saved || 0) + (stats.preparing || 0);
   const hasFocus = (stats.new || 0) > 0 || followUps.length > 0 || upcomingInterviews.length > 0 || trackerCount > 0;
 
@@ -655,22 +656,22 @@ const TodayFocus = ({
     <section className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden mb-5">
       <div className="px-5 py-5 border-b border-gray-100 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
         <div>
-          <p className="text-[11px] font-black text-gray-400 uppercase tracking-widest">Today</p>
-          <h2 className="text-[24px] font-black text-[#0a1a25] leading-tight mt-1">What needs your attention?</h2>
-          <p className="text-[13px] text-[#6f839c] mt-1">Start with the next useful action, then move on.</p>
+          <p className="text-[11px] font-black text-gray-400 uppercase tracking-widest">{t('todayLabel')}</p>
+          <h2 className="text-[24px] font-black text-[#0a1a25] leading-tight mt-1">{t('attentionTitle')}</h2>
+          <p className="text-[13px] text-[#6f839c] mt-1">{t('attentionSubtitle')}</p>
         </div>
         <div className="flex gap-2">
           <button
             onClick={onHotPicks}
             className="px-4 py-2 rounded-lg border border-gray-200 text-[13px] font-black text-[#0a1a25] hover:border-green-300 hover:text-[#16a34a] transition"
           >
-            Hot Picks
+            {t('hotPicks')}
           </button>
           <button
             onClick={onTracker}
             className="px-4 py-2 rounded-lg bg-[#0a1a25] text-white text-[13px] font-black hover:bg-[#223a5a] transition"
           >
-            Open tracker
+            {t('openTracker')}
           </button>
         </div>
       </div>
@@ -678,30 +679,30 @@ const TodayFocus = ({
       {hasFocus ? (
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3 p-4">
           <TodayAction
-            label="Review jobs"
+            label={t('reviewJobs')}
             value={stats.new || 0}
-            detail={stats.new_today ? `${stats.new_today} new today` : 'Clear unreviewed roles'}
+            detail={stats.new_today ? `${stats.new_today} ${t('newToday')}` : t('clearUnreviewed')}
             tone="green"
             onClick={onReviewJobs}
           />
           <TodayAction
-            label="Send follow-ups"
+            label={t('sendFollowUps')}
             value={followUps.length}
-            detail={followUps.length ? 'Applications waiting for a nudge' : 'No follow-ups due'}
+            detail={followUps.length ? t('followUpsWaiting') : t('noFollowUpsDue')}
             tone="amber"
             onClick={onFollowUps}
           />
           <TodayAction
-            label="Prepare interviews"
+            label={t('prepareInterviews')}
             value={upcomingInterviews.length}
-            detail={upcomingInterviews.length ? 'Upcoming interviews to prepare' : 'No interviews scheduled'}
+            detail={upcomingInterviews.length ? t('interviewsToPrepare') : t('noInterviewsScheduled')}
             tone="purple"
             onClick={onInterviews}
           />
           <TodayAction
-            label="Continue applications"
+            label={t('continueApplications')}
             value={trackerCount}
-            detail="Saved or preparing jobs"
+            detail={t('savedPreparingJobs')}
             tone="blue"
             onClick={onTracker}
           />
@@ -709,12 +710,12 @@ const TodayFocus = ({
       ) : (
         <div className="p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <p className="text-[15px] font-black text-[#0a1a25]">You are clear for now.</p>
-            <p className="text-[13px] text-[#6f839c] mt-1">Review new roles or swipe through Hot Picks when you want fresh options.</p>
+            <p className="text-[15px] font-black text-[#0a1a25]">{t('clearForNow')}</p>
+            <p className="text-[13px] text-[#6f839c] mt-1">{t('reviewOrSwipe')}</p>
           </div>
           <div className="flex gap-2">
-            <button onClick={onReviewJobs} className="px-4 py-2 bg-[#16a34a] hover:bg-green-700 text-white text-[13px] font-black rounded-lg transition">Browse jobs</button>
-            <button onClick={onHotPicks} className="px-4 py-2 border border-gray-200 hover:border-gray-300 text-[#0a1a25] text-[13px] font-black rounded-lg transition">Hot Picks</button>
+            <button onClick={onReviewJobs} className="px-4 py-2 bg-[#16a34a] hover:bg-green-700 text-white text-[13px] font-black rounded-lg transition">{t('browseJobs')}</button>
+            <button onClick={onHotPicks} className="px-4 py-2 border border-gray-200 hover:border-gray-300 text-[#0a1a25] text-[13px] font-black rounded-lg transition">{t('hotPicks')}</button>
           </div>
         </div>
       )}
@@ -1127,8 +1128,20 @@ function useGreeting(email: string | undefined) {
   return { greeting, displayName, todayFormatted };
 }
 
+function formatLastUpdated(value: string | null, locale: string, t: (key: string) => string) {
+  if (!value) return t('neverUpdated');
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return t('neverUpdated');
+
+  return `${t('lastUpdated')}: ${new Intl.DateTimeFormat(locale, {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+  }).format(date)}`;
+}
+
 export const DashboardPage = () => {
-  const { user } = useAuthStore();
+  const { user, isDemo } = useAuthStore();
   const navigate = useNavigate();
   const { t, lang } = useLanguage();
   const locale = lang === 'de' ? 'de-DE' : 'en-GB';
@@ -1143,6 +1156,9 @@ export const DashboardPage = () => {
   const filteredStoryJobs = storyJobs.filter(j => jobMatchesFilter(j, filterKeywords, filterEnabled));
   const [loading, setLoading] = useState(true);
   const [statsError, setStatsError] = useState<Error | null>(null);
+  const [fetching, setFetching] = useState(false);
+  const [fetchMsg, setFetchMsg] = useState('');
+  const [fetchMsgIsError, setFetchMsgIsError] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const { visible, toggle } = useWidgetVisibility();
   const { order: widgetOrder, move: moveWidget, reorder: reorderWidgets } = useWidgetOrder();
@@ -1190,6 +1206,43 @@ export const DashboardPage = () => {
       setLoading(false);
     }
   };
+
+  const handleFetchJobs = async () => {
+    setFetching(true);
+    setFetchMsg('');
+    setFetchMsgIsError(false);
+    try {
+      const result = await jobsService.fetchJobs();
+      setFetchMsg(`${result.inserted ?? 0} ${t('fetchComplete')} • ${result.updated ?? 0} ${t('refreshedJobs')}`);
+      await loadStats();
+    } catch (error) {
+      setFetchMsgIsError(true);
+      setFetchMsg(error instanceof Error ? error.message : t('fetchFailed'));
+    } finally {
+      setFetching(false);
+    }
+  };
+
+  const lastFetchTime = stats?.last_fetch_at ? new Date(stats.last_fetch_at).getTime() : NaN;
+  const fetchIsStale = !Number.isNaN(lastFetchTime) && Date.now() - lastFetchTime > 6 * 3_600_000;
+
+  const fetchCard = user?.isAdmin
+    ? {
+        icon: <IconRefresh className={`w-4 h-4 ${fetching ? 'animate-spin' : ''}`} />,
+        iconBg: 'bg-amber-100 text-amber-600',
+        label: t('fetchJobs'),
+        sub: fetching ? t('fetching') : formatLastUpdated(stats?.last_fetch_at ?? null, locale, t),
+        onClick: isDemo ? undefined : handleFetchJobs,
+        disabled: fetching || isDemo,
+      }
+    : {
+        icon: <IconRefresh className="w-4 h-4" />,
+        iconBg: 'bg-slate-100 text-slate-500',
+        label: t('fetchJobs'),
+        sub: stats?.last_fetch_at ? formatLastUpdated(stats.last_fetch_at, locale, t) : t('autoFetchUsersNote'),
+        onClick: undefined,
+        disabled: true,
+      };
 
   if (loading) return <DashboardSkeleton />;
 
@@ -1349,7 +1402,7 @@ export const DashboardPage = () => {
 
               if (key === 'news') {
                 if (visible.news && newsOnDashboard) content = (
-                  <Module title="News" editMode={editMode} onHide={() => toggle('news')} onMoveUp={moveUp} onMoveDown={moveDown} noPad>
+                  <Module title={t('news')} editMode={editMode} onHide={() => toggle('news')} onMoveUp={moveUp} onMoveDown={moveDown} noPad>
                     <div className="px-[18px] py-[14px]"><NewsCarousel /></div>
                   </Module>
                 );
@@ -1495,8 +1548,9 @@ export const DashboardPage = () => {
                 <div className="grid grid-cols-2 gap-2.5">
                   {[
                     { icon: <IconSearch className="w-4 h-4" />, iconBg: 'bg-green-100 text-green-600', label: t('browseJobs'), sub: `${stats?.new || 0} new`, onClick: () => navigate('/jobs') },
-                    { icon: <IconGlobe className="w-4 h-4" />, iconBg: 'bg-blue-100 text-blue-600', label: t('englishJobs'), sub: t('englishJobsDesc'), onClick: () => navigate('/english-jobs') },
+                    { icon: <IconBriefcase className="w-4 h-4" />, iconBg: 'bg-blue-100 text-blue-600', label: t('applicationsBoard'), sub: t('applicationsBoardDesc'), onClick: () => navigate('/kanban') },
                     { icon: <IconBarChart className="w-4 h-4" />, iconBg: 'bg-purple-100 text-purple-600', label: t('analytics'), sub: t('analyticsDesc'), onClick: () => navigate('/analytics') },
+                    fetchCard,
                   ].map((card, i) => (
                     <button key={i} onClick={card.onClick} className="flex items-center gap-2.5 p-3 bg-gray-50 hover:bg-white border border-gray-200 hover:border-gray-300 rounded-xl transition text-left disabled:opacity-50 hover:shadow-sm group">
                       <span className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${card.iconBg} transition-transform group-hover:scale-110`}>{card.icon}</span>
@@ -1507,6 +1561,19 @@ export const DashboardPage = () => {
                     </button>
                   ))}
                 </div>
+                {fetchIsStale && (
+                  <p className="text-[12px] mt-3 text-center font-bold text-amber-600">
+                    {t('fetchStaleWarning')}
+                  </p>
+                )}
+                {fetchMsg && (
+                  <p className={`text-[12px] mt-3 text-center font-bold ${fetchMsgIsError ? 'text-red-500' : 'text-[#16a34a]'}`}>
+                    {fetchMsg}
+                  </p>
+                )}
+                {!user?.isAdmin && (
+                  <p className="text-[11px] mt-3 text-center text-gray-500">{t('manualFetchAdminsOnly')}</p>
+                )}
               </Module>
             )}
 

@@ -18,11 +18,6 @@ const IconJobs = () => (
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
   </svg>
 );
-const IconGlobe = () => (
-  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-  </svg>
-);
 const IconKanban = () => (
   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2" />
@@ -117,11 +112,10 @@ export const AppLayout = ({ children }: { children: React.ReactNode }) => {
     { to: '/dashboard',    icon: <IconDashboard />,  label: t('dashboard') },
     { to: '/jobs',         icon: <IconJobs />,        label: t('browseJobs') },
     { to: '/hotpicks',     icon: <IconFire />,        label: t('hotPicks') },
-    { to: '/jobs?language=en', icon: <IconGlobe />,    label: t('englishJobs') },
     { to: '/kanban',       icon: <IconKanban />,      label: t('applicationsBoard') },
     { to: '/analytics',    icon: <IconAnalytics />,   label: t('analytics') },
-    { to: '/reminders',    icon: <IconBell />,        label: 'Reminders' },
-    { to: '/news',         icon: <IconNews />,        label: 'News' },
+    { to: '/reminders',    icon: <IconBell />,        label: t('reminders') },
+    { to: '/news',         icon: <IconNews />,        label: t('news') },
     { to: '/interview-prep', icon: <IconVideo />,     label: t('interviewPrep') },
     { to: '/settings',     icon: <IconSettings />,    label: t('settings') },
   ];
@@ -334,7 +328,7 @@ export const AppLayout = ({ children }: { children: React.ReactNode }) => {
           { to: '/dashboard',  icon: <IconDashboard />, label: t('home') },
           { to: '/jobs',       icon: <IconJobs />,      label: t('browse') },
           { to: '/kanban',     icon: <IconKanban />,    label: t('board') },
-          { to: '/reminders',  icon: <IconBell />,      label: 'Reminders' },
+          { to: '/reminders',  icon: <IconBell />,      label: t('reminders') },
         ].map(item => (
           <NavLink
             key={item.to}
@@ -406,7 +400,6 @@ export const AppLayout = ({ children }: { children: React.ReactNode }) => {
             <div className="px-3 pb-3 grid grid-cols-2 gap-2">
               {[
                 { to: '/hotpicks',       icon: <IconFire />,       label: t('hotPicks') },
-                { to: '/jobs?language=en', icon: <IconGlobe />,    label: t('englishJobs') },
                 { to: '/analytics',      icon: <IconAnalytics />,  label: t('analytics') },
                 { to: '/news',           icon: <IconNews />,       label: t('news') },
                 { to: '/interview-prep', icon: <IconVideo />,      label: t('interviewPrep') },

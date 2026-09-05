@@ -244,16 +244,30 @@ describe('applyFilters (via getJobs)', () => {
     expect(result.jobs[0].title).toBe('React Developer');
   });
 
-  it('filters by englishOnly', async () => {
+  it('finds GIS-family roles through alias expansion', async () => {
     const { settingsService } = await import('./settings.service');
     (settingsService.get as ReturnType<typeof vi.fn>).mockResolvedValue({ keywords: '', locations: '' });
     setupJobsMock([
-      makeJob({ id: 1, language: 'en' }),
-      makeJob({ id: 2, language: 'de' }),
+      makeJob({ id: 1, title: 'Geoinformatik Werkstudent', description: 'Spatial data and mapping work' }),
+      makeJob({ id: 2, title: 'ArcGIS Analyst', description: 'Maintain geospatial dashboards' }),
+      makeJob({ id: 3, title: 'Backend Engineer', description: 'Node.js services' }),
     ]);
-    const result = await jobsService.getJobs({ englishOnly: true });
-    expect(result.jobs.every((j) => j.language === 'en')).toBe(true);
-    expect(result.jobs.length).toBe(1);
+    const result = await jobsService.getJobs({ search: 'GIS' });
+    expect(result.jobs.map((job) => job.title)).toEqual([
+      'ArcGIS Analyst',
+      'Geoinformatik Werkstudent',
+    ]);
+  });
+
+  it('ranks title matches ahead of weak description matches for search', async () => {
+    const { settingsService } = await import('./settings.service');
+    (settingsService.get as ReturnType<typeof vi.fn>).mockResolvedValue({ keywords: '', locations: '' });
+    setupJobsMock([
+      makeJob({ id: 1, title: 'GIS Analyst', description: 'Core GIS workflows' }),
+      makeJob({ id: 2, title: 'Data Analyst', description: 'Exposure to GIS and mapping tools' }),
+    ]);
+    const result = await jobsService.getJobs({ search: 'GIS' });
+    expect(result.jobs[0].title).toBe('GIS Analyst');
   });
 
   it('filters by highMatchOnly (score >= 70)', async () => {
@@ -390,5 +404,91 @@ describe('appendHistory (via updateStatus)', () => {
 
     const upsertArg = upsertMock.mock.calls[0][0];
     expect(upsertArg.history.length).toBeLessThanOrEqual(80);
+  });
+});
+
+describe('fetchJobs', () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it('returns inserted and updated counts from the edge function', async () => {
+    (supabase.functions.invoke as ReturnType<typeof vi.fn>).mockResolvedValue({
+      data: { success: true, inserted: 12, updated: 34, total: 46 },
+      error: null,
+    });
+
+    await expect(jobsService.fetchJobs()).resolves.toEqual({
+      success: true,
+      message: 'Job refresh completed',
+      inserted: 12,
+      updated: 34,
+      total: 46,
+    });
+  });
+
+  it('surfaces an auth-specific message for unauthorized invocations', async () => {
+    (supabase.functions.invoke as ReturnType<typeof vi.fn>).mockResolvedValue({
+      data: null,
+      error: { message: 'Unauthorized' },
+    });
+
+    await expect(jobsService.fetchJobs()).rejects.toThrow('Your session expired. Please sign in again and try once more.');
+  });
+});
+
+describe('getMergedJobs tracked-job fallback (via getAllJobs)', () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it('fetches tracked jobs missing from the recent window by id', async () => {
+    const recentJob = makeJob({ id: 1 });
+    const oldTrackedJob = makeJob({ id: 999, title: 'Old saved job' });
+
+    const userJobsChain = {
+      eq: vi.fn().mockResolvedValue({
+        data: [{ job_id: 999, status: 'saved' }],
+        error: null,
+      }),
+    };
+    const jobsChain = {
+      order: vi.fn().mockReturnThis(),
+      limit: vi.fn().mockResolvedValue({ data: [recentJob], error: null }),
+      in: vi.fn().mockResolvedValue({ data: [oldTrackedJob], error: null }),
+    };
+    (supabase.from as ReturnType<typeof vi.fn>).mockImplementation((table: string) => {
+      if (table === 'jobs') return { select: vi.fn().mockReturnValue(jobsChain) };
+      if (table === 'user_jobs') return { select: vi.fn().mockReturnValue(userJobsChain) };
+      return { select: vi.fn() };
+    });
+
+    const jobs = await jobsService.getAllJobs();
+
+    expect(jobsChain.in).toHaveBeenCalledWith('id', [999]);
+    expect(jobs.map((job) => job.id)).toEqual(expect.arrayContaining([1, 999]));
+    expect(jobs.find((job) => job.id === 999)?.status).toBe('saved');
+  });
+
+  it('does not issue an extra query when all tracked jobs are in the window', async () => {
+    const trackedJob = makeJob({ id: 7 });
+
+    const userJobsChain = {
+      eq: vi.fn().mockResolvedValue({
+        data: [{ job_id: 7, status: 'applied' }],
+        error: null,
+      }),
+    };
+    const jobsChain = {
+      order: vi.fn().mockReturnThis(),
+      limit: vi.fn().mockResolvedValue({ data: [trackedJob], error: null }),
+      in: vi.fn(),
+    };
+    (supabase.from as ReturnType<typeof vi.fn>).mockImplementation((table: string) => {
+      if (table === 'jobs') return { select: vi.fn().mockReturnValue(jobsChain) };
+      if (table === 'user_jobs') return { select: vi.fn().mockReturnValue(userJobsChain) };
+      return { select: vi.fn() };
+    });
+
+    const jobs = await jobsService.getAllJobs();
+
+    expect(jobsChain.in).not.toHaveBeenCalled();
+    expect(jobs.find((job) => job.id === 7)?.status).toBe('applied');
   });
 });

@@ -20,7 +20,8 @@ SELECT cron.schedule(
         'Content-Type', 'application/json',
         'x-cron-secret', 'YOUR_CRON_SECRET'
       ),
-      body := '{}'::jsonb
+      body := '{}'::jsonb,
+      timeout_milliseconds := 30000
     );
   $$
 );
