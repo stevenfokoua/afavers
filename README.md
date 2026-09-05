@@ -132,12 +132,23 @@ Useful files:
 
 Deploy Edge Functions with the Supabase CLI after linking your project:
 
+Apply the migrations **before** deploying the functions. `werkstudent-search`
+calls the `consume_search_quota` RPC and rethrows if it is missing, so a
+function deployed ahead of its migration returns 500 on every search.
+
 ```bash
 npx supabase functions deploy fetch-jobs --project-ref your-project-ref --no-verify-jwt
 npx supabase functions deploy job-alerts --project-ref your-project-ref --no-verify-jwt
 npx supabase functions deploy news --project-ref your-project-ref --no-verify-jwt
+npx supabase functions deploy resend-webhook --project-ref your-project-ref --no-verify-jwt
 npx supabase functions deploy werkstudent-search --project-ref your-project-ref
+npx supabase functions deploy export --project-ref your-project-ref
 ```
+
+`fetch-jobs` and `job-alerts` authenticate with `CRON_SECRET`, and
+`resend-webhook` verifies the Svix signature against `RESEND_WEBHOOK_SECRET`,
+so all three use `--no-verify-jwt`. `werkstudent-search` and `export`
+authenticate the caller's JWT and must not.
 
 ## Browser Extension
 
@@ -153,7 +164,18 @@ Firefox is distributed through Mozilla Add-ons.
 
 ## Deployment
 
-The web app deploys from GitHub to Vercel.
+The web app deploys from GitHub to Vercel. Vercel builds the repository's
+default branch, `main`.
+
+Run the steps in this order:
+
+1. Apply every SQL file under `supabase/migrations/` in filename order, via the
+   Supabase SQL editor.
+2. Deploy the Edge Functions in `supabase/functions/` (see the commands above).
+3. Push to `main` and let Vercel build.
+4. Configure the `pg_cron` schedule from
+   `supabase/manual/schedule_fetch_jobs.example.sql`, replacing the project ref
+   and cron secret placeholders.
 
 Vercel uses:
 

@@ -15,7 +15,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
 
       - name: Install dependencies
@@ -34,7 +34,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
 
       - name: Install dependencies
@@ -52,7 +52,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
 
       - name: Install dependencies
@@ -83,6 +83,9 @@ jobs:
             supabase/functions/_shared/cors.ts \
             supabase/functions/_shared/jobs.ts \
             supabase/functions/_shared/language.ts \
+            supabase/functions/export/index.ts \
             supabase/functions/fetch-jobs/index.ts \
+            supabase/functions/job-alerts/index.ts \
             supabase/functions/news/index.ts \
+            supabase/functions/resend-webhook/index.ts \
             supabase/functions/werkstudent-search/index.ts

@@ -13,6 +13,8 @@
     "build": "npm run build --workspace=client",
     "build:client": "npm run build --workspace=client",
     "lint": "npm run lint --workspace=client",
+    "typecheck": "npm run typecheck --workspace=client",
+    "test": "npm test --workspace=client",
     "install:client": "npm install --workspace=client"
   },
   "keywords": [

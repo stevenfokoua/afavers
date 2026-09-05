@@ -5,7 +5,7 @@ Supabase + React only — no backend server to run.
 
 ## Prerequisites
 
-- Node.js 18+
+- Node.js 22 (see `.nvmrc`)
 - A Supabase project (free tier is fine). Note its **Project URL** and **anon key**.
 
 ---
@@ -27,9 +27,10 @@ policies and admin RPC functions.
 
 ## 3. Configure the frontend
 
+The only template is at the repo root, and it is copied *into* `client/`:
+
 ```bash
-cd client
-cp .env.example .env
+cp .env.example client/.env
 ```
 
 Edit `client/.env`:
@@ -64,8 +65,11 @@ UPDATE public.users SET is_admin = TRUE WHERE email = 'you@example.com';
 
 ## Next steps
 
-- Configure Edge Function secrets and deploy `fetch-jobs`, `werkstudent-search`, `news`
-  (see `VERCEL_SUPABASE_SETUP.md`).
+- Configure Edge Function secrets and deploy all six functions -- `fetch-jobs`,
+  `job-alerts`, `news`, `resend-webhook`, `werkstudent-search` and `export`
+  (see `VERCEL_SUPABASE_SETUP.md`). Deploy them only after step 2:
+  `werkstudent-search` rethrows if the `consume_search_quota` RPC created by
+  `supabase/migrations/20260429_search_quota_rpc.sql` is missing.
 - Schedule automated fetching by copying `supabase/manual/schedule_fetch_jobs.example.sql`
   and substituting `YOUR-PROJECT-REF` plus `YOUR_CRON_SECRET`.
 - Deploy the client to Vercel — `vercel.json` is already wired for the
