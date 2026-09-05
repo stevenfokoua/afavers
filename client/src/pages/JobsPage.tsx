@@ -296,7 +296,9 @@ export const JobsPage = () => {
     try {
       const s = await jobsService.getStats();
       setStats(s);
-    } catch {}
+    } catch (error) {
+      console.error('Failed to load job stats:', error);
+    }
   };
 
   const fetchJobs = async () => {
@@ -342,7 +344,10 @@ export const JobsPage = () => {
       }
       setStats(prev => prev ? { ...prev, new: Math.max(0, prev.new - 1), saved: prev.saved + 1 } : prev);
       showToast(t('toastJobSaved'));
-    } catch {}
+    } catch (error) {
+      console.error('Job action failed:', error);
+      showToast(t('toastActionFailed'), 'error');
+    }
     setActionLoading(null);
   };
 
@@ -360,7 +365,10 @@ export const JobsPage = () => {
       } : prev);
       showToast(t('toastJobApplied'));
       loadStats();
-    } catch {}
+    } catch (error) {
+      console.error('Job action failed:', error);
+      showToast(t('toastActionFailed'), 'error');
+    }
     setActionLoading(null);
   };
 
@@ -374,7 +382,10 @@ export const JobsPage = () => {
       );
       setTotal(prev => activeTab === 'new' || activeTab === 'saved' ? Math.max(0, prev - 1) : prev);
       loadStats();
-    } catch {}
+    } catch (error) {
+      console.error('Job action failed:', error);
+      showToast(t('toastActionFailed'), 'error');
+    }
     setActionLoading(null);
   };
 
@@ -404,7 +415,10 @@ export const JobsPage = () => {
       setTotal(prev => prev - 1);
       setStats(prev => prev ? { ...prev, saved: Math.max(0, prev.saved - 1), new: prev.new + 1 } : prev);
       showToast(t('toastJobUnsaved'), 'info');
-    } catch {}
+    } catch (error) {
+      console.error('Job action failed:', error);
+      showToast(t('toastActionFailed'), 'error');
+    }
     setActionLoading(null);
   };
 
@@ -416,7 +430,10 @@ export const JobsPage = () => {
       setTotal(prev => prev - 1);
       setStats(prev => prev ? { ...prev, applied: Math.max(0, prev.applied - 1), saved: prev.saved + 1 } : prev);
       showToast(t('toastJobReverted'), 'info');
-    } catch {}
+    } catch (error) {
+      console.error('Job action failed:', error);
+      showToast(t('toastActionFailed'), 'error');
+    }
     setActionLoading(null);
   };
 
@@ -430,7 +447,10 @@ export const JobsPage = () => {
         setStats(prev => prev ? { ...prev, new: Math.max(0, prev.new - 1), total: Math.max(0, prev.total - 1) } : prev);
       }
       showToast(t('toastJobHidden'), 'info');
-    } catch {}
+    } catch (error) {
+      console.error('Job action failed:', error);
+      showToast(t('toastActionFailed'), 'error');
+    }
     setActionLoading(null);
   };
 

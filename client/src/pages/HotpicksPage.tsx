@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { jobsService } from '../services/jobs.service';
 import type { Job } from '../types';
 import { usePreferencesStore, jobMatchesFilter } from '../store/preferencesStore';
+import { useToastStore } from '../store/toastStore';
+import { useLanguage } from '../store/languageStore';
 
 const BATCH_SIZE = 20;
 const SWIPE_THRESHOLD = 80;
@@ -37,6 +39,8 @@ const SOURCE_LABELS: Record<string, { label: string; cls: string }> = {
 export const HotpicksPage = () => {
   const navigate = useNavigate();
   const { filterKeywords, filterEnabled } = usePreferencesStore();
+  const { show: showToast } = useToastStore();
+  const { t } = useLanguage();
   const [queue, setQueue] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
   const [exhausted, setExhausted] = useState(false);
@@ -145,7 +149,10 @@ export const HotpicksPage = () => {
         } else {
           await jobsService.toggleHidden(job.id, true);
         }
-      } catch {}
+      } catch (error) {
+        console.error('Swipe action failed:', error);
+        showToast(t('toastActionFailed'), 'error');
+      }
     }, 320);
   };
 
@@ -165,7 +172,10 @@ export const HotpicksPage = () => {
       } else {
         await jobsService.updateStatus(job.id, 'new');
       }
-    } catch {}
+    } catch (error) {
+      console.error('Undo failed:', error);
+      showToast(t('toastActionFailed'), 'error');
+    }
   };
 
   // Touch handlers

@@ -263,6 +263,7 @@ export const translations: Record<Lang, Record<string, string>> = {
     calendarFollowUp: 'Follow-up',
 
     // Toast notifications
+    toastActionFailed: 'That did not go through — try again',
     toastJobSaved: 'Job saved ⭐',
     toastJobApplied: 'Marked as applied ✓',
     toastJobHidden: 'Job hidden',
@@ -592,6 +593,7 @@ export const translations: Record<Lang, Record<string, string>> = {
     calendarFollowUp: 'Nachfassaktion',
 
     // Toast notifications
+    toastActionFailed: 'Das hat nicht geklappt — bitte erneut versuchen',
     toastJobSaved: 'Stelle gespeichert ⭐',
     toastJobApplied: 'Als beworben markiert ✓',
     toastJobHidden: 'Stelle ausgeblendet',
