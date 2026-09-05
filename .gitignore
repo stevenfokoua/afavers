@@ -46,6 +46,11 @@ Thumbs.db
 # TypeScript
 *.tsbuildinfo
 
+# Deno's lockfile for the edge functions. Not committed: the functions pin
+# their imports by URL already, and the integrity hashes break CI whenever
+# esm.sh rebuilds an unchanged version.
+deno.lock
+
 # Testing
 coverage/
 .nyc_output/
