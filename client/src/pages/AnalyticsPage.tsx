@@ -4,6 +4,7 @@ import { jobsService } from '../services/jobs.service';
 import type { AnalyticsData, Job } from '../types';
 import { useLanguage } from '../store/languageStore';
 import { GermanyJobMap } from '../components/common/GermanyJobMap';
+import { formatDate, escapeCsv, downloadBlob, isWithinDateRange } from '../utils/exportFormat';
 
 const SOURCE_LABELS: Record<string, string> = {
   bundesagentur: 'Bundesagentur',
@@ -46,22 +47,7 @@ const Bar = ({ value, max, color }: { value: number; max: number; color: string 
   </div>
 );
 
-const dateOnly = (value?: string | null) => value ? value.slice(0, 10) : '';
-
-const formatDate = (value?: string | null) => {
-  if (!value) return '';
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return dateOnly(value);
-  return date.toLocaleDateString('de-DE', { year: 'numeric', month: '2-digit', day: '2-digit' });
-};
-
 const getActivityDate = (job: Job) => job.applied_date ?? job.updated_at ?? job.created_at;
-
-const escapeCsv = (value: unknown) => {
-  if (value == null) return '';
-  const text = String(value);
-  return /[",\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
-};
 
 const escapeHtml = (value: unknown) => String(value ?? '')
   .replace(/&/g, '&amp;')
@@ -69,15 +55,6 @@ const escapeHtml = (value: unknown) => String(value ?? '')
   .replace(/>/g, '&gt;')
   .replace(/"/g, '&quot;')
   .replace(/'/g, '&#39;');
-
-const downloadBlob = (content: BlobPart, type: string, filename: string) => {
-  const url = URL.createObjectURL(new Blob([content], { type }));
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = filename;
-  a.click();
-  URL.revokeObjectURL(url);
-};
 
 const checklistText = (job: Job) => {
   const entries = Object.entries(job.checklist ?? {});
@@ -236,9 +213,7 @@ export const AnalyticsPage = () => {
     return trackedJobs.filter((job) => {
       if (officialOnly && !APPLICATION_STATUSES.has(job.status)) return false;
       if (statusFilter !== 'all' && job.status !== statusFilter) return false;
-      const activityDate = dateOnly(getActivityDate(job));
-      if (dateFrom && activityDate < dateFrom) return false;
-      if (dateTo && activityDate > dateTo) return false;
+      if (!isWithinDateRange(getActivityDate(job), dateFrom, dateTo)) return false;
       if (!term) return true;
       return `${job.title} ${job.company} ${job.location} ${job.source} ${job.notes ?? ''}`.toLowerCase().includes(term);
     });
@@ -279,11 +254,15 @@ export const AnalyticsPage = () => {
           alert('Your browser blocked the PDF window. Allow pop-ups for afavers, then try again.');
           return;
         }
+        // print() has to wait for layout. A fixed timer is a guess, and a long
+        // report can still be blank when it fires; onload is the real signal.
+        printWindow.onload = () => {
+          printWindow.focus();
+          printWindow.print();
+        };
         printWindow.document.open();
         printWindow.document.write(report);
         printWindow.document.close();
-        printWindow.focus();
-        setTimeout(() => printWindow.print(), 250);
       }
     } catch {
       alert(t('exportFailed'));

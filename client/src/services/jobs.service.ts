@@ -4,6 +4,7 @@ import { useReminderStore, type ReminderType } from '../store/reminderStore';
 import type { Job, JobsResponse, JobFilters, DashboardStats, FollowUpAlert, AnalyticsData, JobHistoryEvent } from '../types';
 import { scheduleReminder } from './notification.service';
 import { settingsService } from './settings.service';
+import { escapeCsv, downloadBlob } from '../utils/exportFormat';
 
 type UserJobOverlay = Partial<Pick<Job,
   'status' | 'notes' | 'cover_letter' | 'applied_date' | 'follow_up_date' | 'interview_date' | 'is_hidden' | 'checklist' | 'history'
@@ -482,25 +483,15 @@ export const jobsService = {
 
   async exportCsv(): Promise<void> {
     const jobs = (await getMergedJobs()).filter((job) => TRACKED_STATUSES.includes(job.status));
-    const escape = (value: unknown) => {
-      if (value == null) return '';
-      const text = String(value);
-      return /[",\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
-    };
     const headers = ['Title','Company','Location','Source','Status','Applied Date','URL','Posted Date','Salary','Deadline'];
     const csv = [
       headers.join(','),
       ...jobs.map((job) => [
         job.title, job.company, job.location, job.source, job.status,
         job.applied_date, job.url, job.posted_date, job.salary, job.deadline,
-      ].map(escape).join(',')),
+      ].map(escapeCsv).join(',')),
     ].join('\n');
 
-    const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'afavers-applications.csv';
-    a.click();
-    URL.revokeObjectURL(url);
+    downloadBlob(csv, 'text/csv;charset=utf-8', 'afavers-applications.csv');
   },
 };
