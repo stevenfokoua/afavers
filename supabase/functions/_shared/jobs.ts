@@ -41,27 +41,26 @@ function cleanText(value = ''): string {
     .trim();
 }
 
+function toIsoDateOrNull(value?: string): string | null {
+  if (!value) return null;
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date.toISOString().slice(0, 10);
+}
+
 export async function getSearchConfig(): Promise<{ keywords: string[]; locations: string[] }> {
   const supabase = adminClient();
-  const { data, error } = await supabase.from('user_settings').select('keywords,locations');
-  if (error || !data?.length) return { keywords: DEFAULT_KEYWORDS, locations: DEFAULT_LOCATIONS };
-
-  const keywords = new Set<string>();
-  const locations = new Set<string>();
-  for (const row of data) {
-    String(row.keywords ?? '').split(',').map((item) => item.trim()).filter(Boolean).forEach((item) => keywords.add(item.toLowerCase()));
-    String(row.locations ?? '').split(',').map((item) => item.trim()).filter(Boolean).forEach((item) => locations.add(item));
-  }
-
+  const { data, error } = await supabase.rpc('get_search_config').single();
+  if (error || !data) return { keywords: DEFAULT_KEYWORDS, locations: DEFAULT_LOCATIONS };
   return {
-    keywords: keywords.size ? [...keywords].slice(0, 24) : DEFAULT_KEYWORDS,
-    locations: locations.size ? [...locations].slice(0, 16) : DEFAULT_LOCATIONS,
+    keywords: data.keywords ?? DEFAULT_KEYWORDS,
+    locations: data.locations ?? DEFAULT_LOCATIONS,
   };
 }
 
 export async function fetchBundesagenturJobs(keywords: string[], locations: string[]): Promise<ExternalJob[]> {
   const jobs: ExternalJob[] = [];
-  const apiKey = env('BUNDESAGENTUR_API_KEY') || 'jobboerse-jobsuche';
+  const apiKey = env('BUNDESAGENTUR_API_KEY');
+  if (!apiKey) throw new Error('BUNDESAGENTUR_API_KEY is not configured');
 
   for (const keyword of keywords.slice(0, 20)) {
     for (const location of locations.slice(0, 12)) {
@@ -69,35 +68,39 @@ export async function fetchBundesagenturJobs(keywords: string[], locations: stri
       url.searchParams.set('was', keyword);
       url.searchParams.set('wo', location);
       url.searchParams.set('size', '35');
-      url.searchParams.set('page', '1');
       url.searchParams.set('angebotsart', '1');
       url.searchParams.set('pav', 'false');
       url.searchParams.set('umkreis', '25');
 
-      try {
-        const response = await fetch(url, {
-          headers: {
-            'User-Agent': 'Jobsuche/2.9.2 (de.arbeitsagentur.jobboerse; build:1077; iOS 15.1.0) Alamofire/5.4.4',
-            'X-API-Key': apiKey,
-          },
-        });
-        if (!response.ok) continue;
-        const data = await response.json();
-        for (const item of data?.stellenangebote ?? []) {
-          const city = item.arbeitsort?.ort || location || 'Germany';
-          const plz = item.arbeitsort?.plz || '';
-          jobs.push({
-            id: `bundesagentur_${item.refnr}`,
-            title: item.titel || item.beruf || 'No title',
-            company: item.arbeitgeber || 'Not specified',
-            location: plz ? `${city} (${plz})` : city,
-            description: `Position: ${item.beruf || 'Not specified'}`,
-            url: `https://www.arbeitsagentur.de/jobsuche/jobdetail/${item.refnr}`,
-            postedDate: item.aktuelleVeroeffentlichungsdatum || item.modifikationsTimestamp,
+      for (let page = 1; page <= 5; page++) {
+        url.searchParams.set('page', String(page));
+        try {
+          const response = await fetch(url, {
+            headers: {
+              'User-Agent': 'afavers-job-fetch/1.0 (+ops@afavers.online)',
+              'X-API-Key': apiKey,
+            },
           });
+          if (!response.ok) break;
+          const data = await response.json();
+          for (const item of data?.stellenangebote ?? []) {
+            const city = item.arbeitsort?.ort || location || 'Germany';
+            const plz = item.arbeitsort?.plz || '';
+            jobs.push({
+              id: `bundesagentur_${item.refnr}`,
+              title: item.titel || item.beruf || 'No title',
+              company: item.arbeitgeber || 'Not specified',
+              location: plz ? `${city} (${plz})` : city,
+              description: `Position: ${item.beruf || 'Not specified'}`,
+              url: `https://www.arbeitsagentur.de/jobsuche/jobdetail/${item.refnr}`,
+              postedDate: item.aktuelleVeroeffentlichungsdatum || item.modifikationsTimestamp,
+            });
+          }
+          if ((data?.stellenangebote?.length ?? 0) < 35) break;
+        } catch (error) {
+          console.error('fetchBundesagenturJobs failed', { keyword, location, error });
+          break;
         }
-      } catch {
-        // Keep the batch resilient; one city/keyword failing should not stop the run.
       }
 
       await sleep(250);
@@ -107,17 +110,17 @@ export async function fetchBundesagenturJobs(keywords: string[], locations: stri
   return jobs;
 }
 
-export async function fetchAdzunaJobs(): Promise<ExternalJob[]> {
+export async function fetchAdzunaJobs(keywords: string[], locations: string[]): Promise<ExternalJob[]> {
   const appId = env('ADZUNA_APP_ID');
   const appKey = env('ADZUNA_APP_KEY');
   if (!appId || !appKey) return [];
 
-  const keywords = ['nachhaltigkeit', 'umwelt', 'energy', 'consulting'];
-  const locations = ['Düsseldorf', 'Köln', 'Berlin'];
+  const keywordsToQuery = keywords.slice(0, 12);
+  const locationsToQuery = locations.slice(0, 8);
   const jobs: ExternalJob[] = [];
 
-  for (const keyword of keywords) {
-    for (const location of locations) {
+  for (const keyword of keywordsToQuery) {
+    for (const location of locationsToQuery) {
       const url = new URL(`${ADZUNA_URL}/1`);
       url.searchParams.set('app_id', appId);
       url.searchParams.set('app_key', appKey);
@@ -144,8 +147,8 @@ export async function fetchAdzunaJobs(): Promise<ExternalJob[]> {
             salary,
           });
         }
-      } catch {
-        // Continue with the next query.
+      } catch (error) {
+        console.error('fetchAdzunaJobs failed', { keyword, location, error });
       }
 
       await sleep(250);
@@ -231,8 +234,8 @@ export async function saveJobs(jobs: ExternalJob[]): Promise<{ total: number; in
     description: job.description,
     url: job.url,
     source: job.id.split('_')[0],
-    posted_date: job.postedDate ? new Date(job.postedDate).toISOString().slice(0, 10) : null,
-    deadline: job.deadline ? new Date(job.deadline).toISOString().slice(0, 10) : null,
+    posted_date: toIsoDateOrNull(job.postedDate),
+    deadline: toIsoDateOrNull(job.deadline),
     salary: job.salary ?? null,
     language: detectLanguage(job.title, job.description),
     updated_at: new Date().toISOString(),

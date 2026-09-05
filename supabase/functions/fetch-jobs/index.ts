@@ -19,10 +19,12 @@ Deno.serve(async (req) => {
 
   try {
     const { keywords, locations } = await getSearchConfig();
-    const [bundesagentur, adzuna] = await Promise.all([
+    const settled = await Promise.allSettled([
       fetchBundesagenturJobs(keywords, locations),
-      fetchAdzunaJobs(),
+      fetchAdzunaJobs(keywords, locations),
     ]);
+    const bundesagentur = settled[0].status === 'fulfilled' ? settled[0].value : [];
+    const adzuna = settled[1].status === 'fulfilled' ? settled[1].value : [];
     const result = await saveJobs([...bundesagentur, ...adzuna]);
 
     return jsonResponse({

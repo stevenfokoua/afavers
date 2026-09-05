@@ -1,4 +1,4 @@
-import { handleOptions, jsonResponse } from '../_shared/cors.ts';
+import { buildCorsHeaders, handleOptions, jsonResponse } from '../_shared/cors.ts';
 
 const TAGESSCHAU_BASE = 'https://www.tagesschau.de/api2u';
 const MAX_ARTICLES = 50;
@@ -22,8 +22,16 @@ Deno.serve(async (req) => {
 
     const data = await response.json();
     if (Array.isArray(data.news)) data.news = data.news.slice(0, MAX_ARTICLES);
-    return jsonResponse(data, 200, req);
+    return new Response(JSON.stringify(data), {
+      status: 200,
+      headers: {
+        ...buildCorsHeaders(req),
+        'Content-Type': 'application/json',
+        'Cache-Control': 'public, max-age=300, stale-while-revalidate=900',
+      },
+    });
   } catch (error) {
+    console.error('news failed', { url: req.url, error });
     return jsonResponse({ error: error instanceof Error ? error.message : 'Failed to fetch news' }, 502, req);
   }
 });

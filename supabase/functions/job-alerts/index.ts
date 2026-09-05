@@ -197,6 +197,34 @@ async function sendEmail(to: string, subject: string, html: string) {
   }
 }
 
+async function getCandidateJobsForAlert(
+  supabase: ReturnType<typeof adminClient>,
+  alert: JobAlert,
+  since: string,
+): Promise<JobRow[]> {
+  const filters = [
+    ...splitTerms(alert.keywords).slice(0, 6).flatMap((term) => [`title.ilike.%${term}%`, `description.ilike.%${term}%`]),
+    ...splitTerms(alert.locations).slice(0, 4).map((term) => `location.ilike.%${term}%`),
+  ];
+
+  let query = supabase
+    .from('jobs')
+    .select('id,title,company,location,description,url,source,posted_date,salary,language,created_at')
+    .eq('is_hidden', false)
+    .is('owner_user_id', null)
+    .gte('created_at', since)
+    .order('created_at', { ascending: false })
+    .limit(150);
+
+  if (filters.length) {
+    query = query.or(filters.join(','));
+  }
+
+  const { data, error } = await query;
+  if (error) throw error;
+  return (data ?? []) as JobRow[];
+}
+
 Deno.serve(async (req) => {
   const options = handleOptions(req);
   if (options) return options;
@@ -233,15 +261,6 @@ Deno.serve(async (req) => {
     if (usersError) throw usersError;
     const usersById = new Map((users ?? []).map((user: UserRow) => [user.id, user]));
 
-    const { data: jobs, error: jobsError } = await supabase
-      .from('jobs')
-      .select('id,title,company,location,description,url,source,posted_date,salary,language,created_at')
-      .eq('is_hidden', false)
-      .gte('created_at', since)
-      .order('created_at', { ascending: false })
-      .limit(500);
-    if (jobsError) throw jobsError;
-
     let sent = 0;
     let matches = 0;
     const errors: string[] = [];
@@ -250,7 +269,7 @@ Deno.serve(async (req) => {
       const user = usersById.get(alert.user_id);
       if (!user?.email) continue;
 
-      const scored = ((jobs ?? []) as JobRow[])
+      const scored = (await getCandidateJobsForAlert(supabase, alert, since))
         .map((job) => scoreJob(job, alert))
         .filter((job) => job.score >= alert.min_score)
         .sort((a, b) => b.score - a.score || Date.parse(b.created_at) - Date.parse(a.created_at))
@@ -289,7 +308,7 @@ Deno.serve(async (req) => {
         sent += 1;
         matches += freshMatches.length;
       } catch (error) {
-        errors.push(`${user.email}: ${error instanceof Error ? error.message : 'Unknown email error'}`);
+        errors.push(`user_id=${alert.user_id}: ${error instanceof Error ? error.message : 'Unknown email error'}`);
       }
     }
 

@@ -5,15 +5,15 @@
 // -- browsers do not accept wildcard values for credentialed origins.
 
 const EXACT_ORIGINS = new Set<string>([
-  'https://afavers.com',
-  'https://www.afavers.com',
+  'https://afavers.online',
+  'https://www.afavers.online',
   'http://localhost:5173',
   'capacitor://localhost',
 ]);
 
 // Patterns with a single leading wildcard subdomain segment.
 const WILDCARD_SUFFIXES: string[] = [
-  '.vercel.app',
+  '.afavers.vercel.app',
 ];
 
 function isAllowedOrigin(origin: string | null): boolean {
@@ -41,17 +41,8 @@ export function buildCorsHeaders(req: Request): Record<string, string> {
   return headers;
 }
 
-// Backwards-compatible export used by callers that don't have a request
-// in scope. Does NOT set Access-Control-Allow-Origin so the browser will
-// block cross-origin use -- always prefer buildCorsHeaders(req).
-export const corsHeaders: Record<string, string> = {
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-cron-secret',
-  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-  'Vary': 'Origin',
-};
-
-export function jsonResponse(body: unknown, status = 200, req?: Request): Response {
-  const cors = req ? buildCorsHeaders(req) : corsHeaders;
+export function jsonResponse(body: unknown, status = 200, req: Request): Response {
+  const cors = buildCorsHeaders(req);
   return new Response(JSON.stringify(body), {
     status,
     headers: {
