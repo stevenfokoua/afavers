@@ -186,14 +186,25 @@ function detectSource(hostname) {
 }
 
 // ── Message listener ──────────────────────────────────────────────────────
-chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
-  if (message.type === 'EXTRACT_JOB') {
-    try {
-      const data = extractJobData();
-      sendResponse({ success: true, data });
-    } catch (err) {
-      sendResponse({ success: false, error: String(err) });
-    }
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  // Only our own extension pages may drive this listener. Without
+  // externally_connectable nothing else can reach it today, but that is one
+  // manifest edit away from being false and the guard is one line.
+  if (sender.id !== chrome.runtime.id) return false;
+
+  if (message?.type !== 'EXTRACT_JOB') {
+    // Returning true for a message we do not answer leaves the sender's
+    // promise hanging forever.
+    return false;
   }
-  return true; // keep channel open for async
+
+  // extractJobData is synchronous, so the response is already sent by the time
+  // we return and there is no pending reply to keep the channel open for.
+  try {
+    const data = extractJobData();
+    sendResponse({ success: true, data });
+  } catch (err) {
+    sendResponse({ success: false, error: String(err) });
+  }
+  return false;
 });

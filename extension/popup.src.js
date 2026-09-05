@@ -387,9 +387,39 @@ $('save-btn').addEventListener('click', async () => {
     if (!jobId) throw new Error('Save failed — no job id returned.');
 
     // 2) Upsert the per-user overlay row (user_jobs).
-    const appliedDate = ['applied', 'followup', 'interviewing', 'offered'].includes(status)
-      ? now.slice(0, 10)
-      : null;
+    //    history and checklist are JSONB columns, and an upsert replaces them
+    //    wholesale. Writing literal values here used to destroy the entire
+    //    application timeline and checklist of any job the user was already
+    //    tracking -- silently, and it is exactly the data the proof-of-search
+    //    export depends on. Read the existing overlay and merge into it.
+    const { data: existing, error: existingError } = await client
+      .from('user_jobs')
+      .select('status, applied_date, checklist, history')
+      .eq('user_id', appUserId)
+      .eq('job_id', jobId)
+      .maybeSingle();
+    if (existingError) throw new Error(existingError.message);
+
+    const isAppliedStatus = ['applied', 'followup', 'interviewing', 'offered'].includes(status);
+    // Never clear a date the user already has; only fill one in.
+    const appliedDate = existing?.applied_date || (isAppliedStatus ? now.slice(0, 10) : null);
+
+    const checklist = { ...(existing?.checklist || {}) };
+    if (status === 'applied') checklist['Application submitted'] = true;
+
+    const previousHistory = Array.isArray(existing?.history) ? existing.history : [];
+    const newEvents = [{ type: 'manual', label: capturedFrom, at: now }];
+    if (existing?.status !== status) {
+      newEvents.push({ type: 'status', label: `Moved to ${status}`, at: now });
+    }
+    // ponytail: read-then-write, so two captures of the same job at the same
+    // moment can still lose an event. A SECURITY DEFINER RPC appending with
+    // `history = history || $1::jsonb` would close that and the same race in
+    // client/src/services/jobs.service.ts; worth doing if the extension gets a
+    // real release, but it would also break capture until the migration is
+    // applied, which this does not.
+    const history = [...previousHistory, ...newEvents].slice(-80);
+
     const { error: overlayError } = await client
       .from('user_jobs')
       .upsert({
@@ -397,11 +427,8 @@ $('save-btn').addEventListener('click', async () => {
         job_id: jobId,
         status,
         applied_date: appliedDate,
-        checklist: status === 'applied' ? { 'Application submitted': true } : {},
-        history: [
-          { type: 'manual', label: 'Captured from browser extension', at: now },
-          { type: 'status', label: `Moved to ${status}`, at: now },
-        ],
+        checklist,
+        history,
         updated_at: now,
       }, { onConflict: 'user_id,job_id' });
 
