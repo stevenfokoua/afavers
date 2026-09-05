@@ -68,16 +68,18 @@ function cleanText(value = ''): string {
     .trim();
 }
 
-function toIsoDateOrNull(value?: string): string | null {
-  if (!value) return null;
-  const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? null : date.toISOString().slice(0, 10);
-}
-
 export async function getSearchConfig(): Promise<{ keywords: string[]; locations: string[] }> {
   const supabase = adminClient();
-  const { data, error } = await supabase.rpc('get_search_config').single();
-  if (error || !data) return { keywords: DEFAULT_KEYWORDS, locations: DEFAULT_LOCATIONS };
+  const { data, error } = await supabase.from('user_settings').select('keywords,locations');
+  if (error || !data?.length) return { keywords: DEFAULT_KEYWORDS, locations: DEFAULT_LOCATIONS };
+
+  const keywords = new Set<string>();
+  const locations = new Set<string>();
+  for (const row of data) {
+    String(row.keywords ?? '').split(',').map((item) => item.trim()).filter(Boolean).forEach((item) => keywords.add(item.toLowerCase()));
+    String(row.locations ?? '').split(',').map((item) => item.trim()).filter(Boolean).forEach((item) => locations.add(item));
+  }
+
   return {
     keywords: keywords.size ? [...keywords].slice(0, 80) : DEFAULT_KEYWORDS,
     locations: locations.size ? [...locations].slice(0, 32) : DEFAULT_LOCATIONS,
@@ -122,6 +124,7 @@ export async function fetchBundesagenturJobs(
       url.searchParams.set('was', keyword);
       url.searchParams.set('wo', location);
       url.searchParams.set('size', '35');
+      url.searchParams.set('page', '1');
       url.searchParams.set('angebotsart', '1');
       url.searchParams.set('pav', 'false');
       url.searchParams.set('umkreis', '25');
@@ -148,26 +151,9 @@ export async function fetchBundesagenturJobs(
             url: `https://www.arbeitsagentur.de/jobsuche/jobdetail/${item.refnr}`,
             postedDate: item.aktuelleVeroeffentlichungsdatum || item.modifikationsTimestamp,
           });
-          if (!response.ok) break;
-          const data = await response.json();
-          for (const item of data?.stellenangebote ?? []) {
-            const city = item.arbeitsort?.ort || location || 'Germany';
-            const plz = item.arbeitsort?.plz || '';
-            jobs.push({
-              id: `bundesagentur_${item.refnr}`,
-              title: item.titel || item.beruf || 'No title',
-              company: item.arbeitgeber || 'Not specified',
-              location: plz ? `${city} (${plz})` : city,
-              description: `Position: ${item.beruf || 'Not specified'}`,
-              url: `https://www.arbeitsagentur.de/jobsuche/jobdetail/${item.refnr}`,
-              postedDate: item.aktuelleVeroeffentlichungsdatum || item.modifikationsTimestamp,
-            });
-          }
-          if ((data?.stellenangebote?.length ?? 0) < 35) break;
-        } catch (error) {
-          console.error('fetchBundesagenturJobs failed', { keyword, location, error });
-          break;
         }
+      } catch {
+        // Keep the batch resilient; one city/keyword failing should not stop the run.
       }
     }
   }
@@ -181,8 +167,8 @@ export async function fetchAdzunaJobs(deadlineAt: number = Number.POSITIVE_INFIN
   const appKey = env('ADZUNA_APP_KEY');
   if (!appId || !appKey) return { jobs: [], complete: true };
 
-  const keywordsToQuery = keywords.slice(0, 12);
-  const locationsToQuery = locations.slice(0, 8);
+  const keywords = ['nachhaltigkeit', 'umwelt', 'energy', 'consulting'];
+  const locations = ['Düsseldorf', 'Köln', 'Berlin'];
   const jobs: ExternalJob[] = [];
   let complete = true;
 
@@ -219,8 +205,8 @@ export async function fetchAdzunaJobs(deadlineAt: number = Number.POSITIVE_INFIN
             salary,
           });
         }
-      } catch (error) {
-        console.error('fetchAdzunaJobs failed', { keyword, location, error });
+      } catch {
+        // Continue with the next query.
       }
     }
   }
@@ -336,8 +322,8 @@ export async function saveJobs(
     description: job.description,
     url: job.url,
     source: job.id.split('_')[0],
-    posted_date: toIsoDateOrNull(job.postedDate),
-    deadline: toIsoDateOrNull(job.deadline),
+    posted_date: job.postedDate ? new Date(job.postedDate).toISOString().slice(0, 10) : null,
+    deadline: job.deadline ? new Date(job.deadline).toISOString().slice(0, 10) : null,
     salary: job.salary ?? null,
     language: detectLanguage(job.title, job.description),
     // A job returned by a feed is listed again — revive it if it was stale.

@@ -89,3 +89,6 @@ jobs:
             supabase/functions/news/index.ts \
             supabase/functions/resend-webhook/index.ts \
             supabase/functions/werkstudent-search/index.ts
+
+      - name: Test the Svix webhook signature check
+        run: deno test supabase/functions/_shared/svix.test.ts

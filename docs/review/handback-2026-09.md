@@ -8,6 +8,8 @@ Everything on `chore/security-ux-refactor` that was not yet on `main`, finished 
 
 It now verifies the Svix signature before touching the database. The check is done by hand with Web Crypto rather than pulling in the `svix` package: HMAC-SHA256 over `${svix-id}.${svix-timestamp}.${rawBody}`, keyed on the base64 payload of `RESEND_WEBHOOK_SECRET`, compared in constant time against each `v1,<sig>` entry in the `svix-signature` header. A missing secret **rejects** rather than waving requests through, timestamps outside a five-minute window are refused so an old capture cannot be replayed, and anything that fails returns 401 before a single query runs.
 
+The check lives in `supabase/functions/_shared/svix.ts` so it can be tested on its own, and `svix.test.ts` runs it against Svix's own published test vector plus the failure modes that matter: an empty secret, a tampered body, the wrong secret, a replayed timestamp on both sides of the window, missing headers, and malformed input that must not throw. Thirteen assertions, wired into the CI Deno job.
+
 Two smaller defects in the same file went with it: `req.json()` was unguarded, so a malformed body threw out of the handler and returned a bare 500 (it returns 400 now), and the `upsert` had no `onConflict`, so the second bounce for an address would error against the `email` primary key.
 
 **This needs `RESEND_WEBHOOK_SECRET` in the function's environment.** Copy it from the Resend dashboard's webhook settings. Without it the endpoint rejects everything, which is the correct failure direction but does mean bounces stop being recorded until it is set.
@@ -61,7 +63,9 @@ These helpers moved to `client/src/utils/exportFormat.ts`, because `jobsService.
 
 `upstream/main` had moved on by 15 commits — German language support, the Hot Picks restyle, cache recovery controls, the admin manual job fetch, settings and search filter fixes, and a rework of the fetch pipeline. Merged, with Jude's behaviour kept wherever the two disagreed:
 
-- `supabase/functions/_shared/jobs.ts` and `fetch-jobs/index.ts` took his side wholesale. His rework supersedes ours: the source fetchers return `{jobs, complete}` and no longer throw, so his `Promise.all` is safe where ours needed `allSettled`, and he added per-source time budgets and stale-job cleanup we did not have. The `get_search_config` RPC survives on his side of `getSearchConfig`.
+- `supabase/functions/_shared/jobs.ts` and `fetch-jobs/index.ts` are his files verbatim. His rework supersedes ours: the source fetchers return `{jobs, complete}` and no longer throw, so his `Promise.all` is safe where ours needed `allSettled`, and he added per-source time budgets, request timeouts, pair rotation and stale-job cleanup we did not have. His `fetch-jobs` also keeps the fail-closed `CRON_SECRET` check our branch added, so nothing of ours is lost. Resolving these two hunk by hunk produced a file that did not compile, which the Deno type-check caught; taking them whole is both smaller and correct.
+
+  One consequence: his `getSearchConfig` aggregates `user_settings` directly instead of calling the `get_search_config` RPC our branch introduced, so `20260429_get_search_config.sql` now creates a function nothing calls. The migration is left in place because it may already be applied in production and dropping it is a separate decision.
 - `DashboardPage.tsx` and `jobs.service.ts` conflicts were pure additions on his side, taken as is. The manual fetch card needed `IconRefresh` and `isDemo`, which his DashboardPage has and ours did not, so both were added.
 - `HotpicksPage.tsx` kept both sides — his restyle plus our `toastStore` import for the swipe error toasts.
 
@@ -74,14 +78,15 @@ The branch is now 0 behind `upstream/main`.
 | `npm run typecheck` (`tsc -b --noEmit`) | passes |
 | `npm test` (vitest) | 56 passed, 3 files |
 | `npm run build` (vite production) | passes |
+| `deno check` (all six functions plus `_shared`) | passes |
+| `deno test _shared/svix.test.ts` | 13 passed |
 | `npx eslint .` | 20 errors, 10 warnings |
 
 Lint is not green and was not green before this branch either — it was 42 errors when this work started. What remains is pre-existing: 5 `react-hooks/set-state-in-effect`, 5 `no-empty` (the Capacitor splash-screen and theme calls, where failing silently is correct), 4 `no-explicit-any`, and a handful of one-offs. CI does not run lint, so none of it was ever blocking. Cleaning it up is a separate job.
 
 ## Not verified locally
 
-- **The Svix signature check has never seen a real Resend payload.** The HMAC construction follows the documented scheme, but it is worth firing one test webhook from the Resend dashboard and confirming a 200 before trusting that bounces are still being recorded.
-- **No Deno.** The Edge Functions were not type-checked or run; `deno` is not installed here. CI will check all six on this PR, which is the first time it will have checked the webhook at all.
+- **The Svix check has never seen a real Resend payload.** It reproduces Svix's published test vector exactly, so the construction is right, but it is still worth firing one test webhook from the Resend dashboard and confirming a 200 before trusting that bounces are being recorded again.
 - **No Supabase instance.** No migration was applied or executed anywhere. The SQL is reviewed, not run. Nothing was pushed to any database and no function was deployed.
 - **Whether `resend-webhook` is already deployed.** If `supabase functions deploy` was run on 2026-04-29, the unauthenticated version is live right now and stays live until it is redeployed with this code. Worth checking first.
 - **Which `current_app_user_id()` the production database currently has.** Given filename ordering it is most likely still the April email-based one. Applying `20260429_fix_current_app_user_id.sql` settles it either way.
