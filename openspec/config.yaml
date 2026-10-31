@@ -1,0 +1,25 @@
+schema: spec-driven
+
+context: |
+  Afavers is an existing React 19 / TypeScript / Vite / Tailwind 4 web app,
+  with Zustand, React Router, Capacitor and a companion extension.
+  It uses a self-hosted Supabase-compatible backend on a shared ~4 GB VPS.
+  Preserve every feature, all private data boundaries, EN/DE, light/dark,
+  existing routes and efficient static production delivery.
+  PRODUCT.md records confirmed product constraints.
+  The modernize-afavers-ui change is a planning package, not implementation
+  or deployment authorization. Existing unrelated working changes are preserved.
+
+rules:
+  proposal:
+    - Explicitly distinguish proposed behavior from current production behavior.
+    - Preserve functionality; name any intentional behavioral change.
+  specs:
+    - Use SHALL requirements and WHEN/THEN scenarios with testable outcomes.
+    - Cover phone, desktop, keyboard, German copy and failure states where relevant.
+  design:
+    - Describe data ownership, compatibility, performance and reversible rollout.
+    - Do not add resident services, database migrations or external SaaS for styling.
+  tasks:
+    - Leave implementation tasks unchecked until actually implemented and verified.
+    - Use the existing project workflow and resource runner for heavy/helper jobs.

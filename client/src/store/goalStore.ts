@@ -1,5 +1,6 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { persist, createJSONStorage } from 'zustand/middleware';
+import { privateStorage, registerPrivateStore } from './privateStorage';
 
 export type GoalType = 'applications' | 'interviews';
 
@@ -48,6 +49,11 @@ export const useGoalStore = create<GoalState>()(
         return get().stressLog.find(e => e.date === today) ?? null;
       },
     }),
-    { name: 'afavers-wellbeing' }
+    { name: 'afavers-wellbeing', storage: createJSONStorage(() => privateStorage) }
   )
 );
+
+registerPrivateStore(async () => {
+  useGoalStore.setState({ goal: null, stressLog: [] });
+  await useGoalStore.persist.rehydrate();
+});

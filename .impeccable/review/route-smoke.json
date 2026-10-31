@@ -1,0 +1,107 @@
+[
+  {
+    "documentWidth": 1425,
+    "error": false,
+    "heading": "Reports & Analytics",
+    "route": "/analytics",
+    "width": 1440
+  },
+  {
+    "documentWidth": 1440,
+    "error": false,
+    "heading": "News",
+    "route": "/news",
+    "width": 1440
+  },
+  {
+    "documentWidth": 1425,
+    "error": false,
+    "heading": " Career Guides & Resources",
+    "route": "/career-guides",
+    "width": 1440
+  },
+  {
+    "documentWidth": 1425,
+    "error": false,
+    "heading": " Interview Prep",
+    "route": "/interview-prep",
+    "width": 1440
+  },
+  {
+    "documentWidth": 1425,
+    "error": false,
+    "heading": "Settings",
+    "route": "/settings",
+    "width": 1440
+  },
+  {
+    "documentWidth": 1440,
+    "error": false,
+    "heading": "Reminders",
+    "route": "/reminders",
+    "width": 1440
+  },
+  {
+    "documentWidth": 1440,
+    "error": false,
+    "heading": "Hot Picks",
+    "route": "/hotpicks",
+    "width": 1440
+  },
+  {
+    "documentWidth": 1440,
+    "error": false,
+    "heading": "Welcome to afavers",
+    "route": "/setup",
+    "width": 1440
+  },
+  {
+    "documentWidth": 1425,
+    "error": false,
+    "heading": "Browse jobs",
+    "route": "/demo",
+    "width": 1440
+  },
+  {
+    "documentWidth": 1425,
+    "error": false,
+    "heading": "Disclaimer & Privacy Notice",
+    "route": "/disclaimer",
+    "width": 1440
+  },
+  {
+    "documentWidth": 1440,
+    "error": false,
+    "heading": "Your personaljob tracker",
+    "route": "/login",
+    "width": 1440
+  },
+  {
+    "documentWidth": 1440,
+    "error": false,
+    "heading": "Create your account",
+    "route": "/register",
+    "width": 1440
+  },
+  {
+    "documentWidth": 1440,
+    "error": false,
+    "heading": "Forgot Password",
+    "route": "/forgot-password",
+    "width": 1440
+  },
+  {
+    "documentWidth": 1440,
+    "error": false,
+    "heading": "Set New Password",
+    "route": "/reset-password",
+    "width": 1440
+  },
+  {
+    "documentWidth": 1440,
+    "error": false,
+    "heading": "Admin Access",
+    "route": "/admin-login",
+    "width": 1440
+  }
+]

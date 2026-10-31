@@ -1,0 +1,18 @@
+export const STATE_CITIES: Record<string, string[]> = {
+  'Nordrhein-Westfalen': ['Düsseldorf', 'Köln', 'Essen', 'Dortmund', 'Bochum', 'Wuppertal', 'Bielefeld', 'Bonn', 'Münster', 'Duisburg', 'Gelsenkirchen', 'Oberhausen', 'Aachen', 'NRW', 'Nordrhein-Westfalen'],
+  'Bayern':              ['München', 'Nürnberg', 'Augsburg', 'Regensburg', 'Ingolstadt', 'Würzburg', 'Bayern', 'Bavaria'],
+  'Baden-Württemberg':   ['Stuttgart', 'Mannheim', 'Karlsruhe', 'Freiburg', 'Heidelberg', 'Ulm', 'Baden-Württemberg'],
+  'Hessen':              ['Frankfurt', 'Wiesbaden', 'Kassel', 'Darmstadt', 'Offenbach', 'Hessen'],
+  'Hamburg':             ['Hamburg'],
+  'Berlin':              ['Berlin'],
+  'Sachsen':             ['Dresden', 'Leipzig', 'Chemnitz', 'Sachsen'],
+  'Niedersachsen':       ['Hannover', 'Braunschweig', 'Osnabrück', 'Wolfsburg', 'Göttingen', 'Niedersachsen'],
+  'Rheinland-Pfalz':     ['Mainz', 'Ludwigshafen', 'Koblenz', 'Trier', 'Rheinland-Pfalz'],
+  'Brandenburg':         ['Potsdam', 'Cottbus', 'Brandenburg'],
+  'Thüringen':           ['Erfurt', 'Jena', 'Gera', 'Thüringen'],
+  'Sachsen-Anhalt':      ['Magdeburg', 'Halle', 'Sachsen-Anhalt'],
+  'Schleswig-Holstein':  ['Kiel', 'Lübeck', 'Flensburg', 'Schleswig-Holstein'],
+  'Bremen':              ['Bremen', 'Bremerhaven'],
+  'Mecklenburg-Vorpommern': ['Rostock', 'Schwerin', 'Mecklenburg-Vorpommern'],
+  'Saarland':            ['Saarbrücken', 'Saarland'],
+};

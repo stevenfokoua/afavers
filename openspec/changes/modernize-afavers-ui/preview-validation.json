@@ -1,0 +1,166 @@
+{
+  "scope": "Illustrative design previews only; not production acceptance",
+  "date": "2026-10-28",
+  "checks": [
+    {
+      "name": "afavers-workspace.html: fragment and size contract",
+      "passed": true
+    },
+    {
+      "name": "Desktop initial list and inspector",
+      "passed": true
+    },
+    {
+      "name": "DM Sans and Manrope have explicit roles and no initial animation",
+      "passed": true
+    },
+    {
+      "name": "Detail selection moves only the selected content and cancels superseded motion",
+      "passed": true
+    },
+    {
+      "name": "Search and no-results recovery",
+      "passed": true
+    },
+    {
+      "name": "Remote filter and source filter",
+      "passed": true
+    },
+    {
+      "name": "Built-in saved search and no email implication",
+      "passed": true
+    },
+    {
+      "name": "Create and reuse a named search",
+      "passed": true
+    },
+    {
+      "name": "Save and saved-list filtering",
+      "passed": true
+    },
+    {
+      "name": "Shared detail preparation, private draft and activity",
+      "passed": true
+    },
+    {
+      "name": "Apply is honest and does not submit",
+      "passed": true
+    },
+    {
+      "name": "Hide and undo restore the example",
+      "passed": true
+    },
+    {
+      "name": "Dashboard agenda and stage navigation",
+      "passed": true
+    },
+    {
+      "name": "All nine application statuses remain available",
+      "passed": true
+    },
+    {
+      "name": "Non-drag application transition and measured move wiring",
+      "passed": true
+    },
+    {
+      "name": "Settings appearance and alert boundary",
+      "passed": true
+    },
+    {
+      "name": "Tweak bindings update real preview state",
+      "passed": true
+    },
+    {
+      "name": "Reduced-motion selection keeps current details without movement",
+      "passed": true
+    },
+    {
+      "name": "Motion source has bounded spatial effects without opacity fades",
+      "passed": true
+    },
+    {
+      "name": "Focus alternative uses list then full details",
+      "passed": true
+    },
+    {
+      "name": "Visible desktop buttons have accessible text or labels",
+      "passed": true
+    },
+    {
+      "name": "Incoming host review state restores a validated screen",
+      "passed": true
+    },
+    {
+      "name": "afavers-phone.html: fragment and size contract",
+      "passed": true
+    },
+    {
+      "name": "Phone has one contained layout and complete local navigation",
+      "passed": true
+    },
+    {
+      "name": "Phone board is stage-focused and can open preparation",
+      "passed": true
+    },
+    {
+      "name": "Proposed text-token contrast pairs meet 4.5 to 1",
+      "passed": true
+    },
+    {
+      "name": "No unhandled script exceptions during interactions",
+      "passed": true
+    }
+  ],
+  "passed": 27,
+  "failed": 0,
+  "contrastPairs": [
+    {
+      "name": "Light body",
+      "ratio": 17.28
+    },
+    {
+      "name": "Light secondary",
+      "ratio": 6.28
+    },
+    {
+      "name": "Light secondary on canvas",
+      "ratio": 6.02
+    },
+    {
+      "name": "Light accent",
+      "ratio": 5.23
+    },
+    {
+      "name": "Dark body",
+      "ratio": 15.83
+    },
+    {
+      "name": "Dark secondary",
+      "ratio": 8.54
+    },
+    {
+      "name": "Dark accent",
+      "ratio": 7.97
+    }
+  ],
+  "verification": {
+    "javascriptSyntax": true,
+    "offlineDomInteractions": true,
+    "externalNetworkUsedByHarness": false,
+    "browserLayout": false,
+    "actualHostCarouselAndTweak": false,
+    "physicalDevice": false
+  },
+  "limitations": [
+    "Built-in browser security rejected the file protocol. No protocol workaround or alternate browser was used.",
+    "Offline jsdom checks use explicit viewport/geometry/media-query stubs; they test motion scheduling, cancellation and reduced-motion wiring, but do not measure layout, overflow, first-result height, CSS/font rendering, actual animation smoothness, focus visibility or touch geometry.",
+    "The host variant carousel and Tweak bindings follow the documented contract; actual host rendering is available in the conversation but was not browser-inspected by the agent.",
+    "No live API, database, account, email, build, deployment or production behavior was exercised."
+  ],
+  "resources": {
+    "dockerUsed": false,
+    "newPreviewServer": false,
+    "retainedHelpers": [],
+    "retained": "Durable mockup fragments, optional rendered inspection copies, verification script/results and OpenSpec planning documents."
+  }
+}

@@ -22,7 +22,7 @@ SET search_path = public
 AS $$
   SELECT id
   FROM public.users
-  WHERE email = auth.jwt() ->> 'email'
+  WHERE auth_user_id = auth.uid()
   LIMIT 1
 $$;
 

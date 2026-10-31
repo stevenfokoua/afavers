@@ -1,0 +1,440 @@
+<div id="afavers-ui-review" class="af-review" data-preview="desktop">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Figtree:wght@800&family=Manrope:wght@500;600&display=swap');
+    #afavers-ui-review { color-scheme: light dark; --af-font-ui: 'DM Sans', system-ui, sans-serif; --af-font-heading: 'Manrope', 'DM Sans', system-ui, sans-serif; font-family: var(--af-font-ui); font-synthesis: none; --af-canvas: light-dark(#fafafa,#111315); --af-surface: light-dark(#fff,#181a1d); --af-soft: light-dark(#f4f5f5,#202327); --af-text: light-dark(#181b1f,#f3f4f5); --af-muted: light-dark(#58616c,#b0b6bf); --af-line: light-dark(#e2e5e8,#363b42); --af-accent: light-dark(#067647,#75dda6); --af-accent-soft: light-dark(#edf8f1,#153626); --af-ink: light-dark(#181b1f,#f3f4f5); --af-ink-on: light-dark(#fff,#181b1f); --af-danger: light-dark(#b42318,#ffb4ac); color: var(--af-text); background: transparent; }
+    #afavers-ui-review * { box-sizing: border-box; }
+    #afavers-ui-review [hidden] { display: none !important; }
+    #afavers-ui-review .af-product { --af-radius: 6px; --af-row-space: 18px; display: grid; grid-template-columns: 176px minmax(0,1fr); min-height: 800px; background: var(--af-canvas); color: var(--af-text); border: 1px solid var(--af-line); border-radius: 8px; overflow: clip; font-size: 14px; line-height: 1.5; text-align: left; }
+    #afavers-ui-review button, #afavers-ui-review input, #afavers-ui-review select, #afavers-ui-review textarea { font: inherit; }
+    #afavers-ui-review button { color: inherit; }
+    #afavers-ui-review button:disabled { opacity: .5; }
+    #afavers-ui-review h1, #afavers-ui-review h2, #afavers-ui-review h3, #afavers-ui-review p { margin: 0; }
+    #afavers-ui-review h1 { font-family: var(--af-font-heading); font-size: 26px; line-height: 1.3; letter-spacing: -.025em; font-weight: 600; }
+    #afavers-ui-review h2 { font-family: var(--af-font-heading); font-size: 18px; line-height: 1.4; letter-spacing: -.015em; font-weight: 600; }
+    #afavers-ui-review h3 { font-family: var(--af-font-heading); font-size: 15px; line-height: 1.4; font-weight: 500; overflow-wrap: anywhere; }
+    #afavers-ui-review p { color: var(--af-muted); }
+    #afavers-ui-review .af-sidebar { padding: 24px 12px 16px; background: var(--af-surface); border-right: 1px solid var(--af-line); display: flex; flex-direction: column; gap: 22px; }
+    #afavers-ui-review .af-logo { font-family: 'Figtree',sans-serif; font-weight: 800; font-size: 24px; letter-spacing: -.04em; color: var(--af-text); }
+    #afavers-ui-review .af-logo span { color: #f97316; }
+    #afavers-ui-review .af-sidebar .af-logo { padding: 0 12px; }
+    #afavers-ui-review .af-navgroup { display: grid; gap: 3px; }
+    #afavers-ui-review .af-navlabel { font-size: 12px; color: var(--af-muted); padding: 0 12px 7px; font-weight: 500; }
+    #afavers-ui-review .af-nav { display: flex; align-items: center; gap: 10px; border: 0; background: transparent; padding: 9px 12px; border-radius: var(--af-radius); text-align: left; width: 100%; font-size: 13px; }
+    #afavers-ui-review .af-nav:hover { background: var(--af-soft); }
+    #afavers-ui-review .af-nav[aria-current="page"] { color: var(--af-accent); background: var(--af-accent-soft); font-weight: 600; }
+    #afavers-ui-review .af-nav svg { width: 17px; height: 17px; flex: none; }
+    #afavers-ui-review .af-account { margin-top: auto; padding-top: 18px; border-top: 1px solid var(--af-line); }
+    #afavers-ui-review .af-avatar { display: grid; place-items: center; background: var(--af-soft); border: 1px solid var(--af-line); border-radius: 50%; width: 28px; height: 28px; font-size: 11px; font-weight: 600; flex: none; }
+    #afavers-ui-review .af-main { min-width: 0; }
+    #afavers-ui-review .af-topbar { min-height: 54px; padding: 13px 26px; display: flex; align-items: center; justify-content: space-between; gap: 12px; border-bottom: 1px solid var(--af-line); background: var(--af-surface); font-size: 12px; color: var(--af-muted); }
+    #afavers-ui-review .af-topbar strong { color: var(--af-text); font-weight: 500; }
+    #afavers-ui-review .af-topbar .af-mobile-logo { display: none; }
+    #afavers-ui-review .af-preview-label { font-size: 11px; color: var(--af-muted); }
+    #afavers-ui-review .af-content { padding: 27px 26px 24px; }
+    #afavers-ui-review .af-heading { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 22px; }
+    #afavers-ui-review .af-heading p { margin-top: 5px; font-size: 13px; }
+    #afavers-ui-review .af-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    #afavers-ui-review .af-button { display: inline-flex; align-items: center; justify-content: center; gap: 7px; border: 1px solid var(--af-line); border-radius: var(--af-radius); padding: 8px 12px; min-height: 36px; background: var(--af-surface); color: var(--af-text); font-size: 13px; font-weight: 500; white-space: nowrap; text-decoration: none; }
+    #afavers-ui-review .af-button:hover { background: var(--af-soft); }
+    #afavers-ui-review .af-button.af-primary { background: var(--af-ink); border-color: var(--af-ink); color: var(--af-ink-on); }
+    #afavers-ui-review .af-button.af-selected { color: var(--af-accent); background: var(--af-accent-soft); border-color: var(--af-accent); }
+    #afavers-ui-review .af-button.af-quiet { border-color: transparent; background: transparent; padding: 5px 0; color: var(--af-muted); min-height: 28px; }
+    #afavers-ui-review .af-button.af-icon { padding: 8px; }
+    #afavers-ui-review svg { width: 16px; height: 16px; stroke-width: 1.6; }
+    #afavers-ui-review .af-field { width: 100%; background: var(--af-surface); border: 1px solid var(--af-line); color: var(--af-text); border-radius: var(--af-radius); padding: 8px 11px; min-height: 38px; font-size: 14px; }
+    #afavers-ui-review .af-field::placeholder { color: var(--af-muted); opacity: 1; }
+    #afavers-ui-review .af-search { display: flex; align-items: center; gap: 8px; background: var(--af-surface); border: 1px solid var(--af-line); border-radius: var(--af-radius); padding-left: 11px; min-width: 0; }
+    #afavers-ui-review .af-search svg { color: var(--af-muted); flex: none; }
+    #afavers-ui-review .af-search input { min-width: 0; width: 100%; border: 0; background: transparent; color: var(--af-text); padding: 10px 8px 10px 0; font-size: 14px; }
+    #afavers-ui-review .af-searchbar { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 8px; }
+    #afavers-ui-review .af-filterbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 10px; }
+    #afavers-ui-review .af-filterbar .af-field { width: auto; max-width: 100%; min-height: 34px; padding: 6px 9px; font-size: 12px; }
+    #afavers-ui-review .af-filterbar .af-spacer { flex: 1; }
+    #afavers-ui-review .af-filter-panel { margin-top: 12px; padding: 16px; border: 1px solid var(--af-line); border-radius: 8px; background: var(--af-surface); display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 14px; }
+    #afavers-ui-review .af-label { display: grid; gap: 6px; color: var(--af-muted); font-size: 12px; }
+    #afavers-ui-review .af-check { display: flex; align-items: center; gap: 8px; color: var(--af-text); font-size: 13px; min-height: 34px; }
+    #afavers-ui-review input[type="checkbox"] { accent-color: var(--af-accent); width: 16px; height: 16px; flex: none; }
+    #afavers-ui-review .af-tabs { display: flex; align-items: stretch; border-bottom: 1px solid var(--af-line); gap: 18px; margin-top: 16px; flex-wrap: wrap; }
+    #afavers-ui-review .af-tab { border: 0; border-bottom: 2px solid transparent; background: transparent; padding: 10px 0; color: var(--af-muted); font-size: 13px; }
+    #afavers-ui-review .af-tab[aria-pressed="true"] { color: var(--af-text); border-bottom-color: var(--af-text); font-weight: 500; }
+    #afavers-ui-review .af-count { color: var(--af-muted); font-size: 11px; margin-left: 5px; font-variant-numeric: tabular-nums; }
+    #afavers-ui-review .af-results-line { padding: 14px 0 11px; display: flex; justify-content: space-between; align-items: center; gap: 8px; color: var(--af-muted); font-size: 12px; }
+    #afavers-ui-review .af-workspace { display: grid; grid-template-columns: minmax(0,.95fr) minmax(0,1.05fr); border: 1px solid var(--af-line); border-radius: 8px; background: var(--af-surface); align-items: start; }
+    #afavers-ui-review .af-list { min-width: 0; }
+    #afavers-ui-review .af-row { padding: var(--af-row-space) 16px; border-bottom: 1px solid var(--af-line); position: relative; }
+    #afavers-ui-review .af-row:last-child { border-bottom: 0; }
+    #afavers-ui-review .af-row.af-active { background: var(--af-soft); }
+    #afavers-ui-review .af-row-top { display: flex; align-items: flex-start; gap: 10px; }
+    #afavers-ui-review .af-companymark { display: grid; place-items: center; width: 32px; height: 32px; border: 1px solid var(--af-line); border-radius: 6px; background: var(--af-surface); color: var(--af-muted); font-size: 12px; font-weight: 600; flex: none; }
+    #afavers-ui-review .af-job-open { flex: 1; min-width: 0; padding: 0; border: 0; background: transparent; text-align: left; }
+    #afavers-ui-review .af-job-open strong { display: block; font-size: 14px; font-weight: 600; line-height: 1.5; color: var(--af-text); overflow-wrap: anywhere; }
+    #afavers-ui-review .af-job-open span { color: var(--af-muted); display: block; font-size: 12px; margin-top: 2px; }
+    #afavers-ui-review .af-save { background: transparent; border: 0; padding: 2px; color: var(--af-muted); display: grid; place-items: center; width: 28px; height: 28px; flex: none; }
+    #afavers-ui-review .af-save[aria-pressed="true"] { color: var(--af-accent); }
+    #afavers-ui-review .af-meta { display: flex; align-items: center; gap: 9px; flex-wrap: wrap; font-size: 11px; color: var(--af-muted); margin-top: 10px; }
+    #afavers-ui-review .af-score { color: var(--af-accent); font-weight: 500; }
+    #afavers-ui-review .af-dot { width: 4px; height: 4px; border-radius: 50%; background: var(--af-muted); }
+    #afavers-ui-review .af-reason { margin-top: 7px; font-size: 11px; color: var(--af-muted); }
+    #afavers-ui-review .af-inspector { padding: 24px; border-left: 1px solid var(--af-line); min-width: 0; }
+    #afavers-ui-review .af-inspector h2 { font-size: 23px; line-height: 1.3; margin: 0 0 6px; }
+    #afavers-ui-review .af-inspector .af-subtitle { font-size: 13px; }
+    #afavers-ui-review .af-detail-meta { display: flex; gap: 14px; flex-wrap: wrap; color: var(--af-muted); font-size: 12px; margin: 14px 0 20px; }
+    #afavers-ui-review .af-detail-meta span { display: inline-flex; align-items: center; gap: 5px; }
+    #afavers-ui-review .af-statusline { display: flex; gap: 10px; margin: 18px 0; align-items: center; }
+    #afavers-ui-review .af-statusline label { font-size: 12px; color: var(--af-muted); }
+    #afavers-ui-review .af-statusline select { width: auto; min-width: 130px; font-size: 12px; }
+    #afavers-ui-review .af-body { font-size: 16px; line-height: 1.7; }
+    #afavers-ui-review .af-body h3 { margin: 22px 0 8px; }
+    #afavers-ui-review .af-body ul { padding-left: 18px; margin: 8px 0 16px; color: var(--af-muted); }
+    #afavers-ui-review .af-body li { margin: 5px 0; }
+    #afavers-ui-review .af-match { margin: 20px 0; padding: 13px 0; border-block: 1px solid var(--af-line); }
+    #afavers-ui-review .af-match summary { display: flex; justify-content: space-between; gap: 8px; font-size: 13px; font-weight: 500; }
+    #afavers-ui-review .af-match p { margin-top: 9px; font-size: 12px; line-height: 1.6; }
+    #afavers-ui-review .af-detail-footer { margin-top: 24px; padding-top: 14px; border-top: 1px solid var(--af-line); color: var(--af-muted); font-size: 11px; }
+    #afavers-ui-review .af-prep { display: grid; gap: 18px; margin-top: 20px; }
+    #afavers-ui-review textarea { resize: vertical; min-height: 104px; }
+    #afavers-ui-review .af-savefeedback { color: var(--af-accent); font-size: 12px; min-height: 18px; }
+    #afavers-ui-review .af-timeline { list-style: none; margin: 22px 0 0; padding: 0; }
+    #afavers-ui-review .af-timeline li { padding: 12px 0; border-bottom: 1px solid var(--af-line); font-size: 13px; }
+    #afavers-ui-review .af-timeline small { display: block; margin-top: 3px; font-size: 11px; color: var(--af-muted); }
+    #afavers-ui-review .af-workspace.af-full { grid-template-columns: minmax(0,1fr); }
+    #afavers-ui-review .af-full .af-inspector { border-left: 0; max-width: 760px; width: 100%; margin: auto; padding: 26px; }
+    #afavers-ui-review .af-back { margin-bottom: 8px; }
+    #afavers-ui-review .af-empty { padding: 52px 24px; text-align: center; }
+    #afavers-ui-review .af-empty p { margin: 8px 0 16px; }
+    #afavers-ui-review .af-footer { font-size: 11px; color: var(--af-muted); margin-top: 18px; display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+    #afavers-ui-review .af-notice { background: var(--af-accent-soft); color: var(--af-accent); padding: 10px 14px; border-radius: var(--af-radius); margin-bottom: 16px; font-size: 13px; }
+    #afavers-ui-review .af-section { margin-top: 26px; }
+    #afavers-ui-review .af-section-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+    #afavers-ui-review .af-panel { background: var(--af-surface); border: 1px solid var(--af-line); border-radius: 8px; }
+    #afavers-ui-review .af-agenda-row { display: flex; align-items: center; gap: 16px; padding: 18px; border-bottom: 1px solid var(--af-line); }
+    #afavers-ui-review .af-agenda-row:last-child { border-bottom: 0; }
+    #afavers-ui-review .af-date { color: var(--af-muted); font-size: 12px; min-width: 68px; }
+    #afavers-ui-review .af-date strong { display: block; color: var(--af-text); font-weight: 500; font-size: 13px; }
+    #afavers-ui-review .af-grow { flex: 1; min-width: 0; }
+    #afavers-ui-review .af-agenda-row p { margin-top: 4px; font-size: 12px; }
+    #afavers-ui-review .af-summary { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); margin: 24px 0; padding: 20px 0; border-block: 1px solid var(--af-line); }
+    #afavers-ui-review .af-summary button { background: transparent; border: 0; border-right: 1px solid var(--af-line); text-align: left; padding: 0 18px; }
+    #afavers-ui-review .af-summary button:first-child { padding-left: 0; }
+    #afavers-ui-review .af-summary button:last-child { border-right: 0; }
+    #afavers-ui-review .af-summary span { font-size: 12px; color: var(--af-muted); }
+    #afavers-ui-review .af-summary strong { display: block; font-size: 26px; line-height: 1.4; margin-top: 4px; font-weight: 500; font-variant-numeric: tabular-nums; }
+    #afavers-ui-review .af-dashboard-grid { display: grid; grid-template-columns: minmax(0,1.5fr) minmax(0,1fr); gap: 24px; }
+    #afavers-ui-review .af-simple-row { padding: 14px 0; border-bottom: 1px solid var(--af-line); display: flex; gap: 12px; align-items: center; }
+    #afavers-ui-review .af-simple-row p { font-size: 12px; margin-top: 3px; }
+    #afavers-ui-review .af-inline-link { color: var(--af-accent); background: transparent; border: 0; padding: 4px 0; text-align: left; font-size: 12px; }
+    #afavers-ui-review .af-goal { padding: 18px; }
+    #afavers-ui-review .af-goal p { font-size: 12px; margin-top: 6px; }
+    #afavers-ui-review progress { width: 100%; height: 5px; border: 0; border-radius: 0; accent-color: var(--af-accent); margin: 18px 0 10px; }
+    #afavers-ui-review .af-board { display: grid; grid-template-columns: repeat(5,minmax(0,1fr)); gap: 10px; margin-top: 18px; align-items: start; }
+    #afavers-ui-review .af-column { min-width: 0; }
+    #afavers-ui-review .af-column-heading { padding: 9px 1px 13px; color: var(--af-muted); font-size: 12px; display: flex; justify-content: space-between; gap: 4px; }
+    #afavers-ui-review .af-board-card { border: 1px solid var(--af-line); border-radius: 8px; background: var(--af-surface); padding: 13px 11px; margin-bottom: 10px; }
+    #afavers-ui-review .af-board-card h3 { font-size: 13px; }
+    #afavers-ui-review .af-board-card p { font-size: 11px; margin-top: 5px; }
+    #afavers-ui-review .af-board-card .af-field { padding: 5px; min-height: 30px; font-size: 11px; margin-top: 16px; }
+    #afavers-ui-review .af-board-card .af-job-open { display: block; width: 100%; }
+    #afavers-ui-review .af-column-empty { border-top: 1px solid var(--af-line); padding: 16px 0; font-size: 12px; color: var(--af-muted); }
+    #afavers-ui-review .af-stage-select { width: auto; min-width: 170px; }
+    #afavers-ui-review .af-form-layout { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 20px; }
+    #afavers-ui-review .af-form-section { padding: 22px 0; border-bottom: 1px solid var(--af-line); }
+    #afavers-ui-review .af-form-section h2 { margin-bottom: 16px; }
+    #afavers-ui-review .af-form-section p { margin-bottom: 14px; font-size: 13px; }
+    #afavers-ui-review .af-form-section .af-label { margin-bottom: 15px; }
+    #afavers-ui-review .af-bottom-nav, #afavers-ui-review .af-phone-menu { display: none; }
+    #afavers-ui-review .af-table { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 13px; }
+    #afavers-ui-review .af-table th { color: var(--af-muted); font-weight: 400; text-align: left; }
+    #afavers-ui-review .af-table th, #afavers-ui-review .af-table td { padding: 12px 5px; border-bottom: 1px solid var(--af-line); }
+    #afavers-ui-review .af-table td:last-child, #afavers-ui-review .af-table th:last-child { text-align: right; font-variant-numeric: tabular-nums; }
+    #afavers-ui-review .af-resources { display: grid; gap: 0; }
+    #afavers-ui-review .af-resource { padding: 22px 0; border-bottom: 1px solid var(--af-line); }
+    #afavers-ui-review .af-resource p { margin-top: 8px; max-width: 65ch; }
+    #afavers-ui-review .af-product[data-layout="focus"] .af-workspace:not(.af-full) { grid-template-columns: minmax(0,1fr); }
+    #afavers-ui-review .af-product[data-layout="focus"] .af-workspace:not(.af-full) .af-row { padding: 18px 20px; }
+    #afavers-ui-review .af-product[data-layout="focus"] .af-workspace:not(.af-full) .af-row-top { align-items: center; }
+    #afavers-ui-review .af-product[data-layout="focus"] .af-workspace:not(.af-full) .af-meta { margin-left: 42px; }
+    #afavers-ui-review .af-product[data-layout="focus"] .af-row-top .af-job-open strong { font-size: 15px; }
+    #afavers-ui-review .af-product[data-layout="focus"] .af-row-top .af-job-open span { display: inline; }
+    #afavers-ui-review .af-product[data-layout="focus"] .af-reason { margin-left: 42px; }
+    #afavers-ui-review .af-product[data-layout="focus"] .af-workspace:not(.af-full) .af-meta,
+    #afavers-ui-review .af-product[data-layout="focus"] .af-reason { margin-left: 0; }
+    #afavers-ui-review .af-motion-details { animation: af-details-settle 180ms cubic-bezier(.2,.8,.2,1); }
+    #afavers-ui-review .af-motion-save { animation: af-save-confirm 120ms ease-out; transform-origin: center; }
+    #afavers-ui-review .af-motion-card { animation: af-card-move 180ms cubic-bezier(.2,.8,.2,1); }
+    @keyframes af-details-settle { from { transform: translateX(8px); } to { transform: translateX(0); } }
+    @keyframes af-save-confirm { from { transform: scale(.92); } to { transform: scale(1); } }
+    @keyframes af-card-move { from { transform: translate(var(--af-move-x),var(--af-move-y)); } to { transform: translate(0,0); } }
+    @media (prefers-reduced-motion: reduce) {
+      #afavers-ui-review .af-motion-details, #afavers-ui-review .af-motion-save, #afavers-ui-review .af-motion-card { animation: none; }
+    }
+    #afavers-ui-review .af-review-phone { max-width: 390px; margin: auto; }
+    #afavers-ui-review[data-preview="phone"] { padding: 20px 0; }
+    #afavers-ui-review[data-preview="phone"] .af-product { max-width: 390px; margin: auto; grid-template-columns: minmax(0,1fr); min-height: 920px; }
+    #afavers-ui-review[data-preview="phone"] .af-sidebar { display: none; }
+    #afavers-ui-review[data-preview="phone"] .af-main { display: flex; flex-direction: column; }
+    #afavers-ui-review[data-preview="phone"] .af-content { padding: 22px 18px; flex: 1; }
+    #afavers-ui-review[data-preview="phone"] .af-topbar { padding: 12px 18px; }
+    #afavers-ui-review[data-preview="phone"] .af-topbar .af-mobile-logo { display: block; font-size: 21px; }
+    #afavers-ui-review[data-preview="phone"] .af-topbar .af-crumb { display: none; }
+    #afavers-ui-review[data-preview="phone"] h1 { font-size: 25px; }
+    #afavers-ui-review[data-preview="phone"] .af-heading { margin-bottom: 18px; gap: 10px; align-items: start; }
+    #afavers-ui-review[data-preview="phone"] .af-heading p { font-size: 12px; }
+    #afavers-ui-review[data-preview="phone"] .af-heading .af-button { padding: 8px 10px; font-size: 12px; }
+    #afavers-ui-review[data-preview="phone"] .af-heading .af-button .af-add-label { display: none; }
+    #afavers-ui-review[data-preview="phone"] .af-field, #afavers-ui-review[data-preview="phone"] .af-search input { font-size: 16px; }
+    #afavers-ui-review[data-preview="phone"] .af-filterbar .af-field { font-size: 13px; flex: 1; min-width: 0; }
+    #afavers-ui-review[data-preview="phone"] .af-filterbar .af-spacer { display: none; }
+    #afavers-ui-review[data-preview="phone"] .af-tabs { gap: 15px; margin-top: 12px; }
+    #afavers-ui-review[data-preview="phone"] .af-tab { font-size: 12px; }
+    #afavers-ui-review[data-preview="phone"] .af-tab .af-count { font-size: 10px; }
+    #afavers-ui-review[data-preview="phone"] .af-workspace { grid-template-columns: minmax(0,1fr); }
+    #afavers-ui-review[data-preview="phone"] .af-inspector { border: 0; padding: 20px 17px; }
+    #afavers-ui-review[data-preview="phone"] .af-row { padding: 17px 12px; }
+    #afavers-ui-review[data-preview="phone"] .af-row-top { gap: 9px; }
+    #afavers-ui-review[data-preview="phone"] .af-job-open strong { font-size: 14px; }
+    #afavers-ui-review[data-preview="phone"] .af-bottom-nav { display: flex; justify-content: space-around; border-top: 1px solid var(--af-line); background: var(--af-surface); padding: 8px 2px 10px; }
+    #afavers-ui-review[data-preview="phone"] .af-bottom-nav button { padding: 4px 3px; font-size: 10px; border: 0; background: transparent; color: var(--af-muted); display: grid; justify-items: center; gap: 4px; min-width: 50px; min-height: 44px; }
+    #afavers-ui-review[data-preview="phone"] .af-bottom-nav button[aria-current="page"] { color: var(--af-accent); }
+    #afavers-ui-review[data-preview="phone"] .af-bottom-nav svg { width: 19px; height: 19px; }
+    #afavers-ui-review[data-preview="phone"] .af-phone-menu { display: grid; padding: 12px; border-top: 1px solid var(--af-line); background: var(--af-surface); grid-template-columns: repeat(2,minmax(0,1fr)); gap: 2px; }
+    #afavers-ui-review[data-preview="phone"] .af-filter-panel { grid-template-columns: minmax(0,1fr); }
+    #afavers-ui-review[data-preview="phone"] .af-dashboard-grid { grid-template-columns: minmax(0,1fr); gap: 24px; }
+    #afavers-ui-review[data-preview="phone"] .af-summary { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 18px; }
+    #afavers-ui-review[data-preview="phone"] .af-summary button:nth-child(3) { padding-left: 0; }
+    #afavers-ui-review[data-preview="phone"] .af-summary button:nth-child(2) { border-right: 0; }
+    #afavers-ui-review[data-preview="phone"] .af-agenda-row { padding: 15px 12px; gap: 10px; flex-wrap: wrap; }
+    #afavers-ui-review[data-preview="phone"] .af-agenda-row .af-date { min-width: 55px; }
+    #afavers-ui-review[data-preview="phone"] .af-agenda-row .af-button { margin-left: 65px; }
+    #afavers-ui-review[data-preview="phone"] .af-board { grid-template-columns: minmax(0,1fr); }
+    #afavers-ui-review[data-preview="phone"] .af-board-card h3 { font-size: 15px; }
+    #afavers-ui-review[data-preview="phone"] .af-board-card p { font-size: 13px; }
+    #afavers-ui-review[data-preview="phone"] .af-board-card .af-field { font-size: 14px; }
+    #afavers-ui-review[data-preview="phone"] .af-form-layout { grid-template-columns: minmax(0,1fr); gap: 0; }
+    #afavers-ui-review[data-preview="phone"] .af-footer { font-size: 10px; }
+    #afavers-ui-review[data-preview="phone"] .af-phone-hide { display: none; }
+    @media (max-width: 760px) {
+      #afavers-ui-review:not([data-preview="phone"]) .af-product { grid-template-columns: minmax(0,1fr); min-height: 920px; }
+      #afavers-ui-review:not([data-preview="phone"]) .af-sidebar { display: none; }
+      #afavers-ui-review:not([data-preview="phone"]) .af-topbar .af-mobile-logo { display: block; font-size: 21px; }
+      #afavers-ui-review:not([data-preview="phone"]) .af-topbar .af-crumb { display: none; }
+      #afavers-ui-review:not([data-preview="phone"]) .af-content { padding: 22px 18px; }
+      #afavers-ui-review:not([data-preview="phone"]) .af-workspace, #afavers-ui-review:not([data-preview="phone"]) .af-dashboard-grid, #afavers-ui-review:not([data-preview="phone"]) .af-form-layout { grid-template-columns: minmax(0,1fr); }
+      #afavers-ui-review:not([data-preview="phone"]) .af-inspector { border: 0; padding: 20px 17px; }
+      #afavers-ui-review:not([data-preview="phone"]) .af-filter-panel { grid-template-columns: minmax(0,1fr); }
+      #afavers-ui-review:not([data-preview="phone"]) .af-bottom-nav { display: flex; justify-content: space-around; background: var(--af-surface); padding: 10px 0; border-top: 1px solid var(--af-line); }
+      #afavers-ui-review:not([data-preview="phone"]) .af-bottom-nav button { background: transparent; border: 0; font-size: 10px; display: grid; justify-items: center; gap: 5px; color: var(--af-muted); min-height: 44px; min-width: 50px; }
+      #afavers-ui-review:not([data-preview="phone"]) .af-bottom-nav button[aria-current="page"] { color: var(--af-accent); }
+      #afavers-ui-review:not([data-preview="phone"]) .af-phone-menu { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); padding: 12px; background: var(--af-surface); }
+      #afavers-ui-review:not([data-preview="phone"]) .af-field, #afavers-ui-review:not([data-preview="phone"]) .af-search input { font-size: 16px; }
+      #afavers-ui-review:not([data-preview="phone"]) .af-filterbar .af-field { font-size: 13px; flex: 1; min-width: 0; }
+      #afavers-ui-review:not([data-preview="phone"]) .af-filterbar .af-spacer { display: none; }
+      #afavers-ui-review:not([data-preview="phone"]) .af-board { grid-template-columns: minmax(0,1fr); }
+      #afavers-ui-review:not([data-preview="phone"]) .af-heading .af-add-label { display: none; }
+    }
+    @media (pointer: coarse) {
+      #afavers-ui-review .af-button, #afavers-ui-review .af-save, #afavers-ui-review .af-tab, #afavers-ui-review .af-nav { min-height: 44px; }
+      #afavers-ui-review .af-save { min-width: 44px; }
+      #afavers-ui-review .af-check { min-height: 44px; }
+    }
+    @media (max-width: 360px) {
+      #afavers-ui-review .af-content { padding-inline: 12px !important; }
+      #afavers-ui-review .af-tabs { gap: 12px !important; }
+      #afavers-ui-review .af-tab { font-size: 11px !important; }
+      #afavers-ui-review .af-heading { gap: 8px; }
+      #afavers-ui-review .af-heading .af-button { padding-inline: 8px; }
+      #afavers-ui-review .af-topbar { padding-inline: 12px !important; }
+    }
+  </style>
+  <div class="viz-carousel" aria-label="Afavers workspace layout alternatives">
+    <section data-variant="Workbench" aria-label="Workbench layout">
+      <div class="af-product" data-layout="workbench" aria-label="Afavers Workbench preview"></div>
+    </section>
+    <section data-variant="Focus" aria-label="Focus layout" hidden>
+      <div class="af-product" data-layout="focus" aria-label="Afavers Focus preview"></div>
+    </section>
+  </div>
+  <script>
+    (() => {
+      const root = document.getElementById('afavers-ui-review');
+      const icon = name => `<i data-lucide="${name}" aria-hidden="true"></i>`;
+      const escape = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+      const statusNames = {new:'New',saved:'Saved',preparing:'Preparing',applied:'Applied',followup:'Follow-up',interviewing:'Interviewing',offered:'Offered',rejected:'Rejected',archived:'Archived'};
+      const jobsSeed = [
+        {id:'nordlicht',title:'Product Designer',company:'Nordlicht Studio',initials:'NS',location:'Düsseldorf',work:'Hybrid',type:'Full-time',score:92,posted:'Today',source:'Bundesagentur',status:'new',reason:'Design keywords · Preferred location · Hybrid',description:'Help a small product team turn complex services into clear, useful experiences. Work closely with engineers from early research through delivery.'},
+        {id:'morgen',title:'UX / UI Designer',company:'Morgen Labs',initials:'ML',location:'Berlin',work:'Remote',type:'Full-time',score:88,posted:'Today',source:'Adzuna',status:'new',reason:'Design keywords · Remote-friendly',description:'Design thoughtful web experiences, test ideas with users and help maintain a consistent component library.'},
+        {id:'formfield',title:'Werkstudent UI Design',company:'Form & Field',initials:'FF',location:'Köln',work:'Hybrid',type:'Student',score:81,posted:'Yesterday',source:'Bundesagentur',status:'new',reason:'Design keywords · Student role',description:'Support a design team with interface explorations, prototypes and accessible component documentation alongside your studies.'},
+        {id:'rheinwerk',title:'Interaction Designer',company:'Rheinwerk Digital',initials:'RD',location:'Düsseldorf',work:'Hybrid',type:'Full-time',score:87,posted:'2 days ago',source:'Adzuna',status:'saved',reason:'Design keywords · Preferred location',description:'Shape interactions for digital products and make everyday tasks easier for the people using them.'},
+        {id:'hafen',title:'Visual Designer',company:'Studio Hafen',initials:'SH',location:'Dortmund',work:'On-site',type:'Full-time',score:74,posted:'3 days ago',source:'Bundesagentur',status:'preparing',reason:'Design keywords · Regional location',description:'Bring a consistent visual language to brand and digital experiences, working from clear briefs and real user needs.'},
+        {id:'klar',title:'Digital Product Designer',company:'Klar Systems',initials:'KS',location:'Essen',work:'Hybrid',type:'Full-time',score:85,posted:'4 days ago',source:'Adzuna',status:'applied',reason:'Design keywords · Regional location',description:'Improve a growing digital service through research, practical prototypes and close engineering collaboration.'},
+        {id:'west',title:'Experience Designer',company:'West Collective',initials:'WC',location:'Köln',work:'Remote',type:'Full-time',score:84,posted:'5 days ago',source:'Adzuna',status:'followup',reason:'Design keywords · Remote-friendly',description:'Help a multidisciplinary team understand customer needs and translate them into simple, reliable service experiences.'},
+        {id:'atelier',title:'UI Designer',company:'Atelier Digital',initials:'AD',location:'Düsseldorf',work:'Hybrid',type:'Full-time',score:91,posted:'6 days ago',source:'Bundesagentur',status:'interviewing',reason:'Design keywords · Preferred location',description:'Create precise interfaces and contribute to a shared design system for a range of everyday product workflows.'}
+      ];
+      const navigation = [
+        ['Search',[['overview','house','Overview'],['jobs','search','Find jobs'],['hotpicks','flame','Hot Picks']]],
+        ['Track',[['board','columns-3','Applications'],['reminders','calendar-days','Reminders'],['insights','chart-no-axes-column','Analytics']]],
+        ['Resources',[['news','newspaper','News'],['prep','messages-square','Interview prep'],['guides','book-open','Career guides']]]
+      ];
+      const allNav = navigation.flatMap(group => group[1]);
+      const hosts = [...root.querySelectorAll('.af-product')];
+      const states = new Map();
+      const initial = root.dataset.preview === 'phone' ? 'phone' : 'desktop';
+      const narrow = () => initial === 'phone' || root.getBoundingClientRect().width < 760;
+      const persisted = window.openai?.widgetState?.modelContent;
+      const defaultView = persisted?.preview === initial && ['jobs','overview','board','settings'].includes(persisted?.screen) ? persisted.screen : 'jobs';
+      function saveReview(state) {
+        const request = window.openai?.setWidgetState?.({modelContent:{preview:initial,screen:state.view,selectedJob:state.selected,layout:state.layout},privateContent:null});
+        if (request?.catch) request.catch(() => {});
+      }
+      function labelTitle(job,state) { return state.longTitles && job.id === 'nordlicht' ? 'Produktdesigner für digitale Dienstleistungen und barrierefreie Benutzeroberflächen (m/w/d)' : job.title; }
+      function navButton(id,name,label,state) { return `<button type="button" class="af-nav cursor-interaction" data-nav="${id}" ${state.view === id ? 'aria-current="page"' : ''}>${icon(name)}<span>${label}</span></button>`; }
+      function button(text,action,opts='') { return `<button type="button" class="af-button cursor-interaction ${opts}" data-action="${action}" ${action==='hide'?'aria-label="Hide job"':''}>${text}</button>`; }
+      function stageOptions(current,all=false) { return `${all ? '<option value="active">Active stages</option>' : ''}${Object.entries(statusNames).map(([value,label])=>`<option value="${value}" ${current===value?'selected':''}>${label}</option>`).join('')}`; }
+      function footer() { return '<div class="af-footer"><span>Design preview · Illustrative jobs</span><span>Changes stay in this preview</span></div>'; }
+      function pageHeading(title,subtitle,action='') { return `<div class="af-heading"><div><h1>${title}</h1>${subtitle?`<p>${subtitle}</p>`:''}</div>${action}</div>`; }
+      function rowsFor(state) {
+        let list = state.jobs.filter(job=>!job.hidden);
+        if (state.tab==='new') list=list.filter(j=>j.status==='new');
+        if (state.tab==='saved') list=list.filter(j=>j.status==='saved');
+        if (state.tab==='tracked') list=list.filter(j=>j.status!=='new');
+        const q=state.query.trim().toLowerCase();
+        if(q) list=list.filter(j=>`${labelTitle(j,state)} ${j.company} ${j.location} ${j.type}`.toLowerCase().includes(q));
+        if(state.remote) list=list.filter(j=>j.work==='Remote');
+        if(state.student) list=list.filter(j=>j.type==='Student');
+        if(state.strong) list=list.filter(j=>j.score>=85);
+        if(state.source!=='all') list=list.filter(j=>j.source===state.source);
+        if(state.location!=='all') list=list.filter(j=>j.location===state.location);
+        if(state.sort==='match') list.sort((a,b)=>b.score-a.score);
+        return list;
+      }
+      function jobRow(job,state) {
+        const selected=job.id===state.selected && state.layout==='workbench' && !narrow();
+        return `<article class="af-row ${selected?'af-active':''}" aria-label="${escape(labelTitle(job,state))}"><div class="af-row-top"><button type="button" class="af-job-open cursor-interaction" data-open="${job.id}" ${selected?'aria-current="true"':''}><strong>${escape(labelTitle(job,state))}</strong><span>${job.company} · ${job.location}</span></button><button type="button" class="af-save cursor-interaction" data-save="${job.id}" aria-label="${job.status==='new'?'Save':'Unsave'} ${escape(job.title)}" aria-pressed="${job.status!=='new'}">${icon('bookmark')}</button></div><div class="af-meta"><span class="af-score">${job.score}% match</span><span class="af-dot" aria-hidden="true"></span><span>${job.work}</span><span>${job.posted}</span>${job.status!=='new'?`<span>${statusNames[job.status]}</span>`:''}</div>${state.showReasons?`<div class="af-reason">${job.reason}</div>`:''}</article>`;
+      }
+      function detail(job,state) {
+        const isFull=state.fullDetail || state.layout==='focus' || narrow();
+        const saveText=job.status==='new'?'Save job':'Saved';
+        const tabs=['overview','preparation','activity'];
+        const selectedTab=state.detailTab;
+        let body='';
+        if(selectedTab==='overview') body=`<div class="af-body"><details class="af-match" open><summary class="cursor-interaction"><span>Why this matches</span><span class="af-score">${job.score}% match</span></summary><p>${job.reason}. Your current preferences align with this role.</p><p>Check the full listing for language, experience and application requirements.</p></details><h3>About the role</h3><p>${job.description}</p><h3>What you'll work on</h3><ul><li>Turn real user needs into clear interface decisions.</li><li>Prototype and test ideas with a cross-functional team.</li><li>Improve consistency, accessibility and delivery details.</li></ul><h3>Before you apply</h3><p>Review the original listing and prepare a relevant portfolio. Opening a listing does not mark an application as submitted.</p></div>`;
+        if(selectedTab==='preparation') body=`<div class="af-prep"><div><h3>Application checklist</h3>${['Review the full listing','Tailor CV and portfolio','Prepare cover letter'].map((text,i)=>`<label class="af-check"><input type="checkbox" data-check="${i}" ${state.checks[job.id]?.[i]?'checked':''}>${text}</label>`).join('')}</div><label class="af-label">Private notes<textarea class="af-field" data-field="notes" placeholder="Questions, requirements and next steps">${escape(state.notes[job.id]||'')}</textarea></label><label class="af-label">Cover-letter draft<textarea class="af-field" data-field="cover" placeholder="Cover-letter draft…">${escape(state.covers[job.id]||'')}</textarea></label><div class="af-actions">${button('Save draft','save-draft','af-primary')}<span class="af-savefeedback" aria-live="polite">${state.draftSaved?'Saved in this preview':''}</span></div></div>`;
+        if(selectedTab==='activity') body=`<ol class="af-timeline">${(state.events[job.id]||[]).map(event=>`<li>${escape(event)}<small>Just now · Preview</small></li>`).join('')}<li>${job.status==='new'?'Discovered in feed':`Application status: ${statusNames[job.status]}`}<small>Illustrative activity</small></li><li>First seen in job feed<small>${job.posted} · ${job.source}</small></li></ol>`;
+        return `<section class="af-inspector" aria-label="Selected job details">${isFull?`<div class="af-back">${button(`${icon('arrow-left')} Back to ${state.returnView==='board'?'applications':'results'}`,'back','af-quiet')}</div>`:''}<h2>${escape(labelTitle(job,state))}</h2><p class="af-subtitle">${job.company}</p><div class="af-detail-meta"><span>${icon('map-pin')}${job.location}</span><span>${icon('laptop')}${job.work}</span><span>${icon('briefcase-business')}${job.type}</span></div><div class="af-actions">${button(`Apply ${icon('arrow-up-right')}`,'apply','af-primary')}${button(`${icon('bookmark')} ${saveText}`,'save-selected',job.status==='new'?'':'af-selected')}${button(icon('eye-off'),'hide','af-icon')}</div><div class="af-statusline"><label for="${state.key}-status">Application status</label><select id="${state.key}-status" class="af-field" data-field="status">${stageOptions(job.status)}</select></div><div class="af-tabs" aria-label="Job detail sections">${tabs.map(t=>`<button type="button" class="af-tab cursor-interaction" data-detail-tab="${t}" aria-pressed="${selectedTab===t}">${t[0].toUpperCase()+t.slice(1)}</button>`).join('')}</div>${body}<div class="af-detail-footer">${job.source} · Posted ${job.posted.toLowerCase()}<br>Last seen in feed today · Illustrative vacancy</div></section>`;
+      }
+      function jobsView(state) {
+        const list=rowsFor(state);
+        const selected=state.jobs.find(job=>job.id===state.selected);
+        const full=state.fullDetail;
+        if(full&&selected) return `${pageHeading('Job details','')}<div class="af-workspace af-full">${detail(selected,state)}</div>${footer()}`;
+        const active=[state.remote,state.student,state.strong,state.source!=='all',state.location!=='all'].filter(Boolean).length;
+        const picker=`<select class="af-field" aria-label="Saved searches" data-field="saved-search"><option value="">Saved searches</option><option value="remote">Remote design</option><option value="regional">Design near Düsseldorf</option>${state.savedSearches.map((search,i)=>`<option value="custom-${i}">${escape(search.name)}</option>`).join('')}</select>`;
+        const filters=state.filters?`<div class="af-filter-panel"><label class="af-label">Location<select class="af-field" data-field="location"><option value="all">All locations</option>${['Düsseldorf','Berlin','Köln','Essen','Dortmund'].map(loc=>`<option ${state.location===loc?'selected':''}>${loc}</option>`).join('')}</select></label><label class="af-label">Source<select class="af-field" data-field="source"><option value="all">All sources</option>${['Bundesagentur','Adzuna'].map(src=>`<option ${state.source===src?'selected':''}>${src}</option>`).join('')}</select></label><div><label class="af-check"><input type="checkbox" data-field="student" ${state.student?'checked':''}>Student roles</label><label class="af-check"><input type="checkbox" data-field="strong" ${state.strong?'checked':''}>Strong matches</label></div></div>`:'';
+        const searchSave=state.searchSave?`<div class="af-filter-panel"><label class="af-label">Search name<input class="af-field" data-field="search-name" value="${escape(state.searchName)}" placeholder="e.g. Remote design"></label><div class="af-actions">${button('Save search','confirm-search','af-primary')}</div><p class="af-preview-label">On this device, for this account.<br>Does not enable email alerts.</p></div>`:'';
+        return `${pageHeading('Find jobs','',button(`${icon('plus')}<span class="af-add-label">Add job</span>`,'add'))}<div class="af-searchbar"><label class="af-search">${icon('search')}<input aria-label="Search jobs" data-field="query" placeholder="Job title, company or keyword" value="${escape(state.query)}"></label>${button(`${icon('sliders-horizontal')} Filters${active?` · ${active}`:''}`,'filters',state.filters?'af-selected':'')}</div><div class="af-filterbar">${button('Remote','remote',state.remote?'af-selected':'')}${picker}<span class="af-spacer"></span><select class="af-field" aria-label="Sort jobs" data-field="sort"><option value="match" ${state.sort==='match'?'selected':''}>Best match</option><option value="newest" ${state.sort==='newest'?'selected':''}>Newest first</option></select></div>${filters}${searchSave}<div class="af-tabs" aria-label="Job lists">${[['all','All jobs'],['new','New'],['saved','Saved'],['tracked','In progress']].map(([value,label])=>`<button type="button" class="af-tab cursor-interaction" data-list-tab="${value}" aria-pressed="${state.tab===value}">${label}<span class="af-count">${state.jobs.filter(j=>!j.hidden&&(value==='all'||(value==='tracked'?j.status!=='new':j.status===value))).length}</span></button>`).join('')}</div><div class="af-results-line"><span aria-live="polite">${list.length} ${list.length===1?'job':'jobs'}${active?' · Filters applied':''}</span><div class="af-actions">${active?button('Clear filters','clear','af-quiet'):button('Save search','save-search','af-quiet')}${button(`${icon('refresh-cw')}<span class="af-phone-hide"> Refresh</span>`,'refresh','af-quiet')}</div></div>${list.length?`<div class="af-workspace"><div class="af-list">${list.map(j=>jobRow(j,state)).join('')}</div>${state.layout==='workbench'&&!narrow()&&selected?detail(selected,state):''}</div>`:`<div class="af-panel af-empty"><h2>No jobs match these filters</h2><p>Try a broader search or clear a criterion.</p>${button('Clear filters','clear','af-primary')}</div>`}${footer()}`;
+      }
+      function overview(state) {
+        const edit=state.widgetEdit?`<div class="af-filter-panel">${['News','Stories','New jobs','Follow-ups','Interviews','Applications','Quick actions','Goal','Calendar','Pipeline','Weekly activity'].map((label,i)=>`<label class="af-check"><input type="checkbox" data-widget="${i}" ${state.widgets[i]!==false?'checked':''}>${label}</label>`).join('')}</div>`:'';
+        const agenda=`<div class="af-panel"><div class="af-agenda-row"><div class="af-date"><strong>Today</strong>Follow-up</div><div class="af-grow"><h3>Check in with West Collective</h3><p>Experience Designer · Applied last week</p></div><button type="button" class="af-button cursor-interaction" data-open="west">Open ${icon('arrow-up-right')}</button></div><div class="af-agenda-row"><div class="af-date"><strong>Tomorrow</strong>10:00</div><div class="af-grow"><h3>Interview with Atelier Digital</h3><p>UI Designer · Prepare your questions</p></div><button type="button" class="af-button cursor-interaction" data-open="atelier">Prepare</button></div></div>`;
+        return `${pageHeading('Overview','Wednesday, 28 October',button(`${icon('settings-2')} Customize`,'widgets'))}${edit}<div class="af-section-head"><h2>Upcoming</h2><span class="af-preview-label">2 upcoming actions</span></div>${agenda}<div class="af-summary">${['saved','preparing','applied','interviewing'].map(status=>`<button type="button" class="cursor-interaction" data-stage="${status}"><span>${statusNames[status]}</span><strong>${state.jobs.filter(j=>j.status===status&&!j.hidden).length}</strong></button>`).join('')}</div><div class="af-dashboard-grid"><section><div class="af-section-head"><h2>Suggested jobs</h2><button type="button" class="af-inline-link cursor-interaction" data-nav="jobs">View jobs ${icon('arrow-right')}</button></div>${state.jobs.filter(j=>j.status==='new'&&!j.hidden).slice(0,3).map(job=>`<div class="af-simple-row"><button type="button" class="af-job-open cursor-interaction" data-open="${job.id}"><strong>${escape(labelTitle(job,state))}</strong><span>${job.company} · ${job.location}</span></button><span class="af-score">${job.score}%</span></div>`).join('')}</section><section><div class="af-section-head"><h2>Your weekly goal</h2></div><div class="af-panel af-goal"><h3>Weekly applications</h3><p>3 of 5 applications this week</p><progress value="3" max="5" aria-label="Illustrative weekly application goal"></progress><button type="button" class="af-inline-link cursor-interaction" data-action="edit-goal">Edit goal ${icon('arrow-right')}</button></div><div class="af-section" ${state.widgets[0]===false?'hidden':''}><h3>From your news feed</h3><p style="font-size:12px;margin-top:8px">Work, skills and the changing job market.</p><button type="button" class="af-inline-link cursor-interaction" data-nav="news">Read the latest ${icon('arrow-right')}</button></div></section></div>${footer()}`;
+      }
+      function board(state) {
+        const stages=(narrow()||state.stage!=='active')?[state.stage==='active'?'saved':state.stage]:['saved','preparing','applied','followup','interviewing'];
+        return `${pageHeading('Applications','',button(`${icon('plus')}<span class="af-add-label">Add job</span>`,'add'))}<div class="af-actions"><label class="af-label">Application stage<select class="af-field af-stage-select" data-field="stage">${stageOptions(narrow()&&state.stage==='active'?'saved':state.stage,!narrow())}</select></label><span class="af-preview-label">Change stages with the menu on each application.</span></div><div class="af-board">${stages.map(status=>{const jobs=state.jobs.filter(j=>j.status===status&&!j.hidden);return `<section class="af-column"><div class="af-column-heading"><span>${statusNames[status]}</span><span>${jobs.length}</span></div>${jobs.length?jobs.map(job=>`<article class="af-board-card"><button type="button" class="af-job-open cursor-interaction" data-open="${job.id}"><h3>${escape(labelTitle(job,state))}</h3><p>${job.company}</p></button><p>${job.location} · ${job.work}</p><label class="af-label"><span class="af-preview-label" style="margin-top:12px">Move to</span><select class="af-field" aria-label="Stage for ${escape(job.title)}" data-move="${job.id}">${stageOptions(job.status)}</select></label></article>`).join(''):'<p class="af-column-empty">No applications here yet.</p>'}</section>`}).join('')}</div>${footer()}`;
+      }
+      function reminders(state) { return `${pageHeading('Reminders','',button(`${icon('plus')} Add`,'add-reminder'))}<div class="af-section-head"><h2>Today</h2><span class="af-preview-label">28 October</span></div><div class="af-panel"><div class="af-agenda-row"><label class="af-check"><input type="checkbox" data-field="reminder-done" ${state.reminderDone?'checked':''}><span class="af-grow"><h3>${state.reminderDone?'Follow-up completed':'Follow up with West Collective'}</h3><p>Experience Designer · ${state.reminderDone?'Complete in this preview':'Review your last message before contacting them.'}</p></span></label><button type="button" class="af-button cursor-interaction" data-open="west">Open</button></div></div><section class="af-section"><div class="af-section-head"><h2>Tomorrow</h2><span class="af-preview-label">29 October</span></div><div class="af-panel"><div class="af-agenda-row"><div class="af-date"><strong>10:00</strong>Interview</div><div class="af-grow"><h3>Atelier Digital</h3><p>UI Designer · Prepare your questions</p></div><button type="button" class="af-button cursor-interaction" data-open="atelier">Prepare</button></div></div></section>${footer()}`; }
+      function settings(state) { return `${pageHeading('Settings','')}<section class="af-form-section"><h2>Job preferences</h2><div class="af-form-layout"><label class="af-label">Role or keywords<input class="af-field" value="Product design, UX, UI" aria-label="Role or keywords"></label><label class="af-label">Preferred location<input class="af-field" value="Düsseldorf" aria-label="Preferred location"></label></div><label class="af-check"><input type="checkbox" checked>Include remote opportunities</label>${button('Save preferences','save-preferences','af-primary')}</section><section class="af-form-section"><h2>Email alerts</h2><p>Saved searches and email alerts are managed separately.</p><label class="af-check"><input type="checkbox" data-field="alerts" ${state.alerts?'checked':''}>Send me relevant new-job alerts</label><p class="af-preview-label">Preview only. No email settings are changed.</p></section><section class="af-form-section"><h2>Appearance</h2><label class="af-label">Theme<select class="af-field" data-field="theme" style="max-width:240px"><option value="system" ${state.theme==='system'?'selected':''}>Follow system</option><option value="light" ${state.theme==='light'?'selected':''}>Light</option><option value="dark" ${state.theme==='dark'?'selected':''}>Dark</option></select></label></section>${footer()}`; }
+      function insights(state) { return `${pageHeading('Analytics','',button(`${icon('download')} Export`,'export'))}<h2>Applications by stage</h2><table class="af-table"><thead><tr><th>Stage</th><th>Applications</th></tr></thead><tbody>${Object.entries(statusNames).filter(([key])=>key!=='new').map(([key,label])=>`<tr><td>${label}</td><td>${state.jobs.filter(j=>j.status===key&&!j.hidden).length}</td></tr>`).join('')}</tbody></table>${footer()}`; }
+      function resources(state) { const title={news:'News',prep:'Interview preparation',guides:'Career guides'}[state.view]; const contents={news:[['Job market','Articles from your selected sources.'],['Skills','Skills, training and changes in the job market.']],prep:[['Introduction','Prepare a concise introduction that connects your experience to the role.'],['Work examples','Use a situation, your contribution and the outcome to explain your work.'],['Questions for the team','Prepare questions about the product, collaboration and expectations.']],guides:[['Prepare your application','Build a focused CV and choose relevant portfolio examples.'],['Plan your follow-up','Keep dates and private notes next to the opportunity.']]}; return `${pageHeading(title,'')}<div class="af-resources">${contents[state.view].map(([heading,copy])=>`<section class="af-resource"><h2>${heading}</h2><p>${copy}</p></section>`).join('')}</div>${footer()}`; }
+      function hotpicks(state) {const job=state.jobs.find(j=>j.id===state.selected)||state.jobs[0];return `${pageHeading('Hot Picks','')}<div class="af-workspace af-full">${detail(job,state)}</div><div class="af-actions" style="justify-content:space-between;margin-top:16px">${button(`${icon('arrow-left')} Previous`,'previous')}${button(`Next ${icon('arrow-right')}`,'next')}</div>${footer()}`;}
+      function render(host) {
+        const state=states.get(host), active=document.activeElement, field=host.contains(active)?active?.dataset?.field:null, caret=field==='query'?active.selectionStart:null;
+        const motion=state.motion;state.motion=null;
+        host.getAnimations?.({subtree:true}).forEach(animation=>animation.cancel());
+        if(state.view==='jobs'&&!state.fullDetail) {const filtered=rowsFor(state);if(filtered.length&&!filtered.some(j=>j.id===state.selected))state.selected=filtered[0].id;}
+        const content=state.view==='jobs'?jobsView(state):state.view==='overview'?overview(state):state.view==='board'?board(state):state.view==='reminders'?reminders(state):state.view==='settings'?settings(state):state.view==='insights'?insights(state):state.view==='hotpicks'?hotpicks(state):resources(state);
+        const currentLabel=allNav.find(n=>n[0]===state.view)?.[2]||'Settings';
+        host.innerHTML=`<aside class="af-sidebar"><div class="af-logo" aria-label="Afavers">Afa<span>v</span>ers</div>${navigation.map(([group,items])=>`<nav class="af-navgroup" aria-label="${group}"><div class="af-navlabel">${group}</div>${items.map(([id,name,label])=>navButton(id,name,label,state)).join('')}</nav>`).join('')}<div class="af-account">${navButton('settings','settings-2','Settings',state)}<button type="button" class="af-nav cursor-interaction" data-action="account"><span class="af-avatar">ST</span><span>Steven's workspace</span></button></div></aside><main class="af-main"><div class="af-topbar"><span class="af-crumb">Workspace <span aria-hidden="true"> / </span> <strong>${currentLabel}</strong></span><span class="af-logo af-mobile-logo">Afa<span>v</span>ers</span><span class="af-preview-label">Design preview</span><span class="af-avatar" aria-label="Preview account">ST</span></div><div class="af-content">${state.notice?`<div class="af-notice" role="status">${escape(state.notice)}${state.lastHidden?button('Undo hide','undo-hidden','af-quiet'):''}</div>`:''}${content}</div>${state.more?`<nav class="af-phone-menu" aria-label="More destinations">${[...allNav.filter(n=>!['overview','jobs','board','reminders'].includes(n[0])),['settings','settings-2','Settings']].map(([id,name,label])=>navButton(id,name,label,state)).join('')}</nav>`:''}<nav class="af-bottom-nav" aria-label="Phone navigation">${[['overview','house','Home'],['jobs','search','Jobs'],['board','columns-3','Applications'],['reminders','calendar-days','Reminders']].map(([id,name,label])=>`<button type="button" class="cursor-interaction" data-nav="${id}" ${state.view===id?'aria-current="page"':''}>${icon(name)}${label}</button>`).join('')}<button type="button" class="cursor-interaction" data-action="more" aria-expanded="${state.more}">${icon('ellipsis')}More</button></nav></main>`;
+        if(globalThis.lucide) lucide.createIcons({attrs:{width:16,height:16}});
+        host.style.colorScheme=state.theme==='system'?'light dark':state.theme;
+        host.style.setProperty('--af-radius',`${state.radius}px`);
+        host.style.setProperty('--af-row-space',`${state.compact?13:18}px`);
+        const reduced=window.matchMedia?.('(prefers-reduced-motion: reduce)').matches??false;
+        if(motion&&!reduced){
+          if(motion.type==='details')host.querySelector('.af-inspector')?.classList.add('af-motion-details');
+          if(motion.type==='save'){
+            const target=motion.trigger?host.querySelector(`[data-action="${motion.trigger}"]`):(host.querySelector(`[data-save="${motion.id}"]`)||host.querySelector('[data-action="save-selected"]'));
+            target?.classList.add('af-motion-save');
+          }
+          if(motion.type==='card'){
+            const card=host.querySelector(`[data-move="${motion.id}"]`)?.closest('.af-board-card');
+            if(card&&motion.before){const after=card.getBoundingClientRect(),x=motion.before.left-after.left,y=motion.before.top-after.top;if(Number.isFinite(x)&&Number.isFinite(y)&&(x||y)){card.style.setProperty('--af-move-x',`${x}px`);card.style.setProperty('--af-move-y',`${y}px`);card.classList.add('af-motion-card');}}
+          }
+        }
+        if(field){const next=host.querySelector(`[data-field="${field}"]`);if(next){next.focus({preventScroll:true});if(caret!==null&&next.setSelectionRange)next.setSelectionRange(caret,caret);}}
+      }
+      function addEvent(state,job,message){(state.events[job.id]??=[]).unshift(message);}
+      function setSave(state,id){const job=state.jobs.find(j=>j.id===id);if(!job)return;if(!['new','saved'].includes(job.status)){state.notice=`This application is ${statusNames[job.status]}. Change its stage using Application status.`;return;}job.status=job.status==='new'?'saved':'new';state.motion={type:'save',id};addEvent(state,job,job.status==='saved'?'Saved job':'Removed from saved');state.notice=job.status==='saved'?'Job saved in this preview.':'Job returned to New in this preview.';}
+      hosts.forEach((host,index)=>{
+        const state={key:`${root.id}-${index}`,layout:host.dataset.layout,view:defaultView,returnView:'jobs',jobs:jobsSeed.map(j=>({...j})),selected:'nordlicht',query:'',sort:'match',tab:'all',remote:false,student:false,strong:false,source:'all',location:'all',filters:false,searchSave:false,searchName:'',savedSearches:[],fullDetail:false,detailTab:'overview',notes:{},covers:{},checks:{},events:{},draftSaved:false,notice:'',stage:'active',widgets:{},widgetEdit:false,more:false,theme:'system',alerts:false,reminderDone:false,radius:6,compact:false,showReasons:false,longTitles:false};
+        states.set(host,state);render(host);
+        host.addEventListener('click',event=>{
+          const target=event.target.closest('button');if(!target)return;
+          if(target.dataset.nav){state.view=target.dataset.nav;state.fullDetail=false;state.notice='';state.more=false;}
+          else if(target.dataset.open){state.motion={type:'details'};state.returnView=state.view;state.selected=target.dataset.open;state.detailTab='overview';state.draftSaved=false;if(state.view!=='jobs'||state.layout==='focus'||narrow()){state.view='jobs';state.fullDetail=true;}state.notice='';}
+          else if(target.dataset.save){setSave(state,target.dataset.save);}
+          else if(target.dataset.listTab){state.tab=target.dataset.listTab;state.notice='';}
+          else if(target.dataset.detailTab){state.detailTab=target.dataset.detailTab;}
+          else if(target.dataset.stage){state.view='board';state.stage=target.dataset.stage;state.notice='';}
+          else if(target.dataset.action){const action=target.dataset.action;
+            if(action==='filters')state.filters=!state.filters;
+            if(action==='remote')state.remote=!state.remote;
+            if(action==='clear'){Object.assign(state,{query:'',remote:false,student:false,strong:false,source:'all',location:'all',tab:'all',notice:''});}
+            if(action==='save-search')state.searchSave=!state.searchSave;
+            if(action==='confirm-search'){state.notice=state.searchName.trim()?`“${state.searchName.trim()}” saved in this preview. Email alerts are unchanged.`:'Enter a name for this search.';if(state.searchName.trim()){state.savedSearches.push({name:state.searchName.trim(),query:state.query,remote:state.remote,student:state.student,strong:state.strong,source:state.source,location:state.location});state.searchSave=false;}}
+            if(action==='refresh')state.notice='Preview results refreshed. No live feed request was made.';
+            if(action==='back'){state.view=state.returnView==='jobs'?'jobs':state.returnView;state.fullDetail=false;state.notice='';}
+            if(action==='apply')state.notice='Preview only: production opens the original listing. No application was submitted.';
+            if(action==='save-selected')setSave(state,state.selected);
+            if(action==='save-draft'){state.motion={type:'save',trigger:'save-draft'};state.draftSaved=true;const job=state.jobs.find(j=>j.id===state.selected);addEvent(state,job,'Private preparation draft saved in preview');}
+            if(action==='hide'){const job=state.jobs.find(j=>j.id===state.selected);job.hidden=true;state.lastHidden=job.id;state.fullDetail=false;state.view='jobs';state.notice='Job hidden in this preview.';}
+            if(action==='undo-hidden'){const job=state.jobs.find(j=>j.id===state.lastHidden);if(job){job.hidden=false;state.selected=job.id;}state.lastHidden=null;state.notice='Job restored in this preview.';}
+            if(action==='widgets')state.widgetEdit=!state.widgetEdit;
+            if(action==='more')state.more=!state.more;
+            if(action==='next'||action==='previous'){const i=state.jobs.findIndex(j=>j.id===state.selected);state.selected=state.jobs[(i+(action==='next'?1:state.jobs.length-1))%state.jobs.length].id;state.detailTab='overview';}
+            if(['add','add-reminder','edit-goal','account','export','save-preferences'].includes(action))state.notice=({add:'Manual job entry remains part of the redesign. This preview does not create live records.','add-reminder':'Reminder creation remains available in production. No reminder or notification is created here.','edit-goal':'Goal editing is preserved in the plan. The displayed progress is illustrative.',account:'This is an illustrative workspace. Your live account is unchanged.',export:'Preview only. Production keeps the existing export workflow.','save-preferences':'Preferences saved in this preview. Live account settings are unchanged.'})[action];
+          }
+          render(host);saveReview(state);
+        });
+        host.addEventListener('input',event=>{
+          const input=event.target,field=input.dataset.field;
+          if(field==='notes'||field==='cover'){(field==='notes'?state.notes:state.covers)[state.selected]=input.value;state.draftSaved=false;const feedback=host.querySelector('.af-savefeedback');if(feedback)feedback.textContent='Unsaved preview draft';return;}
+          if(field==='search-name'){state.searchName=input.value;return;}
+          if(field==='query'){state.query=input.value;state.notice='';render(host);}
+        });
+        host.addEventListener('change',event=>{
+          const input=event.target,field=input.dataset.field;
+          if(input.dataset.move){state.motion={type:'card',id:input.dataset.move,before:input.closest('.af-board-card')?.getBoundingClientRect()};const job=state.jobs.find(j=>j.id===input.dataset.move);job.status=input.value;addEvent(state,job,`Moved to ${statusNames[job.status]}`);state.notice=`Moved to ${statusNames[job.status]} in this preview.`;}
+          else if(input.dataset.check){(state.checks[state.selected]??={})[input.dataset.check]=input.checked;}
+          else if(input.dataset.widget){state.widgets[input.dataset.widget]=input.checked;}
+          else if(['sort','source','location','stage','theme'].includes(field))state[field]=input.value;
+          else if(['student','strong','alerts'].includes(field))state[field]=input.checked;
+          else if(field==='reminder-done')state.reminderDone=input.checked;
+          else if(field==='saved-search'&&input.value){if(input.value.startsWith('custom-')){const search=state.savedSearches[Number(input.value.split('-')[1])];if(search){const {name,...filters}=search;Object.assign(state,filters);}}else{state.remote=input.value==='remote';state.query='design';state.location=input.value==='regional'?'Düsseldorf':'all';}state.notice='Saved search applied. Email alerts are unchanged.';}
+          else if(field==='status'){const job=state.jobs.find(j=>j.id===state.selected);job.status=input.value;addEvent(state,job,`Moved to ${statusNames[job.status]}`);state.notice=`Status changed to ${statusNames[job.status]} in this preview.`;}
+          else return;
+          render(host);saveReview(state);
+        });
+        if(globalThis.Tweak){const tweak=new Tweak({container:host,onChange:()=>render(host)});tweak.addSlider(state,'radius',{label:'Control corners',min:4,max:10,step:1,unit:'px',reference:'--af-radius'});tweak.addToggle(state,'compact',{label:'Compact result rows'});tweak.addToggle(state,'showReasons',{label:'Show match reasons in results'});tweak.addToggle(state,'longTitles',{label:'Stress-test long German title'});}
+      });
+      window.addEventListener('openai:set_globals',event=>{
+        const saved=event.detail?.globals?.widgetState?.modelContent;
+        if(saved?.preview!==initial||!['jobs','overview','board','settings'].includes(saved?.screen))return;
+        const host=hosts.find(h=>h.dataset.layout===saved.layout)||hosts[0],state=states.get(host);
+        state.view=saved.screen;state.fullDetail=false;
+        if(state.jobs.some(job=>job.id===saved.selectedJob))state.selected=saved.selectedJob;
+        render(host);
+      });
+      const observer=new ResizeObserver(()=>{const now=narrow();if(root.dataset.wasNarrow!==String(now)){root.dataset.wasNarrow=String(now);hosts.forEach(render);}});observer.observe(root);
+    })();
+  </script>
+</div>

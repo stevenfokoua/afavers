@@ -39,32 +39,32 @@ export const ResetPasswordPage = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 via-blue-50 to-indigo-100">
+    <div className="min-h-screen flex items-center justify-center bg-canvas   ">
       <div className="absolute right-4 top-4">
         <LanguageToggle />
       </div>
       <div className="max-w-md w-full mx-4">
-        <div className="bg-white rounded-2xl shadow-xl p-8">
+        <div className="bg-surface rounded-lg shadow-none p-8">
           <div className="text-center mb-8">
-            <div className="w-14 h-14 bg-green-100 rounded-full flex items-center justify-center text-3xl mx-auto mb-4">🔒</div>
-            <h1 className="text-2xl font-bold text-gray-900">{t('setNewPassword')}</h1>
-            <p className="text-gray-500 text-sm mt-1">{t('resetPasswordSubtitle')}</p>
+            
+            <h1 className="text-2xl font-semibold text-ink">{t('setNewPassword')}</h1>
+            <p className="text-muted text-sm mt-1">{t('resetPasswordSubtitle')}</p>
           </div>
 
           {success ? (
             <div className="text-center">
-              <div className="bg-green-50 border border-green-200 rounded-xl p-5 mb-4">
-                <p className="text-green-800 font-medium">{t('passwordUpdated')}</p>
-                <p className="text-green-700 text-sm mt-1">{t('redirectingSignIn')}</p>
+              <div className="bg-subtle border border-line rounded-lg p-5 mb-4">
+                <p className="text-accent font-medium">{t('passwordUpdated')}</p>
+                <p className="text-accent text-sm mt-1">{t('redirectingSignIn')}</p>
               </div>
             </div>
           ) : (
             <>
               {error && (
-                <div className="mb-5 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+                <div className="mb-5 bg-danger-soft border border-line text-danger px-4 py-3 rounded-lg">
                   <p className="text-sm">{error}</p>
                   {error.includes('expired') && (
-                    <Link to="/forgot-password" className="text-red-600 hover:underline text-xs mt-1 block">
+                    <Link to="/forgot-password" className="text-danger hover:underline text-xs mt-1 block">
                       {t('requestNewReset')}
                     </Link>
                   )}
@@ -73,25 +73,25 @@ export const ResetPasswordPage = () => {
 
               <form onSubmit={handleSubmit} className="space-y-5">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('newPassword')}</label>
+                  <label className="block text-sm font-medium text-ink mb-1">{t('newPassword')}</label>
                   <input
                     type="password"
                     required
                     minLength={8}
                     value={password}
                     onChange={e => setPassword(e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus-visible:ring-2 focus-visible:ring-green-500 focus-visible:border-transparent outline-none transition"
+                    className="w-full px-4 py-3 border border-line rounded-lg focus-visible:ring-2 focus-visible:ring-green-500 focus-visible:border-transparent outline-none transition"
                     placeholder={t('minCharsHint')}
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('confirmPassword')}</label>
+                  <label className="block text-sm font-medium text-ink mb-1">{t('confirmPassword')}</label>
                   <input
                     type="password"
                     required
                     value={confirm}
                     onChange={e => setConfirm(e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus-visible:ring-2 focus-visible:ring-green-500 focus-visible:border-transparent outline-none transition"
+                    className="w-full px-4 py-3 border border-line rounded-lg focus-visible:ring-2 focus-visible:ring-green-500 focus-visible:border-transparent outline-none transition"
                     placeholder={t('repeatNewPassword')}
                   />
                 </div>
@@ -99,7 +99,7 @@ export const ResetPasswordPage = () => {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700 disabled:opacity-50 text-white font-semibold py-3 px-4 rounded-lg transition shadow-md"
+                  className="w-full bg-ink   hover: hover: disabled:opacity-50 text-on-ink font-semibold py-3 px-4 rounded-lg transition shadow-none"
                 >
                   {loading ? t('updating') : t('updatePassword')}
                 </button>

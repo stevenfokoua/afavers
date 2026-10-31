@@ -2,6 +2,8 @@ import { defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
 
 export default defineConfig({
+  // Match the app: workspace-root testing tools must use the client React version.
+  resolve: { dedupe: ['react', 'react-dom', 'react-router-dom', 'react-router'] },
   plugins: [react()],
   define: {
     // The main vite.config defines __APP_VERSION__; mirror it here so

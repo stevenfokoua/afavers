@@ -6,22 +6,22 @@ import { useLanguage } from '../store/languageStore';
 type Tab = NewsTopic | 'all';
 
 const RESSORT_COLORS: Record<string, string> = {
-  wirtschaft: 'bg-blue-100 text-blue-700',
-  inland:     'bg-green-100 text-green-700',
-  ausland:    'bg-purple-100 text-purple-700',
-  sport:      'bg-orange-100 text-orange-700',
-  wissen:     'bg-teal-100 text-teal-700',
+  wirtschaft: 'bg-subtle text-muted',
+  inland:     'bg-subtle text-accent',
+  ausland:    'bg-subtle text-muted',
+  sport:      'bg-subtle text-muted',
+  wissen:     'bg-subtle text-accent',
 };
 
 const NewsCardSkeleton = () => (
-  <div className="bg-white rounded-xl border border-gray-200 overflow-hidden animate-pulse">
-    <div className="h-40 bg-gray-200" />
+  <div className="bg-surface rounded-lg border border-line overflow-hidden ">
+    <div className="h-40 bg-line" />
     <div className="p-4">
-      <div className="h-3 bg-gray-200 rounded w-20 mb-2" />
-      <div className="h-4 bg-gray-200 rounded w-full mb-1" />
-      <div className="h-4 bg-gray-200 rounded w-3/4 mb-2" />
-      <div className="h-3 bg-gray-100 rounded w-full mb-1" />
-      <div className="h-3 bg-gray-100 rounded w-2/3" />
+      <div className="h-3 bg-line rounded w-20 mb-2" />
+      <div className="h-4 bg-line rounded w-full mb-1" />
+      <div className="h-4 bg-line rounded w-3/4 mb-2" />
+      <div className="h-3 bg-subtle rounded w-full mb-1" />
+      <div className="h-3 bg-subtle rounded w-2/3" />
     </div>
   </div>
 );
@@ -30,7 +30,7 @@ const NewsCard = ({ item }: { item: NewsItem }) => {
   const { t } = useLanguage();
   const img = getImageUrl(item);
   const isEnergy = isEnergyArticle(item);
-  const badgeClass = isEnergy ? 'bg-emerald-100 text-emerald-700' : (RESSORT_COLORS[item.ressort ?? ''] ?? 'bg-gray-100 text-gray-600');
+  const badgeClass = isEnergy ? 'bg-subtle text-accent' : (RESSORT_COLORS[item.ressort ?? ''] ?? 'bg-subtle text-muted');
   const badgeLabel = isEnergy ? t('newsEnergyClimate') : (item.topline ?? item.ressort ?? t('news'));
 
   return (
@@ -38,10 +38,10 @@ const NewsCard = ({ item }: { item: NewsItem }) => {
       href={item.detailsweb}
       target="_blank"
       rel="noopener noreferrer"
-      className="bg-white rounded-xl border border-gray-200 overflow-hidden hover:border-gray-300 hover:shadow-md transition-all duration-200 active:scale-[0.99] flex flex-col"
+      className="bg-surface rounded-lg border border-line overflow-hidden hover:border-line hover:shadow-none transition-colors duration-200  flex flex-col"
     >
       {img && (
-        <div className="h-40 overflow-hidden bg-gray-100 shrink-0">
+        <div className="h-40 overflow-hidden bg-subtle shrink-0">
           <img
             src={img}
             alt={item.teaserImage?.alttext ?? item.title}
@@ -52,18 +52,18 @@ const NewsCard = ({ item }: { item: NewsItem }) => {
       )}
       <div className="p-4 flex flex-col flex-1">
         <div className="flex items-center gap-2 mb-2 flex-wrap">
-          <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${badgeClass}`}>
+          <span className={`text-xs font-semibold px-2 py-0.5 rounded-md ${badgeClass}`}>
             {badgeLabel}
           </span>
-          <span className="text-xs text-gray-400">{timeAgo(item.date)}</span>
+          <span className="text-xs text-muted">{timeAgo(item.date)}</span>
         </div>
-        <h3 className="text-sm font-semibold text-gray-900 leading-snug mb-1.5 line-clamp-3">
+        <h3 className="text-sm font-semibold text-ink leading-snug mb-1.5 line-clamp-3">
           {item.title}
         </h3>
         {item.firstSentence && (
-          <p className="text-xs text-gray-500 line-clamp-3 flex-1">{item.firstSentence}</p>
+          <p className="text-xs text-muted line-clamp-3 flex-1">{item.firstSentence}</p>
         )}
-        <div className="flex items-center gap-1 mt-3 text-xs text-gray-400 font-medium">
+        <div className="flex items-center gap-1 mt-3 text-xs text-muted font-medium">
           <span>{t('readOnTagesschau')}</span>
           <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
@@ -103,7 +103,7 @@ export const NewsPage = () => {
         ...topic,
         label: topic.key === 'energy' ? t('newsEnergyClimate') : topic.key === 'wirtschaft' ? t('newsEconomy') : topic.label,
       })),
-    { key: 'all', label: t('all'), emoji: '📰' },
+    { key: 'all', label: t('all'), emoji: '' },
   ];
 
   const [tab, setTab] = useState<Tab>(activeTabs[0]?.key ?? 'all');
@@ -145,19 +145,19 @@ export const NewsPage = () => {
       {/* Header */}
       <div className="flex items-start justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">{t('news')}</h1>
-          <p className="text-sm text-gray-400 mt-0.5">
-            {t('germanNews')} · <a href="https://www.tagesschau.de" target="_blank" rel="noopener noreferrer" className="underline hover:text-gray-600 transition">Tagesschau</a>
+          <h1 className="text-2xl font-semibold text-ink">{t('news')}</h1>
+          <p className="text-sm text-muted mt-0.5">
+            {t('germanNews')} · <a href="https://www.tagesschau.de" target="_blank" rel="noopener noreferrer" className="underline hover:text-muted transition">Tagesschau</a>
             {lastFetched && <span className="ml-2">· {timeAgo(lastFetched.toISOString())}</span>}
-            {newsTopics.length === 0 && <span className="ml-2 text-amber-500">· {t('customizeTopics')}</span>}
+            {newsTopics.length === 0 && <span className="ml-2 text-muted">· {t('customizeTopics')}</span>}
           </p>
         </div>
         <button
           onClick={fetchNews}
           disabled={loading}
-          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-500 border border-gray-200 rounded-lg hover:bg-gray-50 transition disabled:opacity-40"
+          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-muted border border-line rounded-lg hover:bg-canvas transition disabled:opacity-40"
         >
-          <svg className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className={`w-3.5 h-3.5 ${loading ? '' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
           </svg>
           {t('refresh')}
@@ -165,13 +165,13 @@ export const NewsPage = () => {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 mb-6 bg-gray-100 rounded-xl p-1 overflow-x-auto">
+      <div className="flex gap-1 mb-6 bg-subtle rounded-lg p-1 overflow-x-auto">
         {activeTabs.map(t => (
           <button
             key={t.key}
             onClick={() => setTab(t.key)}
-            className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
-              tab === t.key ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'
+            className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${
+              tab === t.key ? 'bg-surface text-ink shadow-none' : 'text-muted hover:text-ink'
             }`}
           >
             <span>{t.emoji}</span>{t.label}
@@ -180,14 +180,14 @@ export const NewsPage = () => {
       </div>
 
       {error && (
-        <div className="text-center py-16 text-gray-400">
+        <div className="text-center py-16 text-muted">
           <p className="font-medium">{t('newsLoadFailed')}</p>
-          <button onClick={fetchNews} className="text-sm mt-2 text-green-600 hover:underline">{t('tryAgain')}</button>
+          <button onClick={fetchNews} className="text-sm mt-2 text-accent hover:underline">{t('tryAgain')}</button>
         </div>
       )}
 
       {!error && !loading && displayed.length === 0 && (
-        <div className="text-center py-16 text-gray-400">
+        <div className="text-center py-16 text-muted">
           <p className="font-medium">{t('noArticlesTopic')}</p>
           <p className="text-sm mt-1">{t('newsRefreshHint')}</p>
         </div>
@@ -204,7 +204,7 @@ export const NewsPage = () => {
       )}
 
       {!loading && displayed.length > 0 && (
-        <p className="text-center text-xs text-gray-300 mt-8">
+        <p className="text-center text-xs text-muted mt-8">
           {t('articlesGermanSource')}
         </p>
       )}

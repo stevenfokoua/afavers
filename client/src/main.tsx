@@ -77,15 +77,15 @@ function UpdateBanner() {
   if (!updateAvailable) return null;
 
   return (
-    <div className="fixed bottom-4 left-1/2 z-[100] w-[min(92vw,28rem)] -translate-x-1/2 rounded-lg border border-green-200 bg-white px-4 py-3 shadow-lg">
+    <div className="fixed bottom-4 left-1/2 z-[100] w-[min(92vw,28rem)] -translate-x-1/2 rounded-lg border border-line bg-surface px-4 py-3 shadow-none">
       <div className="flex items-center justify-between gap-3">
         <div>
-          <p className="text-sm font-semibold text-gray-900">A new version is ready</p>
-          <p className="text-xs text-gray-500">Reload to use the latest fix and clear stale files.</p>
+          <p className="text-sm font-semibold text-ink">A new version is ready</p>
+          <p className="text-xs text-muted">Reload to use the latest fix and clear stale files.</p>
         </div>
         <button
           onClick={() => refreshAppCache()}
-          className="shrink-0 rounded-md bg-green-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-green-700"
+          className="shrink-0 rounded-md bg-ink px-3 py-2 text-sm font-semibold text-on-ink transition hover:bg-ink"
         >
           Reload
         </button>
@@ -118,7 +118,7 @@ class ErrorBoundary extends Component<{ children: React.ReactNode }, { error: Er
           <p style={{ color: '#6b7280', fontSize: 14 }}>A cached version of the app may be out of date.</p>
           <button
             onClick={() => refreshAppCache()}
-            style={{ marginTop: 16, padding: '10px 20px', background: '#16a34a', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontWeight: 600 }}
+            style={{ marginTop: 16, padding: '10px 20px', background: '#16a34a', color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer', fontWeight: 600 }}
           >
             Clear cache &amp; reload
           </button>

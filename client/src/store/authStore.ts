@@ -1,6 +1,12 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { supabase } from '../lib/supabase';
+import { activatePrivateDataOwner } from './privateStorage';
+import { useReminderStore } from './reminderStore';
+import { cancelReminder, scheduleReminder } from '../services/notification.service';
+import './calendarStore';
+import './goalStore';
+import { invalidateJobSnapshot } from '../services/jobSnapshot';
 
 interface User {
   id: number;
@@ -13,7 +19,18 @@ interface SupabaseAuthUser {
   email?: string;
 }
 
-const DEMO_EMAIL = 'demo@afavers.com';
+const DEMO_EMAIL = import.meta.env.VITE_DEMO_EMAIL || 'demo@afavers.com';
+let privateOwner: number | null = null;
+async function switchPrivateUser(userId: number | null): Promise<void> {
+  if (privateOwner === userId) return;
+  const previous = useReminderStore.getState().reminders;
+  await Promise.all(previous.map((reminder) => cancelReminder(reminder.id).catch(() => {})));
+  await activatePrivateDataOwner(userId);
+  privateOwner = userId;
+  await Promise.all(useReminderStore.getState().reminders
+    .filter((reminder) => !reminder.completed)
+    .map((reminder) => scheduleReminder(reminder).catch(() => {})));
+}
 const DEMO_PASSWORD = 'demo1234';
 const SUPABASE_AUTH_STORAGE_KEY = 'afavers-supabase-auth-v3';
 const LEGACY_AUTH_STORAGE_KEYS = ['afavers-supabase-auth-v2'];
@@ -67,8 +84,10 @@ function clearStoredAuth(): void {
 }
 
 function clearAuthState(): void {
+  void switchPrivateUser(null);
   clearStoredAuth();
   useAuthStore.setState({ user: null, token: null, isAuthenticated: false, isDemo: false, hasCheckedSession: true, lastActivity: null });
+  invalidateJobSnapshot();
 }
 
 async function getCurrentAppUser(authUser?: SupabaseAuthUser): Promise<User> {
@@ -188,6 +207,7 @@ export const useAuthStore = create<AuthState>()(
         if (!data.session) throw new Error('Please confirm your email before signing in.');
 
         const user = await getCurrentAppUser(data.user ?? undefined);
+        await switchPrivateUser(user.id);
         set({
           user,
           token: data.session.access_token,
@@ -208,6 +228,7 @@ export const useAuthStore = create<AuthState>()(
 
         const user = await getCurrentAppUser(data.user ?? undefined);
         await resetDemoData(user.id);
+        await switchPrivateUser(user.id);
         set({
           user,
           token: data.session.access_token,
@@ -227,6 +248,7 @@ export const useAuthStore = create<AuthState>()(
         if (!data.session) return;
 
         const user = await getCurrentAppUser(data.user ?? undefined);
+        await switchPrivateUser(user.id);
         set({
           user,
           token: data.session.access_token,
@@ -238,6 +260,7 @@ export const useAuthStore = create<AuthState>()(
       },
 
       logout: async () => {
+        await switchPrivateUser(null);
         try {
           await supabase.auth.signOut();
         } catch {
@@ -245,6 +268,9 @@ export const useAuthStore = create<AuthState>()(
         }
         clearStoredAuth();
         set({ user: null, token: null, isAuthenticated: false, isDemo: false, hasCheckedSession: true, lastActivity: null });
+        // A read can start while remote sign-out is pending and repopulate the
+        // cache after switchPrivateUser(null). Retire that snapshot as well.
+        invalidateJobSnapshot();
       },
 
       updateActivity: () => {
@@ -276,6 +302,7 @@ supabase.auth.getSession().then(async ({ data }) => {
   }
   try {
     const user = await getCurrentAppUser(data.session.user);
+    await switchPrivateUser(user.id);
     useAuthStore.setState({
       user,
       token: data.session.access_token,
@@ -302,6 +329,7 @@ supabase.auth.onAuthStateChange((_event, session) => {
   setTimeout(async () => {
     try {
       const user = await getCurrentAppUser(session.user);
+      await switchPrivateUser(user.id);
       useAuthStore.setState({
         user,
         token: session.access_token,

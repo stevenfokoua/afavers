@@ -12,7 +12,7 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   if (!hasCheckedSession) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="w-8 h-8 rounded-full border-2 border-green-500 border-t-transparent animate-spin" />
+        <p role="status">Loading / Lädt…</p>
       </div>
     );
   }

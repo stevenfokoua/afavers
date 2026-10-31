@@ -1,0 +1,38 @@
+[
+  {
+    "documentWidth": 1425,
+    "firstResult": 315.3999938964844,
+    "inputFont": "\"DM Sans\", system-ui, sans-serif",
+    "width": 1440
+  },
+  {
+    "documentWidth": 1265,
+    "firstResult": 315.3999938964844,
+    "inputFont": "\"DM Sans\", system-ui, sans-serif",
+    "width": 1280
+  },
+  {
+    "documentWidth": 1024,
+    "firstResult": 307.3999938964844,
+    "inputFont": "\"DM Sans\", system-ui, sans-serif",
+    "width": 1024
+  },
+  {
+    "documentWidth": 768,
+    "firstResult": 317.8000183105469,
+    "inputFont": "\"DM Sans\", system-ui, sans-serif",
+    "width": 768
+  },
+  {
+    "documentWidth": 390,
+    "firstResult": 389.6000061035156,
+    "inputFont": "\"DM Sans\", system-ui, sans-serif",
+    "width": 390
+  },
+  {
+    "documentWidth": 320,
+    "firstResult": 433.6000061035156,
+    "inputFont": "\"DM Sans\", system-ui, sans-serif",
+    "width": 320
+  }
+]

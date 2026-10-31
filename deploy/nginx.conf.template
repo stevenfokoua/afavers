@@ -1,0 +1,50 @@
+# afavers static frontend. No per-app Node server or application container.
+# Render DOMAIN before installation. TLS certificate must exist.
+map $uri $afavers_cache_control {
+    default "no-cache";
+    /index.html "no-store";
+    /version.json "no-store";
+    /sw.js "no-store";
+    ~^/assets/ "public, max-age=31536000, immutable";
+}
+server {
+    listen 80;
+    listen [::]:80;
+    server_name DOMAIN;
+    location ^~ /.well-known/acme-challenge/ { root /srv/www/afavers/acme; }
+    location / { return 301 https://DOMAIN$request_uri; }
+}
+
+server {
+    listen 443 ssl;
+    listen [::]:443 ssl;
+    server_name DOMAIN;
+    ssl_certificate /etc/letsencrypt/live/DOMAIN/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/DOMAIN/privkey.pem;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    root /srv/www/afavers/current;
+    index index.html;
+    # Auth callback fragments are not logged; omit query strings as well.
+    access_log off;
+    error_log /var/log/nginx/afavers-error.log warn;
+    gzip_static on;
+    add_header X-Content-Type-Options nosniff always;
+    add_header Referrer-Policy strict-origin-when-cross-origin always;
+    add_header X-Frame-Options DENY always;
+    add_header Cache-Control $afavers_cache_control always;
+
+    location = /version.json {
+        try_files $uri =404;
+    }
+    location = /index.html {
+        try_files $uri =404;
+    }
+    location = /sw.js {
+        try_files $uri =404;
+    }
+    location ^~ /assets/ {
+        try_files $uri =404;
+    }
+    location ~ /\. { deny all; }
+    location / { try_files $uri $uri/ /index.html; }
+}

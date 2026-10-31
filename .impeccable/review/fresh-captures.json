@@ -1,0 +1,263 @@
+[
+  {
+    "name": "landing-desktop",
+    "extent": "top viewport",
+    "documentHeight": 5871,
+    "height": 900,
+    "route": "/",
+    "width": 1440,
+    "y": 0
+  },
+  {
+    "name": "landing-desktop-hero",
+    "extent": "top viewport",
+    "documentHeight": 5871,
+    "height": 900,
+    "route": "/",
+    "width": 1440,
+    "y": 0
+  },
+  {
+    "name": "landing-desktop-samples",
+    "extent": "labelled sample-vacancy section",
+    "documentHeight": 5871,
+    "height": 900,
+    "route": "/",
+    "width": 1440,
+    "y": 3238.39990234375
+  },
+  {
+    "name": "landing-sample-detail",
+    "extent": "sample dialog and honest destination",
+    "documentHeight": 5871,
+    "height": 900,
+    "route": "/",
+    "width": 1440,
+    "y": 3422.39990234375
+  },
+  {
+    "name": "landing-desktop-extension",
+    "extent": "extension heading without eyebrow",
+    "documentHeight": 5871,
+    "height": 900,
+    "route": "/",
+    "width": 1440,
+    "y": 3755.199951171875
+  },
+  {
+    "name": "landing-mobile",
+    "extent": "top viewport",
+    "documentHeight": 7666,
+    "height": 844,
+    "route": "/",
+    "width": 390,
+    "y": 0
+  },
+  {
+    "name": "landing-mobile-hero",
+    "extent": "top viewport",
+    "documentHeight": 7666,
+    "height": 844,
+    "route": "/",
+    "width": 390,
+    "y": 0
+  },
+  {
+    "name": "landing-mobile-samples",
+    "extent": "labelled sample-vacancy section",
+    "documentHeight": 7666,
+    "height": 844,
+    "route": "/",
+    "width": 390,
+    "y": 4500
+  },
+  {
+    "name": "dark-desktop",
+    "extent": "settled top viewport",
+    "documentHeight": 1248,
+    "height": 900,
+    "route": "/jobs",
+    "width": 1440,
+    "y": 0
+  },
+  {
+    "name": "dark-mobile",
+    "extent": "settled top viewport",
+    "documentHeight": 844,
+    "height": 844,
+    "route": "/jobs",
+    "width": 390,
+    "y": 0
+  },
+  {
+    "name": "settings-dark-mobile",
+    "extent": "settled top viewport",
+    "documentHeight": 4069,
+    "height": 844,
+    "route": "/settings",
+    "width": 390,
+    "y": 0
+  },
+  {
+    "name": "settings-dark-desktop",
+    "extent": "settled top viewport",
+    "documentHeight": 3172,
+    "height": 900,
+    "route": "/settings",
+    "width": 1440,
+    "y": 0
+  },
+  {
+    "name": "desktop",
+    "extent": "settled top viewport",
+    "documentHeight": 1248,
+    "height": 900,
+    "route": "/jobs",
+    "width": 1440,
+    "y": 0
+  },
+  {
+    "name": "mobile",
+    "extent": "settled top viewport",
+    "documentHeight": 844,
+    "height": 844,
+    "route": "/jobs",
+    "width": 390,
+    "y": 0
+  },
+  {
+    "name": "jobs-320",
+    "extent": "settled top viewport after root-overflow correction",
+    "documentHeight": 866,
+    "height": 844,
+    "route": "/jobs",
+    "width": 320,
+    "y": 0
+  },
+  {
+    "name": "jobs-768",
+    "extent": "settled top viewport",
+    "documentHeight": 900,
+    "height": 900,
+    "route": "/jobs",
+    "width": 768,
+    "y": 0
+  },
+  {
+    "name": "jobs-1024",
+    "extent": "settled top viewport",
+    "documentHeight": 900,
+    "height": 900,
+    "route": "/jobs",
+    "width": 1024,
+    "y": 0
+  },
+  {
+    "name": "jobs-1024-expanded",
+    "extent": "settled expanded navigation",
+    "documentHeight": 900,
+    "height": 900,
+    "route": "/jobs",
+    "width": 1024,
+    "y": 0
+  },
+  {
+    "name": "user-1280",
+    "extent": "settled top viewport",
+    "documentHeight": 1068,
+    "height": 720,
+    "route": "/jobs",
+    "width": 1280,
+    "y": 0
+  },
+  {
+    "name": "dashboard-desktop",
+    "extent": "settled top viewport",
+    "documentHeight": 2409,
+    "height": 900,
+    "route": "/dashboard",
+    "width": 1440,
+    "y": 0
+  },
+  {
+    "name": "dashboard-desktop-feed",
+    "extent": "settled aligned rows and quick actions",
+    "documentHeight": 2409,
+    "height": 900,
+    "route": "/dashboard",
+    "width": 1440,
+    "y": 494.3999938964844
+  },
+  {
+    "name": "dashboard-mobile",
+    "extent": "settled top viewport",
+    "documentHeight": 4189,
+    "height": 844,
+    "route": "/dashboard",
+    "width": 390,
+    "y": 0
+  },
+  {
+    "name": "dashboard-mobile-feed",
+    "extent": "settled aligned job feed rows",
+    "documentHeight": 4189,
+    "height": 844,
+    "route": "/dashboard",
+    "width": 390,
+    "y": 810.4000244140625
+  },
+  {
+    "name": "board-desktop",
+    "extent": "settled top viewport",
+    "documentHeight": 900,
+    "height": 900,
+    "route": "/kanban",
+    "width": 1440,
+    "y": 0
+  },
+  {
+    "name": "board-mobile",
+    "extent": "settled top viewport",
+    "documentHeight": 844,
+    "height": 844,
+    "route": "/kanban",
+    "width": 390,
+    "y": 0
+  },
+  {
+    "name": "login-desktop",
+    "extent": "settled top viewport",
+    "documentHeight": 900,
+    "height": 900,
+    "route": "/login",
+    "width": 1440,
+    "y": 0
+  },
+  {
+    "name": "login-mobile",
+    "extent": "settled top viewport",
+    "documentHeight": 844,
+    "height": 844,
+    "route": "/login",
+    "width": 390,
+    "y": 0
+  },
+  {
+    "name": "landing-category-strip",
+    "extent": "settled Jobs/Applications/Reminders category strip",
+    "width": 1440,
+    "height": 900,
+    "y": 553.5999755859375,
+    "documentHeight": 5871,
+    "route": "/"
+  },
+  {
+    "name": "landing-category-strip-mobile",
+    "extent": "settled category strip on phone",
+    "width": 390,
+    "height": 844,
+    "y": 695.2000122070312,
+    "documentHeight": 7666,
+    "route": "/"
+  }
+]

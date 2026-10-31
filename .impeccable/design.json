@@ -1,0 +1,674 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-28T22:48:03.578292+00:00",
+  "title": "Design System: Afavers",
+  "extensions": {
+    "colorMeta": {
+      "canvas": {
+        "role": "neutral",
+        "displayName": "Canvas",
+        "canonical": "#fafafa",
+        "tonalRamp": [
+          "oklch(15% 0.0000 0.00)",
+          "oklch(26% 0.0000 0.00)",
+          "oklch(38% 0.0000 0.00)",
+          "oklch(49% 0.0000 0.00)",
+          "oklch(61% 0.0000 0.00)",
+          "oklch(72% 0.0000 0.00)",
+          "oklch(84% 0.0000 0.00)",
+          "oklch(95% 0.0000 0.00)"
+        ]
+      },
+      "surface": {
+        "role": "neutral",
+        "displayName": "Surface",
+        "canonical": "#fff",
+        "tonalRamp": [
+          "oklch(15% 0.0000 0.00)",
+          "oklch(26% 0.0000 0.00)",
+          "oklch(38% 0.0000 0.00)",
+          "oklch(49% 0.0000 0.00)",
+          "oklch(61% 0.0000 0.00)",
+          "oklch(72% 0.0000 0.00)",
+          "oklch(84% 0.0000 0.00)",
+          "oklch(95% 0.0000 0.00)"
+        ]
+      },
+      "subtle": {
+        "role": "neutral",
+        "displayName": "Subtle",
+        "canonical": "#f4f5f5",
+        "tonalRamp": [
+          "oklch(15% 0.0011 197.14)",
+          "oklch(26% 0.0011 197.14)",
+          "oklch(38% 0.0011 197.14)",
+          "oklch(49% 0.0011 197.14)",
+          "oklch(61% 0.0011 197.14)",
+          "oklch(72% 0.0011 197.14)",
+          "oklch(84% 0.0011 197.14)",
+          "oklch(95% 0.0011 197.14)"
+        ]
+      },
+      "hover": {
+        "role": "neutral",
+        "displayName": "Hover",
+        "canonical": "#eef0f1",
+        "tonalRamp": [
+          "oklch(15% 0.0025 228.78)",
+          "oklch(26% 0.0025 228.78)",
+          "oklch(38% 0.0025 228.78)",
+          "oklch(49% 0.0025 228.78)",
+          "oklch(61% 0.0025 228.78)",
+          "oklch(72% 0.0025 228.78)",
+          "oklch(84% 0.0025 228.78)",
+          "oklch(95% 0.0025 228.78)"
+        ]
+      },
+      "ink": {
+        "role": "primary",
+        "displayName": "Charcoal",
+        "canonical": "#181b1f",
+        "tonalRamp": [
+          "oklch(15% 0.0091 255.61)",
+          "oklch(26% 0.0091 255.61)",
+          "oklch(38% 0.0091 255.61)",
+          "oklch(49% 0.0091 255.61)",
+          "oklch(61% 0.0091 255.61)",
+          "oklch(72% 0.0091 255.61)",
+          "oklch(84% 0.0091 255.61)",
+          "oklch(95% 0.0091 255.61)"
+        ]
+      },
+      "on-ink": {
+        "role": "primary",
+        "displayName": "On Charcoal",
+        "canonical": "#fff",
+        "tonalRamp": [
+          "oklch(15% 0.0000 0.00)",
+          "oklch(26% 0.0000 0.00)",
+          "oklch(38% 0.0000 0.00)",
+          "oklch(49% 0.0000 0.00)",
+          "oklch(61% 0.0000 0.00)",
+          "oklch(72% 0.0000 0.00)",
+          "oklch(84% 0.0000 0.00)",
+          "oklch(95% 0.0000 0.00)"
+        ]
+      },
+      "muted": {
+        "role": "neutral",
+        "displayName": "Muted",
+        "canonical": "#58616c",
+        "tonalRamp": [
+          "oklch(15% 0.0209 253.47)",
+          "oklch(26% 0.0209 253.47)",
+          "oklch(38% 0.0209 253.47)",
+          "oklch(49% 0.0209 253.47)",
+          "oklch(61% 0.0209 253.47)",
+          "oklch(72% 0.0209 253.47)",
+          "oklch(84% 0.0209 253.47)",
+          "oklch(95% 0.0209 253.47)"
+        ]
+      },
+      "line": {
+        "role": "neutral",
+        "displayName": "Line",
+        "canonical": "#e2e5e8",
+        "tonalRamp": [
+          "oklch(15% 0.0052 247.88)",
+          "oklch(26% 0.0052 247.88)",
+          "oklch(38% 0.0052 247.88)",
+          "oklch(49% 0.0052 247.88)",
+          "oklch(61% 0.0052 247.88)",
+          "oklch(72% 0.0052 247.88)",
+          "oklch(84% 0.0052 247.88)",
+          "oklch(95% 0.0052 247.88)"
+        ]
+      },
+      "strong-line": {
+        "role": "neutral",
+        "displayName": "Strong Line",
+        "canonical": "#89929d",
+        "tonalRamp": [
+          "oklch(15% 0.0194 253.40)",
+          "oklch(26% 0.0194 253.40)",
+          "oklch(38% 0.0194 253.40)",
+          "oklch(49% 0.0194 253.40)",
+          "oklch(61% 0.0194 253.40)",
+          "oklch(72% 0.0194 253.40)",
+          "oklch(84% 0.0194 253.40)",
+          "oklch(95% 0.0194 253.40)"
+        ]
+      },
+      "accent": {
+        "role": "primary",
+        "displayName": "Working Green",
+        "canonical": "#067647",
+        "tonalRamp": [
+          "oklch(15% 0.1168 157.07)",
+          "oklch(26% 0.1168 157.07)",
+          "oklch(38% 0.1168 157.07)",
+          "oklch(49% 0.1168 157.07)",
+          "oklch(61% 0.1168 157.07)",
+          "oklch(72% 0.1168 157.07)",
+          "oklch(84% 0.1168 157.07)",
+          "oklch(95% 0.1168 157.07)"
+        ]
+      },
+      "accent-soft": {
+        "role": "primary",
+        "displayName": "Quiet Green",
+        "canonical": "#edf8f1",
+        "tonalRamp": [
+          "oklch(15% 0.0148 158.25)",
+          "oklch(26% 0.0148 158.25)",
+          "oklch(38% 0.0148 158.25)",
+          "oklch(49% 0.0148 158.25)",
+          "oklch(61% 0.0148 158.25)",
+          "oklch(72% 0.0148 158.25)",
+          "oklch(84% 0.0148 158.25)",
+          "oklch(95% 0.0148 158.25)"
+        ]
+      },
+      "danger": {
+        "role": "secondary",
+        "displayName": "Error Red",
+        "canonical": "#b42318",
+        "tonalRamp": [
+          "oklch(15% 0.1821 29.51)",
+          "oklch(26% 0.1821 29.51)",
+          "oklch(38% 0.1821 29.51)",
+          "oklch(49% 0.1821 29.51)",
+          "oklch(61% 0.1821 29.51)",
+          "oklch(72% 0.1821 29.51)",
+          "oklch(84% 0.1821 29.51)",
+          "oklch(95% 0.1821 29.51)"
+        ]
+      },
+      "danger-soft": {
+        "role": "secondary",
+        "displayName": "Quiet Error",
+        "canonical": "#fff1f0",
+        "tonalRamp": [
+          "oklch(15% 0.0152 22.39)",
+          "oklch(26% 0.0152 22.39)",
+          "oklch(38% 0.0152 22.39)",
+          "oklch(49% 0.0152 22.39)",
+          "oklch(61% 0.0152 22.39)",
+          "oklch(72% 0.0152 22.39)",
+          "oklch(84% 0.0152 22.39)",
+          "oklch(95% 0.0152 22.39)"
+        ]
+      },
+      "warning": {
+        "role": "secondary",
+        "displayName": "Warning Amber",
+        "canonical": "#854d0e",
+        "tonalRamp": [
+          "oklch(15% 0.1034 61.91)",
+          "oklch(26% 0.1034 61.91)",
+          "oklch(38% 0.1034 61.91)",
+          "oklch(49% 0.1034 61.91)",
+          "oklch(61% 0.1034 61.91)",
+          "oklch(72% 0.1034 61.91)",
+          "oklch(84% 0.1034 61.91)",
+          "oklch(95% 0.1034 61.91)"
+        ]
+      },
+      "logo-orange": {
+        "role": "secondary",
+        "displayName": "Wordmark Orange",
+        "canonical": "#f97316",
+        "tonalRamp": [
+          "oklch(15% 0.1867 47.60)",
+          "oklch(26% 0.1867 47.60)",
+          "oklch(38% 0.1867 47.60)",
+          "oklch(49% 0.1867 47.60)",
+          "oklch(61% 0.1867 47.60)",
+          "oklch(72% 0.1867 47.60)",
+          "oklch(84% 0.1867 47.60)",
+          "oklch(95% 0.1867 47.60)"
+        ]
+      },
+      "dark-canvas": {
+        "role": "neutral",
+        "displayName": "Dark Canvas",
+        "canonical": "#111315",
+        "tonalRamp": [
+          "oklch(15% 0.0052 248.11)",
+          "oklch(26% 0.0052 248.11)",
+          "oklch(38% 0.0052 248.11)",
+          "oklch(49% 0.0052 248.11)",
+          "oklch(61% 0.0052 248.11)",
+          "oklch(72% 0.0052 248.11)",
+          "oklch(84% 0.0052 248.11)",
+          "oklch(95% 0.0052 248.11)"
+        ]
+      },
+      "dark-surface": {
+        "role": "neutral",
+        "displayName": "Dark Surface",
+        "canonical": "#181a1d",
+        "tonalRamp": [
+          "oklch(15% 0.0066 258.37)",
+          "oklch(26% 0.0066 258.37)",
+          "oklch(38% 0.0066 258.37)",
+          "oklch(49% 0.0066 258.37)",
+          "oklch(61% 0.0066 258.37)",
+          "oklch(72% 0.0066 258.37)",
+          "oklch(84% 0.0066 258.37)",
+          "oklch(95% 0.0066 258.37)"
+        ]
+      },
+      "dark-subtle": {
+        "role": "neutral",
+        "displayName": "Dark Subtle",
+        "canonical": "#202327",
+        "tonalRamp": [
+          "oklch(15% 0.0087 255.59)",
+          "oklch(26% 0.0087 255.59)",
+          "oklch(38% 0.0087 255.59)",
+          "oklch(49% 0.0087 255.59)",
+          "oklch(61% 0.0087 255.59)",
+          "oklch(72% 0.0087 255.59)",
+          "oklch(84% 0.0087 255.59)",
+          "oklch(95% 0.0087 255.59)"
+        ]
+      },
+      "dark-hover": {
+        "role": "neutral",
+        "displayName": "Dark Hover",
+        "canonical": "#2b2f34",
+        "tonalRamp": [
+          "oklch(15% 0.0106 254.00)",
+          "oklch(26% 0.0106 254.00)",
+          "oklch(38% 0.0106 254.00)",
+          "oklch(49% 0.0106 254.00)",
+          "oklch(61% 0.0106 254.00)",
+          "oklch(72% 0.0106 254.00)",
+          "oklch(84% 0.0106 254.00)",
+          "oklch(95% 0.0106 254.00)"
+        ]
+      },
+      "dark-ink": {
+        "role": "primary",
+        "displayName": "Dark Charcoal",
+        "canonical": "#f3f4f5",
+        "tonalRamp": [
+          "oklch(15% 0.0017 247.84)",
+          "oklch(26% 0.0017 247.84)",
+          "oklch(38% 0.0017 247.84)",
+          "oklch(49% 0.0017 247.84)",
+          "oklch(61% 0.0017 247.84)",
+          "oklch(72% 0.0017 247.84)",
+          "oklch(84% 0.0017 247.84)",
+          "oklch(95% 0.0017 247.84)"
+        ]
+      },
+      "dark-on-ink": {
+        "role": "primary",
+        "displayName": "Dark On Charcoal",
+        "canonical": "#181b1f",
+        "tonalRamp": [
+          "oklch(15% 0.0091 255.61)",
+          "oklch(26% 0.0091 255.61)",
+          "oklch(38% 0.0091 255.61)",
+          "oklch(49% 0.0091 255.61)",
+          "oklch(61% 0.0091 255.61)",
+          "oklch(72% 0.0091 255.61)",
+          "oklch(84% 0.0091 255.61)",
+          "oklch(95% 0.0091 255.61)"
+        ]
+      },
+      "dark-muted": {
+        "role": "neutral",
+        "displayName": "Dark Muted",
+        "canonical": "#b0b6bf",
+        "tonalRamp": [
+          "oklch(15% 0.0144 258.35)",
+          "oklch(26% 0.0144 258.35)",
+          "oklch(38% 0.0144 258.35)",
+          "oklch(49% 0.0144 258.35)",
+          "oklch(61% 0.0144 258.35)",
+          "oklch(72% 0.0144 258.35)",
+          "oklch(84% 0.0144 258.35)",
+          "oklch(95% 0.0144 258.35)"
+        ]
+      },
+      "dark-line": {
+        "role": "neutral",
+        "displayName": "Dark Line",
+        "canonical": "#363b42",
+        "tonalRamp": [
+          "oklch(15% 0.0140 256.77)",
+          "oklch(26% 0.0140 256.77)",
+          "oklch(38% 0.0140 256.77)",
+          "oklch(49% 0.0140 256.77)",
+          "oklch(61% 0.0140 256.77)",
+          "oklch(72% 0.0140 256.77)",
+          "oklch(84% 0.0140 256.77)",
+          "oklch(95% 0.0140 256.77)"
+        ]
+      },
+      "dark-strong-line": {
+        "role": "neutral",
+        "displayName": "Dark Strong Line",
+        "canonical": "#737d89",
+        "tonalRamp": [
+          "oklch(15% 0.0219 252.98)",
+          "oklch(26% 0.0219 252.98)",
+          "oklch(38% 0.0219 252.98)",
+          "oklch(49% 0.0219 252.98)",
+          "oklch(61% 0.0219 252.98)",
+          "oklch(72% 0.0219 252.98)",
+          "oklch(84% 0.0219 252.98)",
+          "oklch(95% 0.0219 252.98)"
+        ]
+      },
+      "dark-accent": {
+        "role": "primary",
+        "displayName": "Dark Working Green",
+        "canonical": "#75dda6",
+        "tonalRamp": [
+          "oklch(15% 0.1259 158.79)",
+          "oklch(26% 0.1259 158.79)",
+          "oklch(38% 0.1259 158.79)",
+          "oklch(49% 0.1259 158.79)",
+          "oklch(61% 0.1259 158.79)",
+          "oklch(72% 0.1259 158.79)",
+          "oklch(84% 0.1259 158.79)",
+          "oklch(95% 0.1259 158.79)"
+        ]
+      },
+      "dark-accent-soft": {
+        "role": "primary",
+        "displayName": "Dark Quiet Green",
+        "canonical": "#153626",
+        "tonalRamp": [
+          "oklch(15% 0.0489 160.31)",
+          "oklch(26% 0.0489 160.31)",
+          "oklch(38% 0.0489 160.31)",
+          "oklch(49% 0.0489 160.31)",
+          "oklch(61% 0.0489 160.31)",
+          "oklch(72% 0.0489 160.31)",
+          "oklch(84% 0.0489 160.31)",
+          "oklch(95% 0.0489 160.31)"
+        ]
+      },
+      "dark-danger": {
+        "role": "secondary",
+        "displayName": "Dark Error Red",
+        "canonical": "#ffb4ac",
+        "tonalRamp": [
+          "oklch(15% 0.0889 25.92)",
+          "oklch(26% 0.0889 25.92)",
+          "oklch(38% 0.0889 25.92)",
+          "oklch(49% 0.0889 25.92)",
+          "oklch(61% 0.0889 25.92)",
+          "oklch(72% 0.0889 25.92)",
+          "oklch(84% 0.0889 25.92)",
+          "oklch(95% 0.0889 25.92)"
+        ]
+      },
+      "dark-danger-soft": {
+        "role": "secondary",
+        "displayName": "Dark Quiet Error",
+        "canonical": "#40201e",
+        "tonalRamp": [
+          "oklch(15% 0.0499 24.42)",
+          "oklch(26% 0.0499 24.42)",
+          "oklch(38% 0.0499 24.42)",
+          "oklch(49% 0.0499 24.42)",
+          "oklch(61% 0.0499 24.42)",
+          "oklch(72% 0.0499 24.42)",
+          "oklch(84% 0.0499 24.42)",
+          "oklch(95% 0.0499 24.42)"
+        ]
+      },
+      "dark-warning": {
+        "role": "secondary",
+        "displayName": "Dark Warning Amber",
+        "canonical": "#f1cd8c",
+        "tonalRamp": [
+          "oklch(15% 0.0919 81.75)",
+          "oklch(26% 0.0919 81.75)",
+          "oklch(38% 0.0919 81.75)",
+          "oklch(49% 0.0919 81.75)",
+          "oklch(61% 0.0919 81.75)",
+          "oklch(72% 0.0919 81.75)",
+          "oklch(84% 0.0919 81.75)",
+          "oklch(95% 0.0919 81.75)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Public Display",
+        "purpose": "Landing headline base 36px; 60px from 640px and 96px from 1024px. This is not the workspace heading scale."
+      },
+      "headline": {
+        "displayName": "Workspace Headline",
+        "purpose": "Page headings; 25px/32px on phone."
+      },
+      "title": {
+        "displayName": "Detail Title",
+        "purpose": "Job details; 23px/31px on phone."
+      },
+      "body": {
+        "displayName": "Reading Body",
+        "purpose": "Job prose within 70ch. UI reading text commonly uses 14px/20px."
+      },
+      "label": {
+        "displayName": "Control Label",
+        "purpose": "Shared button labels and compact UI."
+      },
+      "metadata": {
+        "displayName": "Metadata",
+        "purpose": "Dates, sources and secondary row details."
+      },
+      "row-title": {
+        "displayName": "Comparison Row Title",
+        "purpose": "DM Sans job titles rather than heading-face titles."
+      },
+      "wordmark": {
+        "displayName": "Preserved Wordmark",
+        "purpose": "Identity asset only; Figtree-based local font and orange lowercase v."
+      }
+    },
+    "shadows": [],
+    "motion": [
+      {
+        "name": "action-ease",
+        "value": "cubic-bezier(.2,.8,.2,1)",
+        "purpose": "Shared Web Animations helper easing."
+      },
+      {
+        "name": "detail-settle",
+        "value": "translateX(8px) to translateX(0); 180ms",
+        "purpose": "User-selected detail settles laterally; does not animate automatic initial selection."
+      },
+      {
+        "name": "save-confirm",
+        "value": "scale(.92) to scale(1); 120ms",
+        "purpose": "Confirmation after successful save."
+      },
+      {
+        "name": "board-reflow",
+        "value": "translate(from.x-to.x,from.y-to.y) to translate(0,0); 180ms",
+        "purpose": "FLIP-style board reflow after a data change when position changes."
+      },
+      {
+        "name": "interrupt",
+        "value": "cancel previous Animation on the same Element",
+        "purpose": "A new helper animation replaces the previous one."
+      },
+      {
+        "name": "reduced-motion",
+        "value": "immediate",
+        "purpose": "The helper skips animation; global CSS disables animation/transition and smooth scrolling for prefers-reduced-motion: reduce."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "jobs-narrow-controls",
+        "value": "max-width:360px"
+      },
+      {
+        "name": "phone",
+        "value": "max-width:767px"
+      },
+      {
+        "name": "intermediate-rail",
+        "value": "min-width:768px and max-width:1199px"
+      },
+      {
+        "name": "wide-inspector",
+        "value": "min-width:1200px"
+      },
+      {
+        "name": "public-small",
+        "value": "min-width:640px"
+      },
+      {
+        "name": "public-large",
+        "value": "min-width:1024px"
+      },
+      {
+        "name": "coarse-pointer",
+        "value": "pointer:coarse"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Neutral filled primary workspace action.",
+      "html": "<button type=\"button\" class=\"ds-button-primary\">Review new jobs</button>",
+      "css": ".ds-button-primary{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:36px;padding:8px 12px;border:1px solid var(--line,#e2e5e8);border-radius:3px;background:var(--surface,#fff);color:var(--ink,#181b1f);font-size:14px;font-weight:500;line-height:20px;white-space:nowrap;text-decoration:none;cursor:pointer;font-family:var(--font-ui,'DM Sans',system-ui,sans-serif);background:var(--ink,#181b1f);color:var(--on-ink,#fff);border-color:var(--ink,#181b1f);}.ds-button-primary:hover:not(:disabled){background:var(--ink,#181b1f);filter:brightness(.9);}.ds-button-primary:focus-visible{outline:2px solid var(--accent,#067647);outline-offset:3px;}.ds-button-primary:disabled{opacity:.5;cursor:not-allowed;}@media(max-width:767px), (pointer:coarse){.ds-button-primary{min-height:44px;}}"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Outlined secondary workspace action.",
+      "html": "<button type=\"button\" class=\"ds-button-secondary\">Open applications</button>",
+      "css": ".ds-button-secondary{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:36px;padding:8px 12px;border:1px solid var(--line,#e2e5e8);border-radius:3px;background:var(--surface,#fff);color:var(--ink,#181b1f);font-size:14px;font-weight:500;line-height:20px;white-space:nowrap;text-decoration:none;cursor:pointer;font-family:var(--font-ui,'DM Sans',system-ui,sans-serif);}.ds-button-secondary:hover:not(:disabled){background:var(--hover,#eef0f1);}.ds-button-secondary:focus-visible{outline:2px solid var(--accent,#067647);outline-offset:3px;}.ds-button-secondary:disabled{opacity:.5;cursor:not-allowed;}@media(max-width:767px), (pointer:coarse){.ds-button-secondary{min-height:44px;}}"
+    },
+    {
+      "name": "Quiet Button",
+      "kind": "button",
+      "refersTo": "button-quiet",
+      "description": "Low-emphasis action with the actual inline refresh icon.",
+      "html": "<button type=\"button\" class=\"ds-button-quiet\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M20 10a8 8 0 1 0-1 8M20 3v7h-7\"/></svg>Refresh</button>",
+      "css": ".ds-button-quiet{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:36px;padding:8px 12px;border:1px solid var(--line,#e2e5e8);border-radius:3px;background:var(--surface,#fff);color:var(--ink,#181b1f);font-size:14px;font-weight:500;line-height:20px;white-space:nowrap;text-decoration:none;cursor:pointer;font-family:var(--font-ui,'DM Sans',system-ui,sans-serif);background:transparent;border-color:transparent;}.ds-button-quiet:hover:not(:disabled){background:var(--hover,#eef0f1);}.ds-button-quiet:focus-visible{outline:2px solid var(--accent,#067647);outline-offset:3px;}.ds-button-quiet:disabled{opacity:.5;cursor:not-allowed;}@media(max-width:767px), (pointer:coarse){.ds-button-quiet{min-height:44px;}}"
+    },
+    {
+      "name": "Danger Button",
+      "kind": "button",
+      "refersTo": "button-danger",
+      "description": "Outlined destructive action with semantic error text.",
+      "html": "<button type=\"button\" class=\"ds-button-danger\">Delete</button>",
+      "css": ".ds-button-danger{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:36px;padding:8px 12px;border:1px solid var(--line,#e2e5e8);border-radius:3px;background:var(--surface,#fff);color:var(--ink,#181b1f);font-size:14px;font-weight:500;line-height:20px;white-space:nowrap;text-decoration:none;cursor:pointer;font-family:var(--font-ui,'DM Sans',system-ui,sans-serif);color:var(--danger,#b42318);}.ds-button-danger:hover:not(:disabled){background:var(--hover,#eef0f1);}.ds-button-danger:focus-visible{outline:2px solid var(--accent,#067647);outline-offset:3px;}.ds-button-danger:disabled{opacity:.5;cursor:not-allowed;}@media(max-width:767px), (pointer:coarse){.ds-button-danger{min-height:44px;}}"
+    },
+    {
+      "name": "Labeled Field",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Visible label, stronger border, keyboard focus and implemented phone/coarse-pointer sizing.",
+      "html": "<label class=\"ds-field-label\">Company<input class=\"ds-field\" type=\"text\" value=\"Example company\" /></label>",
+      "css": ".ds-field-label{display:grid;gap:6px;font-size:13px;color:var(--muted,#58616c);font-family:var(--font-ui,'DM Sans',system-ui,sans-serif);}.ds-field{min-width:0;width:100%;min-height:38px;border:1px solid var(--strong-line,#89929d);border-radius:3px;background:var(--surface,#fff);color:var(--ink,#181b1f);padding:8px 10px;font-size:14px;line-height:20px;font-family:var(--font-ui,'DM Sans',system-ui,sans-serif);}.ds-field:hover{border-color:var(--strong-line,#89929d);}.ds-field:focus-visible{outline:2px solid var(--accent,#067647);outline-offset:3px;}.ds-field:disabled{opacity:.6;}.ds-field::placeholder{color:var(--muted,#58616c);opacity:1;}@media(max-width:767px){.ds-field{font-size:16px;}}@media(pointer:coarse){.ds-field{min-height:44px;}}"
+    },
+    {
+      "name": "Grouped Navigation",
+      "kind": "nav",
+      "refersTo": "nav-active",
+      "description": "Expanded rail excerpt; active state uses functional green. The real shell collapses to 72px at 768–1199 and expands to 208px.",
+      "html": "<nav class=\"ds-nav\" aria-label=\"Track\"><p class=\"ds-nav-heading\">Track</p><a class=\"ds-nav-link\" href=\"/jobs\" aria-label=\"Find jobs\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"m21 21-5-5M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0\"/></svg><span>Find jobs</span></a><a class=\"ds-nav-link\" href=\"/kanban\" aria-current=\"page\" aria-label=\"Applications\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M3 3h7v18H3zM14 3h7v12h-7z\"/></svg><span>Applications</span></a></nav>",
+      "css": ".ds-nav{display:grid;gap:3px;font-family:var(--font-ui,'DM Sans',system-ui,sans-serif);}.ds-nav-heading{font-size:12px;font-weight:500;color:var(--muted,#58616c);padding:0 12px 8px;margin:0;}.ds-nav-link{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:6px;font-size:14px;line-height:22px;color:var(--muted,#58616c);text-decoration:none;border:0;background:transparent;text-align:left;}.ds-nav-link svg{flex:none;}.ds-nav-link:hover{background:var(--hover,#eef0f1);color:var(--ink,#181b1f);}.ds-nav-link[aria-current=page]{color:var(--accent,#067647);background:var(--accent-soft,#edf8f1);font-weight:500;}.ds-nav-link:focus-visible{outline:2px solid var(--accent,#067647);outline-offset:3px;}@media(pointer:coarse){.ds-nav-link{min-height:44px;}}"
+    },
+    {
+      "name": "Active Filter Chip",
+      "kind": "chip",
+      "refersTo": "filter-chip",
+      "description": "Compact removable filter annotation; its small remove target is not asserted to meet a global target-size audit.",
+      "html": "<span class=\"ds-filter\">Remote<button type=\"button\" aria-label=\"Remove Work: Remote\"><svg width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"m6 6 12 12M6 18 18 6\"/></svg></button></span>",
+      "css": ".ds-filter{display:inline-flex;gap:8px;align-items:center;background:var(--subtle,#f4f5f5);color:var(--ink,#181b1f);padding:5px 8px;border-radius:4px;font-size:12px;font-family:var(--font-ui,'DM Sans',system-ui,sans-serif);}.ds-filter button{padding:2px;background:transparent;border:0;color:inherit;cursor:pointer;}.ds-filter button:hover{color:var(--ink,#181b1f);}.ds-filter button:focus-visible{outline:2px solid var(--accent,#067647);outline-offset:3px;}.ds-filter svg{display:block;}"
+    },
+    {
+      "name": "Flat Panel",
+      "kind": "card",
+      "refersTo": "panel",
+      "description": "Generic panel has no shadow or inherent padding. This actual empty-agenda use supplies 20px content padding.",
+      "html": "<section class=\"ds-panel\" aria-label=\"Upcoming\"><p class=\"ds-panel-copy\">No upcoming items in your selected dashboard sections.</p></section>",
+      "css": ".ds-panel{background:var(--surface,#fff);color:var(--ink,#181b1f);border:1px solid var(--line,#e2e5e8);border-radius:4px;min-width:0;font-family:var(--font-ui,'DM Sans',system-ui,sans-serif);}.ds-panel-copy{padding:20px;margin:0;font-size:14px;line-height:20px;color:var(--muted,#58616c);}"
+    },
+    {
+      "name": "Selected Job Row",
+      "kind": "custom",
+      "refersTo": "job-row",
+      "description": "Actual comparison-row anatomy with title action, separate save action, metadata and quiet selection. Example content is illustrative.",
+      "html": "<article class=\"ds-job-row\" data-selected=\"true\"><div class=\"ds-job-main\"><button type=\"button\" class=\"ds-job-title\" aria-current=\"true\"><strong>Example job title</strong><span>Example company · Düsseldorf</span></button><button type=\"button\" class=\"ds-job-save\" aria-label=\"Save Example job title\" aria-pressed=\"false\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M5 3h14v18l-7-4-7 4Z\"/></svg></button></div><div class=\"ds-job-meta\"><span class=\"ds-job-match\">82% match</span><span>Example source</span><span>28 Oct 2026</span></div></article>",
+      "css": ".ds-job-row{padding:20px;border-bottom:1px solid var(--line,#e2e5e8);min-width:0;background:var(--surface,#fff);color:var(--ink,#181b1f);font-family:var(--font-ui,'DM Sans',system-ui,sans-serif);}.ds-job-row[data-selected=true]{background:var(--subtle,#f4f5f5);}.ds-job-main{display:flex;align-items:flex-start;gap:12px;}.ds-job-title{flex:1;min-width:0;text-align:left;background:transparent;border:0;padding:0;color:inherit;cursor:pointer;font-family:var(--font-ui,'DM Sans',system-ui,sans-serif);}.ds-job-title strong{display:block;font-weight:600;font-size:15px;line-height:22px;overflow-wrap:anywhere;}.ds-job-title span{display:block;font-size:13px;color:var(--muted,#58616c);margin-top:3px;}.ds-job-meta{display:flex;gap:10px;flex-wrap:wrap;color:var(--muted,#58616c);font-size:12px;margin-top:9px;}.ds-job-match{color:var(--accent,#067647);font-weight:500;}.ds-job-save{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:36px;padding:8px 12px;border:1px solid var(--line,#e2e5e8);border-radius:3px;background:var(--surface,#fff);color:var(--ink,#181b1f);font-size:14px;font-weight:500;line-height:20px;white-space:nowrap;text-decoration:none;cursor:pointer;font-family:var(--font-ui,'DM Sans',system-ui,sans-serif);background:transparent;border-color:transparent;}.ds-job-save:hover:not(:disabled){background:var(--hover,#eef0f1);}.ds-job-save:disabled{opacity:.5;cursor:not-allowed;}.ds-job-title:focus-visible,.ds-job-save:focus-visible{outline:2px solid var(--accent,#067647);outline-offset:3px;}@media(min-width:1200px){.ds-job-row{padding:22px;}}@media(max-width:767px){.ds-job-row{padding:18px 14px;}.ds-job-save{min-height:44px;}}@media(pointer:coarse){.ds-job-save{min-height:44px;min-width:44px;}}"
+    },
+    {
+      "name": "Application Card",
+      "kind": "card",
+      "refersTo": "board-card",
+      "description": "The real board card also works in the phone stage list. The native stage menu is an explicit alternative to dragging. Example content is illustrative.",
+      "html": "<article class=\"ds-board-card\"><button type=\"button\" class=\"ds-board-title\">Example job title</button><p>Example company</p><p>Düsseldorf</p><select class=\"ds-board-stage\" aria-label=\"Stage for Example job title\"><option>New</option><option selected>Saved</option><option>Preparing</option><option>Applied</option><option>Follow-up</option><option>Interviewing</option><option>Offered</option><option>Rejected</option><option>Archived</option></select><div class=\"ds-board-tools\"><button type=\"button\" class=\"ds-board-hide\">Hide</button></div></article>",
+      "css": ".ds-board-card{padding:16px;border:1px solid var(--line,#e2e5e8);border-radius:4px;background:var(--surface,#fff);color:var(--ink,#181b1f);margin-bottom:12px;min-width:0;font-family:var(--font-ui,'DM Sans',system-ui,sans-serif);}.ds-board-title{display:block;text-align:left;font-weight:500;font-size:14px;line-height:22px;overflow-wrap:anywhere;background:transparent;border:0;padding:0;color:inherit;cursor:pointer;font-family:var(--font-ui,'DM Sans',system-ui,sans-serif);}.ds-board-card p{color:var(--muted,#58616c);font-size:12px;margin:5px 0 0;}.ds-board-stage{min-width:0;width:100%;min-height:32px;border:1px solid var(--strong-line,#89929d);border-radius:3px;background:var(--surface,#fff);color:var(--ink,#181b1f);font-size:12px;line-height:20px;padding:6px 8px;margin-top:14px;font-family:var(--font-ui,'DM Sans',system-ui,sans-serif);}.ds-board-stage:hover{border-color:var(--strong-line,#89929d);}.ds-board-tools{display:flex;gap:8px;align-items:center;justify-content:space-between;}.ds-board-hide{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:36px;padding:8px 12px;border:1px solid var(--line,#e2e5e8);border-radius:3px;background:var(--surface,#fff);color:var(--ink,#181b1f);font-size:14px;font-weight:500;line-height:20px;white-space:nowrap;text-decoration:none;cursor:pointer;font-family:var(--font-ui,'DM Sans',system-ui,sans-serif);background:transparent;border-color:transparent;}.ds-board-hide:hover:not(:disabled){background:var(--hover,#eef0f1);}.ds-board-stage:disabled{opacity:.6;}.ds-board-hide:disabled{opacity:.5;cursor:not-allowed;}.ds-board-title:focus-visible,.ds-board-stage:focus-visible,.ds-board-hide:focus-visible{outline:2px solid var(--accent,#067647);outline-offset:3px;}@media(max-width:767px){.ds-board-stage{font-size:16px;}.ds-board-hide{min-height:44px;}}@media(pointer:coarse){.ds-board-stage,.ds-board-hide{min-height:44px;}}"
+    }
+  ],
+  "narrative": {
+    "northStar": "Workbench",
+    "overview": "Afavers is a calm digital workspace for comparing opportunities and acting on them. Neutral surfaces, aligned rows, readable metadata and compact controls give the content priority. The accepted Operate direction treats desktop and phone as equal working contexts.\n\nThe interface uses a flat white/gray/charcoal palette, sparse functional green and restrained corners. DM Sans carries interface text and data; Manrope supplies headings. The existing orange-v wordmark remains the identity anchor. Decorative gradients, invented eyebrows and ornamental dashboard furniture are outside this chosen direction.",
+    "keyCharacteristics": [
+      "Aligned comparison rows and thin separators.",
+      "Neutral primary actions with sparse green state cues.",
+      "Small control corners and slightly softer panels.",
+      "Dedicated phone layouts with the same visual vocabulary.",
+      "Brief, interruptible feedback tied to an action."
+    ],
+    "rules": [
+      {
+        "name": "The Functional Green Rule",
+        "body": "Use green for meaningful state, matching and focus; keep ordinary primary actions neutral.",
+        "section": "colors"
+      },
+      {
+        "name": "The Role Inversion Rule",
+        "body": "Theme through the semantic CSS variables. Do not hard-code white text on a primary button: the dark theme uses dark `on-ink` text on light `ink`.",
+        "section": "colors"
+      },
+      {
+        "name": "The Two Voices Rule",
+        "body": "Keep Manrope on actual headings and DM Sans on controls, body and data. Do not replace the wordmark with either face.",
+        "section": "typography"
+      },
+      {
+        "name": "The Flat Workbench Rule",
+        "body": "Use surface tone and separators for hierarchy. Shared buttons, rows and panels do not gain decorative lift or offset shadows.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "**Do** use semantic color variables so the same component follows the light and dark role assignments.",
+      "**Do** keep comparison content aligned in rows and reserve panels for actual grouped content.",
+      "**Do** use DM Sans for UI/body/data and Manrope for headings; preserve the orange-v wordmark.",
+      "**Do** keep buttons at the button radius, fields at the control radius and containers at the panel radius.",
+      "**Do** preserve visible keyboard focus, meaningful control labels and an explicit status-menu alternative to dragging.",
+      "**Do** adapt navigation, forms, job details and the application board to the implemented phone layouts.",
+      "**Do** tie the three shared motion patterns to their actions and honor immediate reduced-motion behavior."
+    ],
+    "donts": [
+      "**Don't** turn sparse green into a full-page brand wash or recolor every primary action green.",
+      "**Don't** add decorative gradients, invented eyebrows, ornamental category numbering or generic dashboard icon tiles.",
+      "**Don't** replace flat surfaces with floating shadow cards or pill-shaped controls.",
+      "**Don't** apply the public display headline scale to dense workspace headings or comparison rows.",
+      "**Don't** hide navigation labels without retaining accessible names or force a desktop board onto phone.",
+      "**Don't** introduce decorative loops, generic page fades or motion that delays an action.",
+      "**Don't** treat a local scan or the six-fix finish verdict as complete route, device, accessibility or production acceptance."
+    ]
+  }
+}

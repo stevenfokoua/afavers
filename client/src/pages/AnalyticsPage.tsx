@@ -13,13 +13,13 @@ const SOURCE_LABELS: Record<string, string> = {
 };
 
 const STATUS_COLORS: Record<string, string> = {
-  new: 'bg-blue-400',
-  saved: 'bg-yellow-400',
-  preparing: 'bg-blue-500',
-  applied: 'bg-green-400',
-  followup: 'bg-orange-400',
-  interviewing: 'bg-purple-400',
-  offered: 'bg-emerald-400',
+  new: 'bg-ink',
+  saved: 'bg-ink',
+  preparing: 'bg-ink',
+  applied: 'bg-ink',
+  followup: 'bg-ink',
+  interviewing: 'bg-ink',
+  offered: 'bg-ink',
   rejected: 'bg-red-400',
   archived: 'bg-gray-400',
 };
@@ -38,9 +38,9 @@ const STATUS_OPTIONS: Job['status'][] = [
 const APPLICATION_STATUSES = new Set<Job['status']>(['applied', 'followup', 'interviewing', 'offered', 'rejected']);
 
 const Bar = ({ value, max, color }: { value: number; max: number; color: string }) => (
-  <div className="flex-1 bg-gray-100 rounded-full h-3 overflow-hidden">
+  <div className="flex-1 bg-subtle rounded-md h-3 overflow-hidden">
     <div
-      className={`h-full rounded-full transition-all ${color}`}
+      className={`h-full rounded-md transition-colors ${color}`}
       style={{ width: max > 0 ? `${Math.round((value / max) * 100)}%` : '0%' }}
     />
   </div>
@@ -149,7 +149,7 @@ const exportExcel = (jobs: Job[], filename: string, title: string) => {
       <head>
         <meta charset="utf-8" />
         <style>
-          table { border-collapse: collapse; font-family: Arial, sans-serif; font-size: 12px; }
+          table { border-collapse: collapse; font-family: "DM Sans", system-ui, sans-serif; font-size: 12px; }
           th { background: #0f5132; color: #fff; text-align: left; }
           th, td { border: 1px solid #cbd5e1; padding: 6px; vertical-align: top; }
           caption { font-size: 18px; font-weight: bold; margin: 0 0 12px; text-align: left; }
@@ -177,7 +177,7 @@ const buildPrintableReport = (jobs: Job[], title: string, summary: Record<string
         <title>${escapeHtml(title)}</title>
         <style>
           @page { size: A4 landscape; margin: 12mm; }
-          body { color: #111827; font-family: Arial, sans-serif; font-size: 11px; }
+          body { color: #111827; font-family: "DM Sans", system-ui, sans-serif; font-size: 11px; }
           h1 { font-size: 22px; margin: 0 0 4px; }
           p { margin: 0; }
           .muted { color: #6b7280; }
@@ -298,32 +298,32 @@ export const AnalyticsPage = () => {
   const maxLocation = Math.max(...(data?.byLocation?.map(l => l.count) ?? [1]));
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="bg-white border-b border-gray-200 px-6 py-5">
+    <div className="min-h-screen bg-canvas">
+      <div className="bg-surface border-b border-line px-6 py-5">
         <div className="max-w-6xl mx-auto flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Reports & Analytics</h1>
-            <p className="text-sm text-gray-500 mt-1">Export a clean job-search record for appointments, proof of applications, or your own spreadsheet.</p>
+            <h1 className="text-2xl font-semibold text-ink">Reports & Analytics</h1>
+            <p className="text-sm text-muted mt-1">Export a clean job-search record for appointments, proof of applications, or your own spreadsheet.</p>
           </div>
           <div className="flex flex-wrap gap-2">
             <button
               onClick={() => handleExport('pdf')}
               disabled={!!exporting}
-              className="text-sm text-white bg-gray-900 hover:bg-gray-800 px-4 py-2 rounded-lg transition disabled:opacity-50 font-medium"
+              className="text-sm text-on-ink bg-ink hover:bg-ink px-4 py-2 rounded-lg transition disabled:opacity-50 font-medium"
             >
               {exporting === 'pdf' ? t('exporting') : 'Export PDF'}
             </button>
             <button
               onClick={() => handleExport('excel')}
               disabled={!!exporting}
-              className="text-sm text-green-700 hover:text-green-900 border border-green-300 hover:border-green-500 bg-green-50 hover:bg-green-100 px-4 py-2 rounded-lg transition disabled:opacity-50 font-medium"
+              className="text-sm text-accent hover:text-accent border border-line hover:border-line bg-subtle hover:bg-subtle px-4 py-2 rounded-lg transition disabled:opacity-50 font-medium"
             >
               {exporting === 'excel' ? t('exporting') : 'Export Excel'}
             </button>
             <button
               onClick={() => handleExport('csv')}
               disabled={!!exporting}
-              className="text-sm text-blue-700 hover:text-blue-900 border border-blue-300 hover:border-blue-500 bg-blue-50 hover:bg-blue-100 px-4 py-2 rounded-lg transition disabled:opacity-50 font-medium"
+              className="text-sm text-muted hover:text-muted border border-line hover:border-line bg-subtle hover:bg-subtle px-4 py-2 rounded-lg transition disabled:opacity-50 font-medium"
             >
               {exporting === 'csv' ? t('exporting') : 'Export CSV'}
             </button>
@@ -334,25 +334,25 @@ export const AnalyticsPage = () => {
       <main className="max-w-6xl mx-auto px-6 py-8 space-y-6">
         {loading ? (
           <div className="text-center py-20">
-            <div className="inline-block animate-spin rounded-full h-10 w-10 border-b-2 border-indigo-600"></div>
+            <p role="status">{t('loading')}</p>
           </div>
         ) : error ? (
-          <div className="bg-red-50 border border-red-300 rounded-xl p-6 text-center">
-            <p className="text-red-700 font-semibold mb-1">{t('failedToLoadAnalytics')}</p>
-            <p className="text-red-500 text-sm font-mono">{error}</p>
+          <div className="bg-danger-soft border border-line rounded-lg p-6 text-center">
+            <p className="text-danger font-semibold mb-1">{t('failedToLoadAnalytics')}</p>
+            <p className="text-danger text-sm font-mono">{error}</p>
           </div>
         ) : (
           <>
-            <section className="bg-white rounded-xl border border-gray-200 p-5">
+            <section className="bg-surface rounded-lg border border-line p-5">
               <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-5">
                 <div>
-                  <p className="text-xs uppercase tracking-wide text-green-700 font-semibold">Foreign office ready</p>
-                  <h2 className="text-xl font-bold text-gray-900 mt-1">Job search proof packet</h2>
-                  <p className="text-sm text-gray-500 mt-2 max-w-2xl">
+                  <p className="text-xs uppercase tracking-wide text-accent font-semibold">Foreign office ready</p>
+                  <h2 className="text-xl font-semibold text-ink mt-1">Job search proof packet</h2>
+                  <p className="text-sm text-muted mt-2 max-w-2xl">
                     Keep applied jobs, follow-ups, interviews, notes, links, and timestamps in one place. Export only submitted applications for appointments, or include every tracked job when you want a full Excel replacement.
                   </p>
                 </div>
-                <label className="flex items-center gap-3 bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-sm text-gray-700">
+                <label className="flex items-center gap-3 bg-canvas border border-line rounded-lg px-4 py-3 text-sm text-ink">
                   <input
                     type="checkbox"
                     checked={officialOnly}
@@ -369,12 +369,12 @@ export const AnalyticsPage = () => {
                   value={search}
                   onChange={(event) => setSearch(event.target.value)}
                   placeholder="Search title, company, location..."
-                  className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none"
+                  className="border border-line rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-green-500 focus:border-line outline-none"
                 />
                 <select
                   value={statusFilter}
                   onChange={(event) => setStatusFilter(event.target.value as 'all' | Job['status'])}
-                  className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none"
+                  className="border border-line rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-green-500 focus:border-line outline-none"
                 >
                   <option value="all">All statuses</option>
                   {STATUS_OPTIONS.map((status) => (
@@ -385,14 +385,14 @@ export const AnalyticsPage = () => {
                   type="date"
                   value={dateFrom}
                   onChange={(event) => setDateFrom(event.target.value)}
-                  className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none"
+                  className="border border-line rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-green-500 focus:border-line outline-none"
                   aria-label="From date"
                 />
                 <input
                   type="date"
                   value={dateTo}
                   onChange={(event) => setDateTo(event.target.value)}
-                  className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none"
+                  className="border border-line rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-green-500 focus:border-line outline-none"
                   aria-label="To date"
                 />
               </div>
@@ -400,30 +400,30 @@ export const AnalyticsPage = () => {
 
             <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
               {[
-                { label: 'Jobs in report', value: filteredJobs.length, color: 'text-gray-900', bg: 'bg-white border-gray-200' },
-                { label: 'Applications', value: totals.applied, color: 'text-green-700', bg: 'bg-green-50 border-green-200' },
-                { label: 'Follow-ups', value: totals.followUps, color: 'text-orange-700', bg: 'bg-orange-50 border-orange-200' },
-                { label: 'Interviews', value: totals.interviews, color: 'text-purple-700', bg: 'bg-purple-50 border-purple-200' },
-                { label: 'Response rate', value: `${totals.responseRate}%`, color: 'text-blue-700', bg: 'bg-blue-50 border-blue-200' },
+                { label: 'Jobs in report', value: filteredJobs.length, color: 'text-ink', bg: 'bg-surface border-line' },
+                { label: 'Applications', value: totals.applied, color: 'text-accent', bg: 'bg-subtle border-line' },
+                { label: 'Follow-ups', value: totals.followUps, color: 'text-muted', bg: 'bg-subtle border-line' },
+                { label: 'Interviews', value: totals.interviews, color: 'text-muted', bg: 'bg-subtle border-line' },
+                { label: 'Response rate', value: `${totals.responseRate}%`, color: 'text-muted', bg: 'bg-subtle border-line' },
               ].map(card => (
-                <div key={card.label} className={`rounded-xl border ${card.bg} p-4`}>
+                <div key={card.label} className={`rounded-lg border ${card.bg} p-4`}>
                   <p className={`text-xs font-medium ${card.color}`}>{card.label}</p>
-                  <p className="text-3xl font-bold text-gray-900 mt-1">{card.value}</p>
+                  <p className="text-3xl font-semibold text-ink mt-1">{card.value}</p>
                 </div>
               ))}
             </div>
 
-            <section className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-              <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between gap-4">
+            <section className="bg-surface rounded-lg border border-line overflow-hidden">
+              <div className="px-5 py-4 border-b border-line flex items-center justify-between gap-4">
                 <div>
-                  <h2 className="font-bold text-gray-900">Spreadsheet tracker</h2>
-                  <p className="text-sm text-gray-500">Everything important from your job search, without maintaining a separate Excel sheet.</p>
+                  <h2 className="font-semibold text-ink">Spreadsheet tracker</h2>
+                  <p className="text-sm text-muted">Everything important from your job search, without maintaining a separate Excel sheet.</p>
                 </div>
-                <span className="text-xs font-semibold text-gray-500">{filteredJobs.length} rows</span>
+                <span className="text-xs font-semibold text-muted">{filteredJobs.length} rows</span>
               </div>
               <div className="overflow-x-auto">
                 <table className="min-w-full text-sm">
-                  <thead className="bg-gray-50 text-xs uppercase tracking-wide text-gray-500">
+                  <thead className="bg-canvas text-xs uppercase tracking-wide text-muted">
                     <tr>
                       <th className="text-left px-4 py-3">Date</th>
                       <th className="text-left px-4 py-3">Job</th>
@@ -434,72 +434,72 @@ export const AnalyticsPage = () => {
                       <th className="text-left px-4 py-3">Notes</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-100">
+                  <tbody className="divide-y divide-line">
                     {filteredJobs.slice(0, 15).map((job) => (
-                      <tr key={job.id} className="hover:bg-gray-50">
-                        <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{formatDate(job.applied_date ?? job.created_at)}</td>
+                      <tr key={job.id} className="hover:bg-canvas">
+                        <td className="px-4 py-3 text-muted whitespace-nowrap">{formatDate(job.applied_date ?? job.created_at)}</td>
                         <td className="px-4 py-3 min-w-56">
-                          <button onClick={() => navigate(`/jobs/${job.id}`)} className="font-semibold text-gray-900 hover:text-green-700 text-left">
+                          <button onClick={() => navigate(`/jobs/${job.id}`)} className="font-semibold text-ink hover:text-accent text-left">
                             {job.title}
                           </button>
-                          <p className="text-xs text-gray-500 truncate max-w-72">{job.location}</p>
+                          <p className="text-xs text-muted truncate max-w-72">{job.location}</p>
                         </td>
-                        <td className="px-4 py-3 text-gray-700">{job.company}</td>
+                        <td className="px-4 py-3 text-ink">{job.company}</td>
                         <td className="px-4 py-3">
-                          <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-gray-100 text-gray-700 text-xs font-medium capitalize">
+                          <span className="inline-flex items-center px-2.5 py-1 rounded-md bg-subtle text-ink text-xs font-medium capitalize">
                             {t(job.status)}
                           </span>
                         </td>
-                        <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{formatDate(job.follow_up_date) || '-'}</td>
-                        <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{formatDate(job.interview_date) || '-'}</td>
-                        <td className="px-4 py-3 text-gray-500 max-w-72 truncate">{job.notes || checklistText(job) || '-'}</td>
+                        <td className="px-4 py-3 text-muted whitespace-nowrap">{formatDate(job.follow_up_date) || '-'}</td>
+                        <td className="px-4 py-3 text-muted whitespace-nowrap">{formatDate(job.interview_date) || '-'}</td>
+                        <td className="px-4 py-3 text-muted max-w-72 truncate">{job.notes || checklistText(job) || '-'}</td>
                       </tr>
                     ))}
                     {filteredJobs.length === 0 && (
                       <tr>
-                        <td colSpan={7} className="px-4 py-10 text-center text-gray-400">No jobs match these filters.</td>
+                        <td colSpan={7} className="px-4 py-10 text-center text-muted">No jobs match these filters.</td>
                       </tr>
                     )}
                   </tbody>
                 </table>
               </div>
               {filteredJobs.length > 15 && (
-                <div className="px-5 py-3 bg-gray-50 text-xs text-gray-500">
+                <div className="px-5 py-3 bg-canvas text-xs text-muted">
                   Showing 15 rows here. Exports include all {filteredJobs.length} matching rows.
                 </div>
               )}
             </section>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div className="bg-white rounded-xl border border-gray-200 p-6">
-                <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">{t('applicationsPerWeek')}</h2>
+              <div className="bg-surface rounded-lg border border-line p-6">
+                <h2 className="text-sm font-semibold text-muted uppercase tracking-wide mb-4">{t('applicationsPerWeek')}</h2>
                 {data?.byWeek.length === 0 ? (
-                  <p className="text-sm text-gray-400">{t('noApplicationData')}</p>
+                  <p className="text-sm text-muted">{t('noApplicationData')}</p>
                 ) : (
                   <div className="space-y-3">
                     {data?.byWeek.slice(0, 10).map(w => (
                       <div key={w.week} className="flex items-center gap-3">
-                        <span className="text-xs text-gray-500 w-24 shrink-0">
+                        <span className="text-xs text-muted w-24 shrink-0">
                           {new Date(w.week).toLocaleDateString(locale, { day: 'numeric', month: 'short' })}
                         </span>
-                        <Bar value={w.count} max={maxWeek} color="bg-green-400" />
-                        <span className="text-sm font-semibold text-gray-700 w-6 text-right">{w.count}</span>
+                        <Bar value={w.count} max={maxWeek} color="bg-ink" />
+                        <span className="text-sm font-semibold text-ink w-6 text-right">{w.count}</span>
                       </div>
                     ))}
                   </div>
                 )}
               </div>
 
-              <div className="bg-white rounded-xl border border-gray-200 p-6">
-                <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">{t('jobsBySource')}</h2>
+              <div className="bg-surface rounded-lg border border-line p-6">
+                <h2 className="text-sm font-semibold text-muted uppercase tracking-wide mb-4">{t('jobsBySource')}</h2>
                 <div className="space-y-3">
                   {data?.bySource.map(s => (
                     <div key={s.source} className="flex items-center gap-3">
-                      <span className="text-xs text-gray-500 w-28 shrink-0">
+                      <span className="text-xs text-muted w-28 shrink-0">
                         {SOURCE_LABELS[s.source.toLowerCase()] ?? s.source}
                       </span>
-                      <Bar value={s.count} max={maxSource} color="bg-blue-400" />
-                      <span className="text-sm font-semibold text-gray-700 w-10 text-right">{s.count.toLocaleString()}</span>
+                      <Bar value={s.count} max={maxSource} color="bg-ink" />
+                      <span className="text-sm font-semibold text-ink w-10 text-right">{s.count.toLocaleString()}</span>
                     </div>
                   ))}
                 </div>
@@ -507,8 +507,8 @@ export const AnalyticsPage = () => {
             </div>
 
             {(data?.byLocation?.length ?? 0) > 0 && (
-              <div className="bg-white rounded-xl border border-gray-200 p-6">
-                <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">Jobs by Region</h2>
+              <div className="bg-surface rounded-lg border border-line p-6">
+                <h2 className="text-sm font-semibold text-muted uppercase tracking-wide mb-4">Jobs by Region</h2>
                 <div className="flex flex-col lg:flex-row gap-6 items-start">
                   <div className="flex-1 min-w-0">
                     <GermanyJobMap
@@ -519,9 +519,9 @@ export const AnalyticsPage = () => {
                   <div className="w-full lg:w-48 space-y-2.5 shrink-0">
                     {data!.byLocation.slice(0, 10).map(loc => (
                       <div key={loc.location} className="flex items-center gap-2">
-                        <span className="text-xs text-gray-500 w-28 truncate shrink-0">{loc.location}</span>
-                        <Bar value={loc.count} max={maxLocation} color="bg-green-400" />
-                        <span className="text-xs font-semibold text-gray-700 w-8 text-right shrink-0">{loc.count.toLocaleString()}</span>
+                        <span className="text-xs text-muted w-28 truncate shrink-0">{loc.location}</span>
+                        <Bar value={loc.count} max={maxLocation} color="bg-ink" />
+                        <span className="text-xs font-semibold text-ink w-8 text-right shrink-0">{loc.count.toLocaleString()}</span>
                       </div>
                     ))}
                   </div>
@@ -529,16 +529,16 @@ export const AnalyticsPage = () => {
               </div>
             )}
 
-            <div className="bg-white rounded-xl border border-gray-200 p-6">
-              <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">{t('statusBreakdown')}</h2>
+            <div className="bg-surface rounded-lg border border-line p-6">
+              <h2 className="text-sm font-semibold text-muted uppercase tracking-wide mb-4">{t('statusBreakdown')}</h2>
               <div className="space-y-3">
                 {data?.byStatus
                   .sort((a, b) => b.count - a.count)
                   .map(s => (
                     <div key={s.status} className="flex items-center gap-3">
-                      <span className="text-xs text-gray-500 w-24 shrink-0 capitalize">{t(s.status)}</span>
+                      <span className="text-xs text-muted w-24 shrink-0 capitalize">{t(s.status)}</span>
                       <Bar value={s.count} max={maxStatus} color={STATUS_COLORS[s.status] ?? 'bg-gray-400'} />
-                      <span className="text-sm font-semibold text-gray-700 w-10 text-right">{s.count.toLocaleString()}</span>
+                      <span className="text-sm font-semibold text-ink w-10 text-right">{s.count.toLocaleString()}</span>
                     </div>
                   ))}
               </div>

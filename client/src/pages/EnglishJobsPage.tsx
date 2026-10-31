@@ -10,32 +10,32 @@ const stripHtml = (html: string) => html.replace(/<[^>]*>/g, ' ').replace(/\s+/g
 const deadlineUrgency = (deadline: string | null): string => {
   if (!deadline) return '';
   const days = Math.ceil((new Date(deadline).getTime() - Date.now()) / 86400000);
-  if (days < 0)  return 'border-red-400 bg-red-50';
-  if (days <= 3) return 'border-red-300 bg-red-50';
-  if (days <= 7) return 'border-orange-300 bg-orange-50';
+  if (days < 0)  return 'border-line bg-danger-soft';
+  if (days <= 3) return 'border-line bg-danger-soft';
+  if (days <= 7) return 'border-line bg-subtle';
   return '';
 };
 
 const STATUS_COLORS: Record<string, string> = {
-  new:          'bg-blue-100 text-blue-700',
-  saved:        'bg-yellow-100 text-yellow-700',
-  preparing:    'bg-blue-100 text-blue-700',
-  applied:      'bg-green-100 text-green-700',
-  followup:     'bg-orange-100 text-orange-700',
-  interviewing: 'bg-purple-100 text-purple-700',
-  offered:      'bg-emerald-100 text-emerald-700',
-  rejected:     'bg-red-100 text-red-600',
-  archived:     'bg-gray-100 text-gray-600',
+  new:          'bg-subtle text-muted',
+  saved:        'bg-subtle text-muted',
+  preparing:    'bg-subtle text-muted',
+  applied:      'bg-subtle text-accent',
+  followup:     'bg-subtle text-muted',
+  interviewing: 'bg-subtle text-muted',
+  offered:      'bg-subtle text-accent',
+  rejected:     'bg-danger-soft text-danger',
+  archived:     'bg-subtle text-muted',
 };
 
 const SOURCE_BADGES: Record<string, { label: string; cls: string }> = {
-  bundesagentur: { label: 'Bundesagentur', cls: 'bg-blue-50 text-blue-600 border-blue-200' },
-  stepstone:     { label: 'StepStone',     cls: 'bg-orange-50 text-orange-600 border-orange-200' },
-  adzuna:        { label: 'Adzuna',        cls: 'bg-purple-50 text-purple-600 border-purple-200' },
+  bundesagentur: { label: 'Bundesagentur', cls: 'bg-subtle text-muted border-line' },
+  stepstone:     { label: 'StepStone',     cls: 'bg-subtle text-muted border-line' },
+  adzuna:        { label: 'Adzuna',        cls: 'bg-subtle text-muted border-line' },
 };
 
 const SourceBadge = ({ source }: { source: string }) => {
-  const badge = SOURCE_BADGES[source.toLowerCase()] ?? { label: source, cls: 'bg-gray-100 text-gray-500 border-gray-200' };
+  const badge = SOURCE_BADGES[source.toLowerCase()] ?? { label: source, cls: 'bg-subtle text-muted border-line' };
   return (
     <span className={`px-2 py-0.5 rounded text-xs font-medium border ${badge.cls}`}>
       {badge.label}
@@ -60,16 +60,16 @@ const SwipeableCard = ({
   const visibleAction = action === 'save' && !onSave ? null : action;
 
   return (
-    <div className="relative overflow-hidden rounded-xl">
+    <div className="relative overflow-hidden rounded-lg">
       {visibleAction && (
         <div
           className={`absolute inset-0 flex items-center ${
-            visibleAction === 'save' ? 'pl-5 bg-yellow-400' : 'justify-end pr-5 bg-gray-400'
+            visibleAction === 'save' ? 'pl-5 bg-ink' : 'justify-end pr-5 bg-gray-400'
           }`}
           style={{ opacity: bgOpacity }}
         >
-          <span className="text-white text-sm font-bold select-none">
-            {visibleAction === 'save' ? '⭐ Save' : 'Hide ✕'}
+          <span className="text-on-ink text-sm font-semibold select-none">
+            {visibleAction === 'save' ? ' Save' : 'Hide ✕'}
           </span>
         </div>
       )}
@@ -151,14 +151,14 @@ export const EnglishJobsPage = () => {
   const totalPages = Math.ceil(total / LIMIT);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-canvas">
       {/* Page header */}
-      <div className="bg-white border-b border-gray-200 px-6 py-5">
+      <div className="bg-surface border-b border-line px-6 py-5">
         <div className="flex items-center gap-3">
           <span className="text-2xl">🇬🇧</span>
           <div>
-            <h1 className="text-xl font-bold text-gray-900">{t('englishJobsTitle')}</h1>
-            <p className="text-xs text-gray-400 mt-0.5">{t('englishJobsDesc')}</p>
+            <h1 className="text-xl font-semibold text-ink">{t('englishJobsTitle')}</h1>
+            <p className="text-xs text-muted mt-0.5">{t('englishJobsDesc')}</p>
           </div>
         </div>
       </div>
@@ -166,7 +166,7 @@ export const EnglishJobsPage = () => {
       {/* Search bar */}
       <div className="max-w-5xl mx-auto px-6 py-4">
         <div className="relative">
-          <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
           </svg>
           <input
@@ -174,27 +174,27 @@ export const EnglishJobsPage = () => {
             placeholder={t('searchPlaceholder')}
             value={searchInput}
             onChange={e => setSearchInput(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:border-transparent outline-none text-sm bg-white"
+            className="w-full pl-10 pr-4 py-2.5 border border-line rounded-lg focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:border-transparent outline-none text-sm bg-surface"
           />
         </div>
-        <p className="text-xs text-gray-400 mt-2">{total.toLocaleString()} {t('jobs').toLowerCase()}</p>
+        <p className="text-xs text-muted mt-2">{total.toLocaleString()} {t('jobs').toLowerCase()}</p>
       </div>
 
       {/* Jobs list */}
       <main className="max-w-5xl mx-auto px-6 pb-12">
         {loading ? (
           <div className="text-center py-16">
-            <div className="inline-block animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
-            <p className="text-gray-400 mt-3 text-sm">{t('loadingJobs')}</p>
+            <p role="status">{t('loading')}</p>
+            <p className="text-muted mt-3 text-sm">{t('loadingJobs')}</p>
           </div>
         ) : jobs.length === 0 ? (
-          <div className="bg-white rounded-xl border border-gray-200 p-16 text-center">
+          <div className="bg-surface rounded-lg border border-line p-16 text-center">
             <p className="text-4xl mb-4">🇬🇧</p>
-            <p className="text-gray-600 text-lg font-medium">{t('noEnglishJobs')}</p>
-            <p className="text-gray-400 text-sm mt-2">{t('noEnglishJobsHint')}</p>
+            <p className="text-muted text-lg font-medium">{t('noEnglishJobs')}</p>
+            <p className="text-muted text-sm mt-2">{t('noEnglishJobsHint')}</p>
             <button
               onClick={() => navigate('/dashboard')}
-              className="mt-6 px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition"
+              className="mt-6 px-5 py-2 bg-ink hover:bg-ink text-on-ink text-sm font-medium rounded-lg transition"
             >
               ← {t('dashboard')}
             </button>
@@ -209,40 +209,40 @@ export const EnglishJobsPage = () => {
               >
                 <div
                   onClick={() => navigate(`/jobs/${job.id}`)}
-                  className={`bg-white rounded-xl border p-5 hover:shadow-md transition cursor-pointer ${deadlineUrgency(job.deadline) || 'border-gray-200 hover:border-gray-300'}`}
+                  className={`bg-surface rounded-lg border p-5 hover:shadow-none transition cursor-pointer ${deadlineUrgency(job.deadline) || 'border-line hover:border-line'}`}
                 >
                   <div className="flex items-start gap-4">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-3">
                         <div>
-                          <h3 className="font-semibold text-gray-900 leading-snug">{job.title}</h3>
-                          <p className="text-sm text-gray-500 mt-0.5">{job.company} · {job.location}</p>
+                          <h3 className="font-semibold text-ink leading-snug">{job.title}</h3>
+                          <p className="text-sm text-muted mt-0.5">{job.company} · {job.location}</p>
                         </div>
                         {job.status !== 'new' && (
-                          <span className={`shrink-0 px-2.5 py-0.5 rounded-full text-xs font-medium ${STATUS_COLORS[job.status]}`}>
+                          <span className={`shrink-0 px-2.5 py-0.5 rounded-md text-xs font-medium ${STATUS_COLORS[job.status]}`}>
                             {t(job.status)}
                           </span>
                         )}
                       </div>
 
                       {job.description && (
-                        <p className="text-sm text-gray-400 mt-2 line-clamp-2 leading-relaxed">
+                        <p className="text-sm text-muted mt-2 line-clamp-2 leading-relaxed">
                           {stripHtml(job.description)}
                         </p>
                       )}
 
-                      <div className="flex items-center gap-3 mt-3 text-xs text-gray-400 flex-wrap">
+                      <div className="flex items-center gap-3 mt-3 text-xs text-muted flex-wrap">
                         <SourceBadge source={job.source} />
                         {job.posted_date && (
                           <span>{t('posted')} {new Date(job.posted_date).toLocaleDateString('en-GB')}</span>
                         )}
                         {job.deadline && (
-                          <span className="text-orange-500 font-medium">
+                          <span className="text-muted font-medium">
                             {t('deadline')} {new Date(job.deadline).toLocaleDateString('en-GB')}
                           </span>
                         )}
                         {job.salary && (
-                          <span className="text-green-600 font-medium">{job.salary}</span>
+                          <span className="text-accent font-medium">{job.salary}</span>
                         )}
                       </div>
                     </div>
@@ -255,15 +255,15 @@ export const EnglishJobsPage = () => {
                         <button
                           onClick={e => { e.stopPropagation(); handleSave(job); }}
                           disabled={actionLoading === job.id}
-                          className="px-3 py-1.5 text-sm font-medium bg-yellow-50 hover:bg-yellow-100 text-yellow-700 border border-yellow-200 rounded-lg transition disabled:opacity-40"
+                          className="px-3 py-1.5 text-sm font-medium bg-subtle hover:bg-subtle text-muted border border-line rounded-lg transition disabled:opacity-40"
                         >
-                          ⭐ {t('save')}
+                           {t('save')}
                         </button>
                       )}
                       <button
                         onClick={e => { e.stopPropagation(); handleHide(job); }}
                         disabled={actionLoading === job.id}
-                        className="px-3 py-1.5 text-sm font-medium text-gray-400 hover:text-red-500 bg-gray-50 hover:bg-red-50 border border-gray-200 hover:border-red-200 rounded-lg transition disabled:opacity-40"
+                        className="px-3 py-1.5 text-sm font-medium text-muted hover:text-danger bg-canvas hover:bg-danger-soft border border-line hover:border-line rounded-lg transition disabled:opacity-40"
                       >
                         ✕ {t('hide')}
                       </button>
@@ -280,17 +280,17 @@ export const EnglishJobsPage = () => {
             <button
               onClick={() => { setPage(p => p - 1); window.scrollTo(0, 0); }}
               disabled={page === 1}
-              className="px-4 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
+              className="px-4 py-2 border border-line rounded-lg text-sm hover:bg-canvas disabled:opacity-40 disabled:cursor-not-allowed transition"
             >
               ← {t('prev')}
             </button>
-            <span className="text-sm text-gray-600">
+            <span className="text-sm text-muted">
               {t('page')} {page} {t('of')} {totalPages}
             </span>
             <button
               onClick={() => { setPage(p => p + 1); window.scrollTo(0, 0); }}
               disabled={page === totalPages}
-              className="px-4 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
+              className="px-4 py-2 border border-line rounded-lg text-sm hover:bg-canvas disabled:opacity-40 disabled:cursor-not-allowed transition"
             >
               {t('next')} →
             </button>

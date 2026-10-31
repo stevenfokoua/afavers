@@ -8,6 +8,10 @@ const EXACT_ORIGINS = new Set<string>([
   'https://afavers.com',
   'https://www.afavers.com',
   'http://localhost:5173',
+  'http://127.0.0.1:5173',
+  'https://afavers.saintcreators.com',
+  'https://afavers.online',
+  'https://www.afavers.online',
   'capacitor://localhost',
 ]);
 

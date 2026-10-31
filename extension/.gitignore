@@ -1,5 +1,4 @@
 node_modules/
-package-lock.json
 # Sourcemap is generated locally by `npm run build`; not needed at runtime.
 popup.bundle.js.map
 # OS / editor junk

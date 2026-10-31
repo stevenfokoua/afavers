@@ -1,0 +1,29 @@
+{
+  "asOf": "2026-10-31",
+  "region": "Germany / Nordrhein-Westfalen",
+  "purpose": "Dated discovery context; not a candidate qualification or hiring-probability estimate.",
+  "sources": [
+    {
+      "publisher": "Bundesagentur für Arbeit, Regionaldirektion NRW",
+      "published": "2026-10-30",
+      "period": "October 2026",
+      "url": "https://www.arbeitsagentur.de/vor-ort/rd-nrw/presse/2026-24-nrw-arbeitsmarkt-oktober-2026-stabile-herbstbelebung-aber-noch-kein-aufschwung",
+      "metrics": {
+        "unemploymentRatePercent": 7.8,
+        "registeredVacanciesStock": 160615,
+        "newRegisteredVacancies": 21763,
+        "newVacanciesYearOnYearPercent": -7.3
+      }
+    },
+    {
+      "publisher": "Bundesagentur für Arbeit",
+      "published": "2026-09-02",
+      "period": "2025 annual shortage analysis",
+      "url": "https://www.arbeitsagentur.de/presse/2026-32-fachkraefte-bleiben-knapp-zuwanderung-gewinnt-weiter-an-bedeutung",
+      "metrics": {"shortageOccupationGroups": 157},
+      "context": "Shortages include healthcare, construction/trades and surveying. The analysis no longer classifies software development or IT sales as shortage occupations at national aggregate level. These are occupational/annual aggregates, not a judgment of an individual's prospects."
+    }
+  ],
+  "application": "Preserve the user's saved focus. Include surveying/geospatial and relevant energy/infrastructure searches in the assessment where they overlap existing GIS/environment interests. Check recent local demand and vacancy requirements. Do not boost all software jobs or redirect users to regulated occupations based on aggregate shortages alone.",
+  "refreshAfter": "2026-11-30"
+}

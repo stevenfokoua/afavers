@@ -64,11 +64,15 @@ export const GermanyJobMap = ({ byLocation, compact = false, onCityClick }: Prop
   // Initialise map once
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
+    const container = containerRef.current;
+    let cancelled = false;
+    let resizeTimer: ReturnType<typeof setTimeout> | undefined;
 
     import('leaflet').then((mod) => {
+      if (cancelled || mapRef.current || containerRef.current !== container) return;
       const L = mod.default ?? (mod as unknown as typeof import('leaflet'));
 
-      const map = L.map(containerRef.current!, {
+      const map = L.map(container, {
         center:            [51.5, 10.0],
         zoom:              compact ? 5 : 6,
         zoomControl:       true,
@@ -93,10 +97,12 @@ export const GermanyJobMap = ({ byLocation, compact = false, onCityClick }: Prop
       drawMarkers(L, map, dataRef.current);
 
       // Ensure map fills container after DOM settles
-      setTimeout(() => map.invalidateSize(), 100);
+      resizeTimer = setTimeout(() => { if (!cancelled) map.invalidateSize(); }, 100);
     });
 
     return () => {
+      cancelled = true;
+      clearTimeout(resizeTimer);
       mapRef.current?.remove();
       mapRef.current = null;
       markersRef.current = [];
@@ -107,10 +113,14 @@ export const GermanyJobMap = ({ byLocation, compact = false, onCityClick }: Prop
   // Redraw markers whenever data changes
   useEffect(() => {
     if (!mapRef.current) return;
+    const map = mapRef.current;
+    let cancelled = false;
     import('leaflet').then((mod) => {
+      if (cancelled || mapRef.current !== map) return;
       const L = mod.default ?? (mod as unknown as typeof import('leaflet'));
-      drawMarkers(L, mapRef.current!, byLocation);
+      drawMarkers(L, map, byLocation);
     });
+    return () => { cancelled = true; };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [byLocation]);
 
@@ -145,7 +155,7 @@ export const GermanyJobMap = ({ byLocation, compact = false, onCityClick }: Prop
 
       // Popup (full mode: hover; compact mode: click shows brief label)
       marker.bindPopup(
-        `<div style="font-family:Inter,system-ui,sans-serif;cursor:${onClickRef.current ? 'pointer' : 'default'}">
+        `<div style="font-family:var(--font-ui),system-ui,sans-serif;cursor:${onClickRef.current ? 'pointer' : 'default'}">
           <p style="font-weight:700;font-size:14px;margin:0 0 2px">${cityName}</p>
           <p style="color:#16a34a;font-weight:600;font-size:13px;margin:0 0 ${onClickRef.current ? '6px' : '0'}">${count} job${count !== 1 ? 's' : ''}</p>
           ${onClickRef.current ? `<p style="font-size:11px;color:#6b7280;margin:0">Click to browse jobs →</p>` : ''}
@@ -180,7 +190,7 @@ export const GermanyJobMap = ({ byLocation, compact = false, onCityClick }: Prop
   return (
     <div
       ref={containerRef}
-      style={{ height: compact ? 220 : 420, width: '100%', borderRadius: 12, overflow: 'hidden' }}
+      style={{ height: compact ? 220 : 420, width: '100%', borderRadius: 6, overflow: 'hidden' }}
     />
   );
 };

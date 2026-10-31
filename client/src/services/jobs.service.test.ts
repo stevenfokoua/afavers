@@ -42,6 +42,7 @@ vi.mock('../store/reminderStore', () => ({
 
 vi.mock('./notification.service', () => ({
   scheduleReminder: vi.fn().mockResolvedValue(undefined),
+  cancelReminder: vi.fn().mockResolvedValue(undefined),
 }));
 
 vi.mock('./settings.service', () => ({
@@ -49,8 +50,13 @@ vi.mock('./settings.service', () => ({
     get: vi.fn().mockResolvedValue({ keywords: '', locations: '' }),
   },
 }));
+vi.mock('./feedHealth.service', () => ({
+  feedHealthService: { get: vi.fn().mockResolvedValue({ latest: null, last_successful_at: null, last_usable_at: null }), invalidate: vi.fn() },
+}));
 
 import { jobsService } from './jobs.service';
+import { invalidateJobSnapshot } from './jobSnapshot';
+beforeEach(() => invalidateJobSnapshot());
 import { supabase } from '../lib/supabase';
 import { settingsService } from './settings.service';
 import type { Job, JobFilters } from '../types';
@@ -69,7 +75,7 @@ function makeJob(overrides: Partial<Job> = {}): Job {
     company: 'Acme Corp',
     location: 'Berlin',
     description: 'A great job with react and typescript',
-    url: 'https://example.com/job/1',
+    url: `https://example.com/job/${overrides.id ?? 1}`,
     source: 'bundesagentur',
     posted_date: todayStr(),
     deadline: null,
@@ -97,7 +103,9 @@ function makeJob(overrides: Partial<Job> = {}): Job {
  */
 function setupJobsMock(jobs: Job[]) {
   const userJobsChain = {
-    eq: vi.fn().mockResolvedValue({ data: [], error: null }),
+    eq: vi.fn().mockReturnThis(),
+    order: vi.fn().mockReturnThis(),
+    range: vi.fn().mockResolvedValue({ data: [], error: null }),
   };
   const userJobsSelect = vi.fn().mockReturnValue(userJobsChain);
 
@@ -211,7 +219,7 @@ describe('applyFilters (via getJobs)', () => {
       data: [{ job_id: 2, status: 'applied', notes: null, cover_letter: null, applied_date: null, follow_up_date: null, interview_date: null, is_hidden: false, checklist: {}, history: [], updated_at: null }],
       error: null,
     });
-    const overlaySelect = vi.fn().mockReturnValue({ eq: overlayEq });
+    const overlaySelect = vi.fn().mockReturnValue({ eq: vi.fn().mockReturnThis(), order: vi.fn().mockReturnThis(), range: overlayEq });
     const jobsChain = {
       order: vi.fn().mockReturnThis(),
       limit: vi.fn().mockResolvedValue({
@@ -338,7 +346,7 @@ describe('appendHistory (via updateStatus)', () => {
       }],
       error: null,
     });
-    const overlaySelect = vi.fn().mockReturnValue({ eq: overlayEq });
+    const overlaySelect = vi.fn().mockReturnValue({ eq: vi.fn().mockReturnThis(), order: vi.fn().mockReturnThis(), range: overlayEq });
 
     // jobs table single select
     const singleMock = vi.fn().mockResolvedValue({ data: jobWithHistory, error: null });
@@ -422,6 +430,7 @@ describe('fetchJobs', () => {
       inserted: 12,
       updated: 34,
       total: 46,
+      complete: true,
     });
   });
 
@@ -433,17 +442,40 @@ describe('fetchJobs', () => {
 
     await expect(jobsService.fetchJobs()).rejects.toThrow('Your session expired. Please sign in again and try once more.');
   });
+  it('keeps partial results while explaining incomplete source coverage', async () => {
+    (supabase.functions.invoke as ReturnType<typeof vi.fn>).mockResolvedValue({ data: { success: true, inserted: 2, updated: 8, total: 10, complete: false, outcome: 'partial' }, error: null });
+    await expect(jobsService.fetchJobs()).resolves.toEqual({ success: true, message: 'Available jobs refreshed; some searches were incomplete.', inserted: 2, updated: 8, total: 10, complete: false });
+  });
 });
 
 describe('getMergedJobs tracked-job fallback (via getAllJobs)', () => {
   beforeEach(() => vi.clearAllMocks());
+
+  it('keeps an inactive new-status note overlay and does not label deactivation as a feed observation', async () => {
+    const overlays = { eq: vi.fn().mockReturnThis(), order: vi.fn().mockReturnThis(), range: vi.fn().mockResolvedValue({ data: [{ job_id: 8, status: 'new', notes: 'Keep my research', updated_at: '2026-10-28T12:00:00Z' }], error: null }) };
+    const listing = { order: vi.fn().mockReturnThis(), limit: vi.fn().mockResolvedValue({ data: [makeJob({ id: 8, is_active: false, deadline: '2000-01-01' })], error: null }) };
+    vi.mocked(supabase.from).mockImplementation((table) => ({ select: vi.fn().mockReturnValue(table === 'jobs' ? listing : overlays) }) as unknown as ReturnType<typeof supabase.from>);
+    const jobs = await jobsService.getAllJobs();
+    expect(jobs).toHaveLength(1);
+    expect(jobs[0]).toMatchObject({ status: 'new', notes: 'Keep my research', is_tracked: true });
+    expect(jobs[0].last_seen_at).toBeUndefined();
+  });
+
+  it('does not retain an expired empty overlay left by hiding then undoing', async () => {
+    const overlays = { eq: vi.fn().mockReturnThis(), order: vi.fn().mockReturnThis(), range: vi.fn().mockResolvedValue({ data: [{ job_id: 8, status: 'new', is_hidden: false, notes: null, history: [], checklist: {} }], error: null }) };
+    const listing = { order: vi.fn().mockReturnThis(), limit: vi.fn().mockResolvedValue({ data: [makeJob({ id: 8, is_active: false, deadline: '2000-01-01' })], error: null }) };
+    vi.mocked(supabase.from).mockImplementation((table) => ({ select: vi.fn().mockReturnValue(table === 'jobs' ? listing : overlays) }) as unknown as ReturnType<typeof supabase.from>);
+    expect(await jobsService.getAllJobs()).toEqual([]);
+  });
 
   it('fetches tracked jobs missing from the recent window by id', async () => {
     const recentJob = makeJob({ id: 1 });
     const oldTrackedJob = makeJob({ id: 999, title: 'Old saved job' });
 
     const userJobsChain = {
-      eq: vi.fn().mockResolvedValue({
+    eq: vi.fn().mockReturnThis(),
+    order: vi.fn().mockReturnThis(),
+      range: vi.fn().mockResolvedValue({
         data: [{ job_id: 999, status: 'saved' }],
         error: null,
       }),
@@ -470,7 +502,9 @@ describe('getMergedJobs tracked-job fallback (via getAllJobs)', () => {
     const trackedJob = makeJob({ id: 7 });
 
     const userJobsChain = {
-      eq: vi.fn().mockResolvedValue({
+    eq: vi.fn().mockReturnThis(),
+    order: vi.fn().mockReturnThis(),
+      range: vi.fn().mockResolvedValue({
         data: [{ job_id: 7, status: 'applied' }],
         error: null,
       }),
@@ -490,5 +524,64 @@ describe('getMergedJobs tracked-job fallback (via getAllJobs)', () => {
 
     expect(jobsChain.in).not.toHaveBeenCalled();
     expect(jobs.find((job) => job.id === 7)?.status).toBe('applied');
+  });
+});
+
+describe('snapshot efficiency and tracker retention', () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it('keeps fetched added-today jobs after saving but excludes manual additions', async () => {
+    const saved = makeJob({ status: 'saved' });
+    const overlay = { eq: vi.fn().mockReturnThis(), order: vi.fn().mockReturnThis(), range: vi.fn().mockResolvedValue({ data: [], error: null }) };
+    const corpus = { order: vi.fn().mockReturnThis(), limit: vi.fn().mockResolvedValue({ data: [saved, makeJob({ id: 2, source: 'manual', is_manual: true, status: 'saved' })], error: null }) };
+    const freshness = { neq: vi.fn().mockReturnThis(), order: vi.fn().mockReturnThis(), limit: vi.fn().mockReturnThis(), maybeSingle: vi.fn().mockResolvedValue({ data: { updated_at: saved.updated_at }, error: null }) };
+    vi.mocked(supabase.from).mockImplementation((table) => ({ select: vi.fn().mockImplementation((columns) => table === 'user_jobs' ? overlay : columns === 'updated_at' ? freshness : corpus) }) as unknown as ReturnType<typeof supabase.from>);
+    const stats = await jobsService.getStats();
+    expect(stats.new_today).toBe(1);
+    expect(stats.new).toBe(0);
+    expect(stats.saved).toBe(2);
+  });
+
+  it('shares concurrent and recently settled corpus reads and supports explicit refresh', async () => {
+    let resolveJobs!: (value: { data: Job[]; error: null }) => void;
+    const response = new Promise<{ data: Job[]; error: null }>((resolve) => { resolveJobs = resolve; });
+    const limit = vi.fn().mockReturnValue(response);
+    const overlay = { eq: vi.fn().mockReturnThis(), order: vi.fn().mockReturnThis(), range: vi.fn().mockResolvedValue({ data: [], error: null }) };
+    const listing = { order: vi.fn().mockReturnThis(), limit };
+    vi.mocked(supabase.from).mockImplementation((table: string) => ({ select: vi.fn().mockReturnValue(table === 'jobs' ? listing : overlay) }) as unknown as ReturnType<typeof supabase.from>);
+    const first = jobsService.getAllJobs();
+    const second = jobsService.getJobs({ status: 'new' });
+    expect(limit).toHaveBeenCalledTimes(1);
+    resolveJobs({ data: [makeJob()], error: null });
+    await Promise.all([first, second]);
+    await jobsService.getAllJobs();
+    expect(limit).toHaveBeenCalledTimes(1);
+    invalidateJobSnapshot();
+    await jobsService.getAllJobs();
+    expect(limit).toHaveBeenCalledTimes(2);
+  });
+
+  it('keeps tracker entries beyond the 1000-row API cap and bounds id-query sizes', async () => {
+    const overlays = Array.from({ length: 1001 }, (_, index) => ({ job_id: index + 1, status: 'saved' }));
+    const range = vi.fn().mockImplementation((from: number, to: number) => Promise.resolve({ data: overlays.slice(from, to + 1), error: null }));
+    const overlay = { eq: vi.fn().mockReturnThis(), order: vi.fn().mockReturnThis(), range };
+    const inIds = vi.fn().mockImplementation((_key: string, ids: number[]) => Promise.resolve({ data: ids.map((id) => makeJob({ id })), error: null }));
+    const listing = { order: vi.fn().mockReturnThis(), limit: vi.fn().mockResolvedValue({ data: [makeJob()], error: null }), in: inIds };
+    vi.mocked(supabase.from).mockImplementation((table: string) => ({ select: vi.fn().mockReturnValue(table === 'jobs' ? listing : overlay) }) as unknown as ReturnType<typeof supabase.from>);
+    const jobs = await jobsService.getAllJobs();
+    expect(jobs).toHaveLength(1001);
+    expect(jobs.find((job) => job.id === 1001)?.status).toBe('saved');
+    expect(range.mock.calls).toEqual([[0, 999], [1000, 1999]]);
+    expect(inIds.mock.calls.every(([, ids]) => ids.length <= 150)).toBe(true);
+  });
+
+  it('sends explicit null when an interview date is cleared', async () => {
+    const upsert = vi.fn().mockResolvedValue({ error: null });
+    const overlays = { eq: vi.fn().mockReturnThis(), order: vi.fn().mockReturnThis(), range: vi.fn().mockResolvedValue({ data: [{ job_id: 1, interview_date: null }], error: null }) };
+    const listing = { eq: vi.fn().mockReturnThis(), single: vi.fn().mockResolvedValue({ data: makeJob({ interview_date: '2026-11-05' }), error: null }) };
+    vi.mocked(supabase.from).mockImplementation((table: string) => (table === 'jobs' ? { select: vi.fn().mockReturnValue(listing) } : { select: vi.fn().mockReturnValue(overlays), upsert }) as unknown as ReturnType<typeof supabase.from>);
+    const result = await jobsService.updateInterviewDate(1, null);
+    expect(upsert.mock.calls[0][0].interview_date).toBeNull();
+    expect(result.interview_date).toBeNull();
   });
 });

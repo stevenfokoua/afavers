@@ -1,10 +1,11 @@
 import { lazy, Suspense } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { createBrowserRouter, createRoutesFromElements, RouterProvider, Outlet, Route, Navigate } from 'react-router-dom';
+import { NavigationGuard } from './components/layout/NavigationGuard';
 import { useAuthStore } from './store/authStore';
 import { ProtectedRoute } from './routes/ProtectedRoute';
 import { AdminRoute } from './routes/AdminRoute';
 import { OnboardingRedirect } from './routes/OnboardingRedirect';
-import { AppLayout } from './components/layout/AppLayout';
+const AppLayout=lazy(()=>import('./components/layout/AppLayout').then(module=>({default:module.AppLayout})));
 
 const LoginPage         = lazy(() => import('./pages/LoginPage').then(m => ({ default: m.LoginPage })));
 const RegisterPage      = lazy(() => import('./pages/RegisterPage').then(m => ({ default: m.RegisterPage })));
@@ -41,16 +42,17 @@ const RootRedirect = () => {
   const isAuthenticated = useAuthStore(s => s.isAuthenticated);
   const hasCheckedSession = useAuthStore(s => s.hasCheckedSession);
   if (!hasCheckedSession) {
-    return <div className="min-h-screen flex items-center justify-center"><div className="w-8 h-8 rounded-full border-2 border-green-500 border-t-transparent animate-spin" /></div>;
+    return <div className="min-h-screen flex items-center justify-center"><span role="status">Loading / Lädt…</span></div>;
   }
   return isAuthenticated ? <Navigate to="/dashboard" replace /> : <LandingPage />;
 };
 
-function App() {
-  return (
-    <BrowserRouter>
-      <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="w-8 h-8 rounded-full border-2 border-green-500 border-t-transparent animate-spin" /></div>}>
-      <Routes>
+function AccountBoundary(){
+  const owner=useAuthStore(state=>state.user?.id??'signed-out');
+  return <NavigationGuard key={owner}><Suspense fallback={<div role="status" className="ui-page">Loading / Lädt…</div>}><Outlet/></Suspense></NavigationGuard>;
+}
+const router = createBrowserRouter(createRoutesFromElements(
+  <Route element={<AccountBoundary/>}>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
@@ -77,10 +79,8 @@ function App() {
         <Route path="/demo" element={<DemoJobsPage />} />
         <Route path="/disclaimer" element={<DisclaimerPage />} />
         <Route path="/" element={<RootRedirect />} />
-      </Routes>
-      </Suspense>
-    </BrowserRouter>
-  );
-}
-
+      
+  </Route>
+));
+function App() { return <RouterProvider router={router}/>; }
 export default App;

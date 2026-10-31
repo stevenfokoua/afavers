@@ -62,6 +62,12 @@ coverage/
 *.tmp
 *.temp
 .cache/
+__pycache__/
+*.py[cod]
+.ci-runtime/
+reports/e2e/
+client/playwright-report/
+client/test-results/
 
 # Extension packaging artefacts (build them locally, do not commit)
 extension.zip

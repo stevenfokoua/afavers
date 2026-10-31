@@ -1,0 +1,10 @@
+{
+  "scope": "Reviewer fix 2, 320px Jobs with vertical scrollbar",
+  "before": {"innerWidth":320,"clientWidth":305,"scrollWidth":320,"bodyWidth":320},
+  "after": {"innerWidth":320,"clientWidth":305,"scrollWidth":305,"bodyWidth":304.8000183105469},
+  "change": "body min-width:320px replaced with min-width:0",
+  "pass": true,
+  "criterion": "documentElement.scrollWidth <= documentElement.clientWidth",
+  "capture": "jobs-320.png",
+  "qualification": "Earlier browser-metrics.json compared against innerWidth and missed the 15px overflow at this width; this receipt corrects that assertion."
+}

@@ -1,4 +1,14 @@
 import type { Reminder } from '../store/reminderStore';
+import { deviceTimezone, reminderInstant } from './reminderTime';
+
+const browserTimers = new Map<string, ReturnType<typeof setTimeout>>();
+
+function notificationId(id: string): number {
+  // Stable FNV-1a hash; summing UUID character codes caused frequent collisions.
+  let hash = 2166136261;
+  for (const char of id) hash = Math.imul(hash ^ char.charCodeAt(0), 16777619);
+  return (hash >>> 0) % 2147483647;
+}
 
 // Detect if running inside Capacitor (native iOS/Android)
 const isNative = () =>
@@ -32,11 +42,11 @@ export async function requestNotificationPermission(): Promise<boolean> {
 }
 
 export async function scheduleReminder(reminder: Reminder): Promise<void> {
-  const [year, month, day] = reminder.date.split('-').map(Number);
-  const [hour, minute] = reminder.time.split(':').map(Number);
-  const fireAt = new Date(year, month - 1, day, hour, minute, 0);
+  await cancelReminder(reminder.id);
+  if (reminder.completed) return;
+  const fireAt = reminderInstant(reminder.date, reminder.time, reminder.timezone || deviceTimezone());
 
-  if (fireAt <= new Date()) return; // already past
+  if (!fireAt || fireAt <= new Date()) return; // invalid or already past
 
   const cap = await getCapacitorNotifications();
 
@@ -44,7 +54,7 @@ export async function scheduleReminder(reminder: Reminder): Promise<void> {
     await cap.schedule({
       notifications: [
         {
-          id: Math.abs(reminder.id.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0)) % 2147483647,
+          id: notificationId(reminder.id),
           title: 'afavers reminder',
           body: reminder.title,
           schedule: { at: fireAt },
@@ -60,17 +70,25 @@ export async function scheduleReminder(reminder: Reminder): Promise<void> {
   if ('Notification' in window && Notification.permission === 'granted') {
     const ms = fireAt.getTime() - Date.now();
     if (ms > 0 && ms < 7 * 24 * 60 * 60 * 1000) {
-      setTimeout(() => {
+      const timer = setTimeout(() => {
+        browserTimers.delete(reminder.id);
         new Notification('afavers reminder', { body: reminder.title, icon: '/logo.png' });
       }, ms);
+      browserTimers.set(reminder.id, timer);
     }
   }
 }
 
 export async function cancelReminder(reminderId: string): Promise<void> {
+  const timer = browserTimers.get(reminderId);
+  if (timer !== undefined) {
+    clearTimeout(timer);
+    browserTimers.delete(reminderId);
+  }
   const cap = await getCapacitorNotifications();
   if (cap) {
-    const notifId = Math.abs(reminderId.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0)) % 2147483647;
-    await cap.cancel({ notifications: [{ id: notifId }] });
+    const notifId = notificationId(reminderId);
+    const legacyId = Math.abs(reminderId.split('').reduce((sum, char) => sum + char.charCodeAt(0), 0)) % 2147483647;
+    await cap.cancel({ notifications: [{ id: notifId }, { id: legacyId }] });
   }
 }

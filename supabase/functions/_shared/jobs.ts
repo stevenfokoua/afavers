@@ -1,5 +1,8 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.1';
 import { detectLanguage } from './language.ts';
+import { BUNDESAGENTUR_URL, parseBundesagenturResponse } from './bundesagentur.ts';
+import { filterBatches } from './filter-batches.ts';
+import { fetchSearchPages, type SourceReport } from './source-fetch.ts';
 
 export interface ExternalJob {
   id: string;
@@ -17,9 +20,9 @@ export interface SourceFetchResult {
   jobs: ExternalJob[];
   /** False when the run stopped early (time budget) — cleanup must be skipped. */
   complete: boolean;
+  report: SourceReport;
 }
 
-const BA_URL = 'https://rest.arbeitsagentur.de/jobboerse/jobsuche-service/pc/v4/app/jobs';
 const ADZUNA_URL = 'https://api.adzuna.com/v1/api/jobs/de/search';
 const DEFAULT_KEYWORDS = ['consulting', 'beratung', 'nachhaltigkeit', 'umwelt', 'gis', 'energy'];
 const DEFAULT_LOCATIONS = ['Düsseldorf', 'Köln', 'Essen', 'Bochum', 'Dortmund'];
@@ -30,11 +33,7 @@ const DEFAULT_LOCATIONS = ['Düsseldorf', 'Köln', 'Essen', 'Bochum', 'Dortmund'
 export const FETCH_BUDGET_MS = 85_000;
 export const RUN_BUDGET_MS = 135_000;
 const BA_CONCURRENCY = 6;
-const REQUEST_TIMEOUT_MS = 8_000;
 const WRITE_CHUNK = 500;
-// external_id in() filters travel in the URL; keep chunks small enough to
-// stay under gateway URL-length limits (~30 chars per id).
-const ID_FILTER_CHUNK = 150;
 const SELECT_PAGE = 1000;
 // A job is stale when no fetch has refreshed its updated_at for this long.
 // The cron runs every 2 hours, so 3 days ≈ 36 chances to be re-listed.
@@ -71,7 +70,8 @@ function cleanText(value = ''): string {
 export async function getSearchConfig(): Promise<{ keywords: string[]; locations: string[] }> {
   const supabase = adminClient();
   const { data, error } = await supabase.from('user_settings').select('keywords,locations');
-  if (error || !data?.length) return { keywords: DEFAULT_KEYWORDS, locations: DEFAULT_LOCATIONS };
+  if (error) throw new Error('search_configuration_unavailable');
+  if (!data?.length) return { keywords: DEFAULT_KEYWORDS, locations: DEFAULT_LOCATIONS };
 
   const keywords = new Set<string>();
   const locations = new Set<string>();
@@ -106,95 +106,63 @@ export async function fetchBundesagenturJobs(
     pairs.push(...pairs.splice(0, offset));
   }
 
-  const jobs: ExternalJob[] = [];
-  let complete = true;
-  let next = 0;
-
-  async function worker(): Promise<void> {
-    while (true) {
-      const index = next++;
-      if (index >= pairs.length) return;
-      if (Date.now() > deadlineAt) {
-        complete = false;
-        return;
-      }
-
-      const { keyword, location } = pairs[index];
-      const url = new URL(BA_URL);
+  return fetchSearchPages({
+    source: 'bundesagentur', queries: pairs, concurrency: BA_CONCURRENCY, deadlineAt,
+    configurationCapped: keywords.length > 40 || locations.length > 20,
+    makeUrl: ({ keyword, location }, page) => {
+      const url = new URL(BUNDESAGENTUR_URL);
       url.searchParams.set('was', keyword);
       url.searchParams.set('wo', location);
       url.searchParams.set('size', '35');
-      url.searchParams.set('page', '1');
+      url.searchParams.set('page', String(page));
       url.searchParams.set('angebotsart', '1');
       url.searchParams.set('pav', 'false');
       url.searchParams.set('umkreis', '25');
 
-      try {
-        const response = await fetch(url, {
-          headers: {
-            'User-Agent': 'Jobsuche/2.9.2 (de.arbeitsagentur.jobboerse; build:1077; iOS 15.1.0) Alamofire/5.4.4',
-            'X-API-Key': apiKey,
-          },
-          signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
-        });
-        if (!response.ok) continue;
-        const data = await response.json();
-        for (const item of data?.stellenangebote ?? []) {
-          const city = item.arbeitsort?.ort || location || 'Germany';
-          const plz = item.arbeitsort?.plz || '';
-          jobs.push({
-            id: `bundesagentur_${item.refnr}`,
-            title: item.titel || item.beruf || 'No title',
-            company: item.arbeitgeber || 'Not specified',
-            location: plz ? `${city} (${plz})` : city,
-            description: `Position: ${item.beruf || 'Not specified'}`,
-            url: `https://www.arbeitsagentur.de/jobsuche/jobdetail/${item.refnr}`,
-            postedDate: item.aktuelleVeroeffentlichungsdatum || item.modifikationsTimestamp,
-          });
-        }
-      } catch {
-        // Keep the batch resilient; one city/keyword failing should not stop the run.
-      }
-    }
-  }
-
-  await Promise.all(Array.from({ length: BA_CONCURRENCY }, () => worker()));
-  return { jobs, complete };
+      return url;
+    },
+    headers: {
+      'User-Agent': 'Jobsuche/2.9.2 (de.arbeitsagentur.jobboerse; build:1077; iOS 15.1.0) Alamofire/5.4.4',
+      'X-API-Key': apiKey,
+    },
+    parse: (payload, { location }, page) => {
+      const parsed = parseBundesagenturResponse(payload, location);
+      if (!parsed.recognized) throw new Error('unexpected_response');
+      const data = payload as Record<string, unknown>;
+      const items = data.ergebnisliste ?? data.stellenangebote;
+      const total = typeof data.maxErgebnisse === 'number' || (typeof data.maxErgebnisse === 'string' && data.maxErgebnisse.trim()) ? Number(data.maxErgebnisse) : NaN;
+      return { items: parsed.jobs, hasMore: Array.isArray(items) && (Number.isFinite(total) && total >= 0 ? page * 35 < total : items.length >= 35) };
+    },
+    key: job => job.id,
+  });
 }
 
-export async function fetchAdzunaJobs(deadlineAt: number = Number.POSITIVE_INFINITY): Promise<SourceFetchResult> {
+export async function fetchAdzunaJobs(deadlineAt: number = Number.POSITIVE_INFINITY, keywords = DEFAULT_KEYWORDS, locations = DEFAULT_LOCATIONS): Promise<SourceFetchResult> {
   const appId = env('ADZUNA_APP_ID');
   const appKey = env('ADZUNA_APP_KEY');
-  if (!appId || !appKey) return { jobs: [], complete: true };
-
-  const keywords = ['nachhaltigkeit', 'umwelt', 'energy', 'consulting'];
-  const locations = ['Düsseldorf', 'Köln', 'Berlin'];
-  const jobs: ExternalJob[] = [];
-  let complete = true;
-
-  for (const keyword of keywords) {
-    for (const location of locations) {
-      if (Date.now() > deadlineAt) {
-        complete = false;
-        return { jobs, complete };
-      }
-
-      const url = new URL(`${ADZUNA_URL}/1`);
+  const pairs = keywords.slice(0, 40).flatMap(keyword => locations.slice(0, 20).map(location => ({ keyword, location })));
+  return fetchSearchPages({
+    source: 'adzuna', configured: Boolean(appId && appKey), queries: pairs,
+    configurationCapped: keywords.length > 40 || locations.length > 20,
+    concurrency: 2, deadlineAt,
+    makeUrl: ({ keyword, location }, page) => {
+      const url = new URL(`${ADZUNA_URL}/${page}`);
       url.searchParams.set('app_id', appId);
       url.searchParams.set('app_key', appKey);
       url.searchParams.set('results_per_page', '25');
       url.searchParams.set('what', keyword);
       url.searchParams.set('where', location);
 
-      try {
-        const response = await fetch(url, { signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS) });
-        if (!response.ok) continue;
-        const data = await response.json();
-        for (const item of data?.results ?? []) {
+      return url;
+    },
+    parse: (payload, { location }) => {
+      const data = payload as { results?: Array<{ id: string; title: string; company?: { display_name?: string }; location?: { display_name?: string }; description?: string; redirect_url: string; created?: string; salary_min?: number; salary_max?: number; salary_is_predicted?: number }> } | null;
+      if (!Array.isArray(data?.results)) throw new Error('unexpected_response');
+      return { items: data.results.map(item => {
           const salary = item.salary_min && item.salary_max && !item.salary_is_predicted
             ? `€${Math.round(item.salary_min)} - €${Math.round(item.salary_max)}`
             : undefined;
-          jobs.push({
+          return {
             id: `adzuna_${item.id}`,
             title: item.title,
             company: item.company?.display_name || 'Not specified',
@@ -203,15 +171,11 @@ export async function fetchAdzunaJobs(deadlineAt: number = Number.POSITIVE_INFIN
             url: item.redirect_url,
             postedDate: item.created,
             salary,
-          });
-        }
-      } catch {
-        // Continue with the next query.
-      }
-    }
-  }
-
-  return { jobs, complete };
+          };
+        }), hasMore: data.results.length >= 25 };
+    },
+    key: job => job.id,
+  });
 }
 
 function dedupe(jobs: ExternalJob[]): ExternalJob[] {
@@ -308,7 +272,7 @@ export async function saveJobs(
   }
 
   const existingIds = new Set<string>();
-  for (const ids of chunk(unique.map((job) => job.id), ID_FILTER_CHUNK)) {
+  for (const ids of filterBatches(unique.map((job) => job.id))) {
     const { data, error } = await supabase.from('jobs').select('external_id').in('external_id', ids);
     if (error) throw error;
     for (const row of data ?? []) existingIds.add(row.external_id);

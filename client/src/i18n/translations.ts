@@ -1,5 +1,4 @@
 export type Lang = 'en' | 'de';
-
 export const translations: Record<Lang, Record<string, string>> = {
   en: {
     // Navigation
@@ -16,7 +15,6 @@ export const translations: Record<Lang, Record<string, string>> = {
     browse: 'Browse',
     board: 'Board',
     more: 'More',
-
     // Tabs / Status
     new: 'New',
     saved: 'Saved',
@@ -28,18 +26,16 @@ export const translations: Record<Lang, Record<string, string>> = {
     rejected: 'Rejected',
     archived: 'Archived',
     all: 'All',
-
     // Status labels (JobDetail)
     statusNew: 'New',
-    statusSaved: '⭐ Saved',
+    statusSaved: 'Saved',
     statusPreparing: 'Preparing',
-    statusApplied: '✅ Applied',
+    statusApplied: 'Applied',
     statusFollowup: 'Follow-up',
-    statusInterviewing: '📞 Interview',
-    statusOffered: '🎉 Offered',
-    statusRejected: '❌ Rejected',
+    statusInterviewing: 'Interview',
+    statusOffered: 'Offered',
+    statusRejected: 'Rejected',
     statusArchived: 'Archived',
-
     // Jobs page
     searchPlaceholder: 'Search by title, company or location...',
     allSources: 'All sources',
@@ -67,12 +63,12 @@ export const translations: Record<Lang, Record<string, string>> = {
     next: 'Next',
     page: 'Page',
     of: 'of',
-    apply: '↗ Apply',
+    apply: 'Apply',
     applyNow: 'Apply →',
     applyOnSite: 'Apply for this job →',
     markAsApplied: 'Mark as applied',
     openJobPosting: 'Open job posting',
-    remote: '🏠 Remote',
+    remote: 'Remote',
     addManualJob: 'Add job manually',
     manualJobTitle: 'Track a job manually',
     manualJobHint: 'Add roles from LinkedIn, company sites, referrals, or email so your tracker stays complete.',
@@ -84,7 +80,6 @@ export const translations: Record<Lang, Record<string, string>> = {
     addJob: 'Add job',
     adding: 'Adding...',
     jobAdded: 'Job added',
-
     // Dashboard
     yourJobSearchGlance: 'Your job search at a glance',
     unreviewedJobs: 'Unreviewed jobs',
@@ -110,14 +105,11 @@ export const translations: Record<Lang, Record<string, string>> = {
     fetchComplete: 'new jobs added',
     fetchFailed: 'Fetch failed. Try again.',
     followUpsDue: 'Follow-ups due',
-    notAvailableDemo: 'Not available in demo mode',
-
     // Analytics quick-action card
     analytics: 'Analytics',
     analyticsDesc: 'Track your progress',
-
     // Stress check-up
-    howAreYouHoldingUp: 'How are you holding up today? 🤔',
+    howAreYouHoldingUp: 'How are you holding up today? ',
     stressOverwhelmed: 'Overwhelmed',
     stressStruggling: 'Struggling',
     stressOkay: 'Okay',
@@ -128,56 +120,32 @@ export const translations: Record<Lang, Record<string, string>> = {
     stressTip3: 'Steady as it goes. Consistency beats intensity every time.',
     stressTip4: 'Great energy! Use it to polish an application or reach out to someone in your network.',
     stressTip5: "Love this mindset! Perfect time to tackle that application you've been putting off.",
-
     // Goal widget
     setAGoal: 'Set a goal',
     stayMotivated: 'Stay motivated with a clear target',
     setArrow: 'Set →',
-    whatsYourGoal: "🎯 What's your goal?",
-    applicationsSentGoal: '✅ Applications sent',
-    interviewsReachedGoal: '📞 Interviews reached',
+    whatsYourGoal: "What's your goal?",
+    applicationsSentGoal: 'Applications sent',
+    interviewsReachedGoal: 'Interviews reached',
     saveGoal: 'Save goal',
     cancel: 'Cancel',
-    goalReached: '🎉 Goal reached! Incredible work — time to set a new one.',
+    goalReached: 'Goal reached! Incredible work — time to set a new one.',
     almostThere: "You're almost there! Keep the momentum going.",
     everyApplicationCounts: "Every application counts. You've got this.",
     applicationsGoal: 'Applications goal',
     interviewsGoal: 'Interviews goal',
     edit: 'Edit',
     clearGoal: 'Clear goal',
-
     // English Jobs page
     englishJobsTitle: 'English Jobs',
     englishJobsDesc: 'Jobs posted in English — international & expat-friendly roles',
     backToJobs: '← All Jobs',
     noEnglishJobs: 'No English jobs found',
     noEnglishJobsHint: 'Fetch jobs and they will be detected automatically.',
-
-    // Settings
-    saveSettings: 'Save Settings',
-    settingsSaved: 'Settings saved',
-    keywords: 'Job Keywords',
-    locations: 'Locations',
-    settingsSubtitle: 'Configure your job search preferences',
-    searchSettings: 'Search Settings',
-    keywordsDesc: 'What to search for — e.g. developer, data analyst, marketing',
-    keywordsPlaceholder: 'e.g. developer, data analyst, project manager',
-    locationsDesc: 'Cities or regions — e.g. Berlin, München, Hamburg',
-    locationsPlaceholder: 'e.g. Düsseldorf, Köln, Dortmund',
-    keywordIdeas: 'Keyword ideas by field',
-    changePassword: 'Change Password',
-    currentPassword: 'Current password',
     newPassword: 'New password',
-    confirmNewPassword: 'Confirm new password',
     minCharsHint: 'Min. 8 characters',
     updatePassword: 'Update Password',
-    pwMismatch: 'New passwords do not match.',
-    pwTooShort: 'New password must be at least 8 characters.',
-    pwChanged: 'Password changed successfully.',
-    pwChangeFailed: 'Failed to change password.',
     failedToSave: 'Failed to save. Please try again.',
-    saving: 'Saving...',
-
     // Job Detail
     jobNotFound: 'Job not found',
     salary: 'Salary',
@@ -196,9 +164,8 @@ export const translations: Record<Lang, Record<string, string>> = {
     coverLetterPlaceholder: 'Draft key points, opening lines, why this role...',
     saveDraft: 'Save Draft',
     clear: 'Clear',
-
     // Analytics
-    exportCsv: '⬇ Export CSV',
+    exportCsv: 'Export CSV',
     exporting: 'Exporting...',
     exportFailed: 'Export failed — try again',
     failedToLoadAnalytics: 'Failed to load analytics',
@@ -207,30 +174,26 @@ export const translations: Record<Lang, Record<string, string>> = {
     jobsBySource: 'Jobs by Source',
     statusBreakdown: 'Status Breakdown',
     responseRate: 'Response rate',
-
     // Login
     loginSubtitle: 'Your automated job search assistant',
     forgotPassword: 'Forgot password?',
     signingIn: 'Signing in...',
     or: 'or',
-    tryDemo: '⚡ Try Demo — no sign-up needed',
+    tryDemo: 'Try Demo — no sign-up needed',
     loadingDemo: 'Loading demo...',
     noAccount: "Don't have an account?",
     createOneFree: 'Create one free',
     loginFooter: 'afavers.online · Jobs auto-fetched from Bundesagentur für Arbeit every 2h',
     invalidCredentials: 'Invalid email or password',
     demoUnavailable: 'Demo account unavailable. Try again later.',
-
     // Idle timeout modal
     stillThere: 'Still there?',
     idleWarningMsg: "You'll be signed out due to inactivity in",
     signOut: 'Sign out',
     stayLoggedIn: 'Stay logged in',
-
     // Demo banner
     demoBannerMsg: 'Demo mode — explore with sample data. Nothing is saved permanently.',
     createFreeAccount: 'Create your free account →',
-
     // Kanban
     trackNewJobs: '+ Track New Jobs',
     jobsTracked: 'jobs being tracked',
@@ -238,20 +201,16 @@ export const translations: Record<Lang, Record<string, string>> = {
     noJobsTrackedHint: 'Go to Jobs and save jobs you\'re interested in to track them here',
     browseJobs2: 'Browse Jobs →',
     daysWaiting: 'd waiting',
-
     // Quick actions
     markApplied: 'Applied',
-
     // Dashboard widgets
     upcomingInterviews: 'Upcoming Interviews',
-
     // Auth
     signIn: 'Sign In',
     createAccount: 'Create Account',
     email: 'Email',
     password: 'Password',
     confirmPassword: 'Confirm Password',
-
     // Interview Prep
     interviewPrep: 'Interview Prep',
     interviewPrepSubtitle: 'Curated videos to help you ace your next interview',
@@ -262,37 +221,31 @@ export const translations: Record<Lang, Record<string, string>> = {
     confidenceMindset: 'Confidence',
     germanySpecific: '🇩🇪 Germany Tips',
     aufDeutsch: 'Auf Deutsch',
-
     // Calendar
     calendar: 'Calendar',
     noEventsDay: 'No events on this day',
     calendarInterview: 'Interview',
     calendarFollowUp: 'Follow-up',
-
     // Toast notifications
-    toastJobSaved: 'Job saved ⭐',
+    toastJobSaved: 'Job saved ',
     toastJobApplied: 'Marked as applied ✓',
     toastJobHidden: 'Job hidden',
     toastJobUnsaved: 'Removed from saved',
     toastJobReverted: 'Moved back to saved',
-
     // Unsave / revert actions
     unsave: 'Unsave',
     unsaveJob: 'Remove from saved',
     revertToSaved: 'Revert',
     revertToSavedJob: 'Move back to saved',
-
     // Filter indicator
     activeFilters: 'filter(s) active',
     clearAll: 'Clear all',
-
     // News
     news: 'News',
     newsLatest: 'Latest News',
     newsEnergyClimate: 'Energy & Climate',
     newsEconomy: 'Economy',
     newsAll: 'All News',
-
     // Login / Register extras
     welcomeBack: 'Welcome back',
     signInSubtitle: 'Sign in to your account to continue',
@@ -306,7 +259,6 @@ export const translations: Record<Lang, Record<string, string>> = {
     passwordsDontMatch: 'Passwords do not match.',
     registrationFailed: 'Registration failed',
     freeNoCard: 'Free to use · No credit card required',
-
     // Dashboard header extras
     headerFollowUpsDue: 'follow-up(s) due',
     interviewsComingUp: 'interview(s) coming up',
@@ -314,12 +266,10 @@ export const translations: Record<Lang, Record<string, string>> = {
     dayStreak: '-day streak',
     editDashboard: 'Edit dashboard',
     done: 'Done',
-
     // Kanban extras
     kanbanEmpty: 'No jobs',
     kanbanDropHere: '↓ Drop here',
     kanbanHint: 'Drag cards between columns to update their status',
-
     // Jobs filter extras
     allStates: 'All states',
     bestMatch: 'Best match',
@@ -328,144 +278,38 @@ export const translations: Record<Lang, Record<string, string>> = {
     werkstudentOnly: 'Werkstudent',
     clearFilters: 'Clear filters',
     noJobsHint: 'Try clearing one filter, widening your cities in Settings, or using broader keywords like analyst, project, GIS, energy, consulting.',
-
     // Accessibility
     skipToContent: 'Skip to main content',
-
     // Bottom nav "More" sheet
     moreMenu: 'More',
     closeMenu: 'Close',
     switchEnglish: 'Switch to English',
     switchGerman: 'Switch to German',
-
-    // Landing page
-    landingExtensionBar: 'Chrome & Firefox extension now available',
-    landingExtensionBarMobile: 'Browser extension available',
-    landingInstallFree: 'Install free →',
-    landingFeatures: 'Features',
-    landingExtension: 'Extension',
-    landingLiveJobs: 'Live Jobs',
-    landingDashboardCta: 'Dashboard →',
-    landingLogin: 'Log in',
-    landingGetStarted: 'Get started',
     landingBadge: "Auto-updated every 2 hours · Germany's green jobs",
-    landingHeadlineTop: 'Your job tracker,',
-    landingHeadlineAccent: 'on autopilot.',
-    landingSubtitle: 'afavers fetches, filters, and tracks every relevant green job in Germany — automatically. You focus on applying.',
-    landingStartFree: 'Start for free',
-    landingBrowseLive: 'Browse live jobs',
     landingTrust: '200+ job seekers trust afavers',
     landingFreeForever: 'Free forever',
-    landingTryFree: 'Try it free',
     landingStatsJobs: 'Active green jobs',
     landingStatsJobsSub: 'Updated every 2 hours',
     landingStatsCities: 'Cities covered',
     landingStatsCitiesSub: 'Across Germany',
     landingStatsSetup: 'Setup time',
     landingStatsSetupSub: 'Really, we promise',
-    landingLiveNow: 'Live right now',
-    landingJobsToday: 'Jobs available today',
-    landingListings: 'listings · refreshed every 2h',
-    landingLoading: 'Loading...',
-    landingSeeAll: 'See all',
-    landingSeeAllJobs: 'See all jobs',
-    landingTrackApply: 'Track & apply in one place',
-    landingSignupFree: 'Sign up free →',
-    landingExtensionTitle: 'Save any job from any website. In one click.',
-    landingExtensionBody: 'Browsing LinkedIn, StepStone, or any job board? Click the afavers extension and save that job straight to your tracker — no copy-pasting.',
-    landingDownloadChrome: 'Download for Chrome',
-    landingAddFirefox: 'Add to Firefox',
-    landingStepInstall: 'Install the extension',
-    landingStepInstallDesc: 'Add afavers to Chrome or Firefox in seconds. It sits quietly in your browser toolbar.',
-    landingStepBrowse: 'Browse any job board',
-    landingStepBrowseDesc: 'LinkedIn, StepStone, Indeed, XING — browse wherever you normally look for jobs.',
-    landingStepSave: 'Click to save & track',
-    landingStepSaveDesc: "Hit the afavers icon on any job page. It's instantly saved to your dashboard — title, company, URL and all.",
-    landingConnected: 'Connected',
-    landingDetected: 'Job detected on this page',
-    landingSaveToAfavers: 'Save to afavers',
-    landingSync: 'Saved jobs sync to your dashboard instantly',
-    landingFinalTop: 'Your next job',
-    landingFinalAccent: 'starts here.',
-    landingFinalSub: 'Free forever · No credit card · Set up in 60 seconds.',
-    landingAlreadyAccount: 'Already have an account',
-    landingFooter: 'Green job tracker for Germany',
-    landingPrivacy: 'Privacy',
-    landingGoPosting: 'Go to job posting →',
-    landingTrackApplication: 'Sign up to track this application',
-    landingNoCard: 'Free · No credit card required',
     landingSetPrefs: 'Set your preferences',
-    landingJobKeywords: 'Job keywords',
     landingCities: 'Cities',
     landingAdd: '+ Add',
     landingFindJobs: 'Find my jobs →',
-    landingLatestJobs: 'Latest Jobs',
-    landingClickBookmark: 'Click the bookmark to save a job',
-    landingHidden: 'hidden',
-    landingAllHidden: "All hidden! They won't clutter your feed.",
-    landingRestoreAll: 'Restore all',
-    landingPipeline: 'Application Pipeline',
-    landingAutoStages: 'auto-advancing through stages',
     landingNew: 'New',
-    landingUcSetupTag: 'Smart setup',
-    landingUcSetupHead: 'Type your field. We handle the rest.',
-    landingUcSetupBody: "Tell us what you're looking for in seconds. afavers learns your keywords and cities, then automatically fetches matching jobs from Bundesagentur für Arbeit every 2 hours.",
-    landingUcSwipeTag: 'Hot Picks · Swipe',
-    landingUcSwipeHead: 'Triage jobs like swiping on Tinder.',
-    landingUcSwipeBody: 'Drag right to save a job, drag left to skip it. No scrolling through endless lists — just fast, satisfying decisions.',
-    landingUcSaveTag: 'One-click save',
-    landingUcSaveHead: 'Spot something good? Save it instantly.',
-    landingUcSaveBody: 'Tap the bookmark on any job and it lands in your saved list immediately. No lost tabs, no forgotten opportunities.',
-    landingUcHideTag: 'Hide & clean',
-    landingUcHideHead: 'Not relevant? Make it disappear.',
-    landingUcHideBody: "Hide jobs you're not interested in. They vanish from your feed and your dashboard stays focused.",
-    landingUcTrackTag: 'Track progress',
-    landingUcTrackHead: 'Watch your pipeline move forward.',
-    landingUcTrackBody: 'Every application moves through Saved, Applied, Interview, and Offer. See exactly where each opportunity stands.',
-
-    // Setup/onboarding
-    setupWelcome: 'Welcome to afavers',
-    setupSubtitle: "Let's set up your personalised job feed.",
-    setupAutoTitle: 'Auto-fetched every 2 hours',
-    setupAutoDesc: 'Jobs from Bundesagentur für Arbeit, refreshed automatically',
-    setupTrackTitle: 'Track every application',
-    setupTrackDesc: 'Kanban board, follow-ups, interview dates — all in one place',
-    setupPersonalTitle: 'Personalised for you',
-    setupPersonalDesc: 'Match score, cities, job types, language, and weekly goals',
     setupFeed: 'Set up my feed →',
     setupSkip: "Skip — I'll set up later",
-    setupWhatJobs: 'What kind of jobs?',
-    setupWhatJobsDesc: 'Pick a field or type your own keywords',
-    setupCustomKeywords: 'Custom keywords',
-    setupComma: '(comma-separated)',
-    setupKeywordPlaceholder: 'e.g. project manager, analyst, Ingenieur',
-    setupJobTypes: 'Job types',
-    setupBack: '← Back',
     setupNext: 'Next →',
-    setupWhere: 'Where are you looking?',
-    setupWhereDesc: 'Select cities — pick as many as you like',
-    setupOtherCities: 'Other cities',
-    setupOtherCitiesPlaceholder: 'e.g. Bonn, Wuppertal, remote',
-    setupRadius: 'Search radius',
-    setupLanguage: 'Working language',
-    setupMomentum: 'Keep momentum',
-    setupMomentumDesc: 'Set a goal and tell afavers how to prioritize jobs.',
-    setupWeeklyGoal: 'Weekly application goal',
-    setupWorkStatus: 'Work status',
-    setupOptional: '(optional)',
-    setupAfter: 'After setup',
-    setupAfterDesc: 'You will land on your strongest matches first. Hot Picks will use this profile for swipe decisions.',
-    setupSettingUp: 'Setting up...',
-    setupFindJobs: 'Find my jobs 🚀',
-    setupChangeLater: 'You can change all preferences anytime in Settings',
-
+    setupFindJobs: 'Find my jobs ',
     // Hot Picks
     hotPicksDeck: "in today's deck",
     undo: 'Undo',
     savedBang: 'Saved!',
     applySoon: 'Apply soon',
     passed: 'Passed',
-    hotPicksHint: '← Pass · Save ⭐ → · ↑ Apply soon',
+    hotPicksHint: '← Pass · Save → · ↑ Apply soon',
     hotPicksSubtitle: 'Review your strongest matches quickly, then move the good ones into your tracker.',
     startOver: 'Start over',
     browseAllJobs: 'Browse all jobs →',
@@ -482,7 +326,6 @@ export const translations: Record<Lang, Record<string, string>> = {
     viewFullListing: 'View full listing →',
     soon: 'soon',
     applySoonTomorrow: 'Apply soon tomorrow',
-
     // Reminders
     reminders: 'Reminders',
     remaining: 'remaining',
@@ -503,7 +346,6 @@ export const translations: Record<Lang, Record<string, string>> = {
     add: 'Add',
     completed: 'Completed',
     delete: 'Delete',
-
     // News extras
     readOnTagesschau: 'Read on Tagesschau',
     germanNews: 'German news',
@@ -514,7 +356,6 @@ export const translations: Record<Lang, Record<string, string>> = {
     noArticlesTopic: 'No articles found for this topic',
     newsRefreshHint: 'Check back shortly — news refreshes every 90 minutes',
     articlesGermanSource: 'Articles are in German · Source: Tagesschau (ARD)',
-
     // Password reset
     forgotPasswordTitle: 'Forgot Password',
     forgotPasswordSubtitle: "We'll send a reset link to your email",
@@ -533,50 +374,10 @@ export const translations: Record<Lang, Record<string, string>> = {
     updating: 'Updating...',
     requestNewReset: 'Request a new reset link →',
     resetExpired: 'Reset link is invalid or has expired.',
-
-    // Settings extras
-    howItWorks: 'How it works:',
-    settingsInfo: 'Jobs are fetched from Bundesagentur für Arbeit every 2 hours using your keywords and locations. Separate values with commas. Changes apply on the next fetch.',
-    priorityAlerts: 'Priority email alerts',
-    priorityAlertsDesc: 'Get a compact email when new high-match jobs fit what you are focused on right now.',
-    priorityAlertsExample: 'Example:',
-    priorityAlertsExampleText: 'Werkstudent roles in NRW for IT, GIS, data analysis, or similar keywords. Afavers only emails jobs that clear your match score and have not already been sent to you.',
-    alertKeywords: 'Alert keywords',
-    alertKeywordsDesc: 'Use your current search focus. Separate values with commas.',
-    alertLocations: 'Alert locations',
-    alertLocationsDesc: 'NRW is understood as Düsseldorf, Köln, Essen, Dortmund, Bochum, Bonn, Duisburg, Münster, and nearby cities.',
-    howOften: 'How often',
-    everyJobFetch: 'Every job fetch',
-    dailyDigest: 'Daily digest',
-    minimumMatch: 'Minimum match',
-    goodMatchAbove: 'Good match and above',
-    highMatchAbove: 'High match and above',
-    veryHighMatchOnly: 'Very high match only',
-    lastAlertSent: 'Last alert sent',
     jobFeedFilters: 'Job Feed Filters',
-    jobFeedFiltersDesc: 'Filter which jobs appear in story bubbles and Hot Picks.',
-    addKeywordHint: 'Add at least one keyword to activate filtering.',
-    filterEnabledHint: 'Only jobs matching these keywords will appear in stories and Hot Picks.',
-    filterDisabledHint: 'Filtering is off — all jobs are shown.',
-    noKeywordsYet: 'No keywords yet',
-    typeKeywordEnter: 'Type keyword, press Enter',
-    quickAddPreset: 'Quick-add preset',
-    newsPreferences: 'News Preferences',
-    newsPreferencesDesc: 'Choose which news topics appear and where.',
-    showNewsDashboard: 'Show news on Dashboard',
-    showNewsDashboardDesc: 'Displays a rotating headline carousel after your greeting',
-    topicsToShow: 'Topics to show',
-    allTopicsShown: 'All topics shown — select specific ones to filter.',
-    selectedTopics: 'topic(s) selected',
-    clearSelectionShowAll: 'Clear selection (show all topics)',
     unsavedChangesTitle: 'Unsaved changes',
     unsavedChangesBody: 'You have unsaved changes. Leave the page anyway?',
     leaveAnyway: 'Leave anyway',
-    appRecovery: 'App recovery',
-    appRecoveryDesc: 'If the site keeps loading an old cached version or behaves differently from a private browser, reset the local app cache and reload.',
-    resetAppCache: 'Reset app cache',
-    resettingCache: 'Resetting...',
-    resetAppCacheNote: 'This signs you out on this browser, but keeps normal profile data in Supabase.',
     todayLabel: 'Today',
     attentionTitle: 'What needs your attention?',
     attentionSubtitle: 'Start with the next useful action, then move on.',
@@ -593,9 +394,8 @@ export const translations: Record<Lang, Record<string, string>> = {
     continueApplications: 'Continue applications',
     savedPreparingJobs: 'Saved or preparing jobs',
     clearForNow: 'You are clear for now.',
-    reviewOrSwipe: 'Review new roles or swipe through Hot Picks when you want fresh options.',
+    reviewOrSwipe: 'Review new roles or swipe through Hot Picks when you want fresh options.'
   },
-
   de: {
     // Navigation
     dashboard: 'Dashboard',
@@ -611,7 +411,6 @@ export const translations: Record<Lang, Record<string, string>> = {
     browse: 'Durchsuchen',
     board: 'Board',
     more: 'Mehr',
-
     // Tabs / Status
     new: 'Neu',
     saved: 'Gespeichert',
@@ -623,18 +422,16 @@ export const translations: Record<Lang, Record<string, string>> = {
     rejected: 'Abgelehnt',
     archived: 'Archiviert',
     all: 'Alle',
-
     // Status labels (JobDetail)
     statusNew: 'Neu',
-    statusSaved: '⭐ Gespeichert',
+    statusSaved: 'Gespeichert',
     statusPreparing: 'Vorbereitung',
-    statusApplied: '✅ Beworben',
+    statusApplied: 'Beworben',
     statusFollowup: 'Nachfassen',
-    statusInterviewing: '📞 Gespräch',
-    statusOffered: '🎉 Angebot',
-    statusRejected: '❌ Abgelehnt',
+    statusInterviewing: 'Gespräch',
+    statusOffered: 'Angebot',
+    statusRejected: 'Abgelehnt',
     statusArchived: 'Archiviert',
-
     // Jobs page
     searchPlaceholder: 'Suche nach Titel, Unternehmen oder Ort...',
     allSources: 'Alle Quellen',
@@ -662,12 +459,12 @@ export const translations: Record<Lang, Record<string, string>> = {
     next: 'Weiter',
     page: 'Seite',
     of: 'von',
-    apply: '↗ Bewerben',
+    apply: 'Bewerben',
     applyNow: 'Bewerben →',
     applyOnSite: 'Auf diese Stelle bewerben →',
     markAsApplied: 'Als beworben markieren',
     openJobPosting: 'Stellenausschreibung öffnen',
-    remote: '🏠 Remote',
+    remote: 'Remote',
     addManualJob: 'Stelle manuell hinzufügen',
     manualJobTitle: 'Stelle manuell verfolgen',
     manualJobHint: 'Füge Stellen von LinkedIn, Unternehmensseiten, Empfehlungen oder E-Mails hinzu, damit dein Tracker vollständig bleibt.',
@@ -679,7 +476,6 @@ export const translations: Record<Lang, Record<string, string>> = {
     addJob: 'Stelle hinzufügen',
     adding: 'Wird hinzugefügt...',
     jobAdded: 'Stelle hinzugefügt',
-
     // Dashboard
     yourJobSearchGlance: 'Ihre Jobsuche auf einen Blick',
     unreviewedJobs: 'Ungeprüfte Stellen',
@@ -705,14 +501,11 @@ export const translations: Record<Lang, Record<string, string>> = {
     fetchComplete: 'neue Stellen hinzugefügt',
     fetchFailed: 'Abruf fehlgeschlagen. Erneut versuchen.',
     followUpsDue: 'Fällige Nachfassaktionen',
-    notAvailableDemo: 'Im Demo-Modus nicht verfügbar',
-
     // Analytics quick-action card
     analytics: 'Analysen',
     analyticsDesc: 'Fortschritt verfolgen',
-
     // Stress check-up
-    howAreYouHoldingUp: 'Wie fühlen Sie sich heute? 🤔',
+    howAreYouHoldingUp: 'Wie fühlen Sie sich heute? ',
     stressOverwhelmed: 'Überfordert',
     stressStruggling: 'Am Kämpfen',
     stressOkay: 'Okay',
@@ -723,56 +516,32 @@ export const translations: Record<Lang, Record<string, string>> = {
     stressTip3: 'Schön gleichmäßig. Beständigkeit schlägt Intensität jedes Mal.',
     stressTip4: 'Tolle Energie! Nutze sie, um eine Bewerbung zu überarbeiten oder jemanden in deinem Netzwerk zu kontaktieren.',
     stressTip5: 'Diese Einstellung gefällt mir! Perfekte Zeit, die aufgeschobene Bewerbung endlich anzugehen.',
-
     // Goal widget
     setAGoal: 'Ziel setzen',
     stayMotivated: 'Mit einem klaren Ziel motiviert bleiben',
     setArrow: 'Setzen →',
-    whatsYourGoal: '🎯 Was ist dein Ziel?',
-    applicationsSentGoal: '✅ Bewerbungen abgeschickt',
-    interviewsReachedGoal: '📞 Interviews erreicht',
+    whatsYourGoal: 'Was ist dein Ziel?',
+    applicationsSentGoal: 'Bewerbungen abgeschickt',
+    interviewsReachedGoal: 'Interviews erreicht',
     saveGoal: 'Ziel speichern',
     cancel: 'Abbrechen',
-    goalReached: '🎉 Ziel erreicht! Unglaubliche Leistung — Zeit für ein neues Ziel.',
+    goalReached: 'Ziel erreicht! Unglaubliche Leistung — Zeit für ein neues Ziel.',
     almostThere: 'Fast geschafft! Behalte das Momentum bei.',
     everyApplicationCounts: 'Jede Bewerbung zählt. Du schaffst das.',
     applicationsGoal: 'Bewerbungsziel',
     interviewsGoal: 'Interviewziel',
     edit: 'Bearbeiten',
     clearGoal: 'Ziel löschen',
-
     // English Jobs page
     englishJobsTitle: 'Englische Stellen',
     englishJobsDesc: 'Auf Englisch ausgeschriebene Stellen — international & expat-freundlich',
     backToJobs: '← Alle Stellen',
     noEnglishJobs: 'Keine englischen Stellen gefunden',
     noEnglishJobsHint: 'Stellen abrufen — sie werden automatisch erkannt.',
-
-    // Settings
-    saveSettings: 'Einstellungen speichern',
-    settingsSaved: 'Einstellungen gespeichert',
-    keywords: 'Suchbegriffe',
-    locations: 'Standorte',
-    settingsSubtitle: 'Jobsucheinstellungen konfigurieren',
-    searchSettings: 'Sucheinstellungen',
-    keywordsDesc: 'Wonach gesucht wird — z.B. Entwickler, Datenanalyst, Marketing',
-    keywordsPlaceholder: 'z.B. Entwickler, Datenanalyst, Projektmanager',
-    locationsDesc: 'Städte oder Regionen — z.B. Berlin, München, Hamburg',
-    locationsPlaceholder: 'z.B. Düsseldorf, Köln, Dortmund',
-    keywordIdeas: 'Suchbegriff-Ideen nach Bereich',
-    changePassword: 'Passwort ändern',
-    currentPassword: 'Aktuelles Passwort',
     newPassword: 'Neues Passwort',
-    confirmNewPassword: 'Neues Passwort bestätigen',
     minCharsHint: 'Mind. 8 Zeichen',
     updatePassword: 'Passwort aktualisieren',
-    pwMismatch: 'Die neuen Passwörter stimmen nicht überein.',
-    pwTooShort: 'Das neue Passwort muss mind. 8 Zeichen haben.',
-    pwChanged: 'Passwort erfolgreich geändert.',
-    pwChangeFailed: 'Passwort konnte nicht geändert werden.',
     failedToSave: 'Speichern fehlgeschlagen. Bitte erneut versuchen.',
-    saving: 'Wird gespeichert...',
-
     // Job Detail
     jobNotFound: 'Stelle nicht gefunden',
     salary: 'Gehalt',
@@ -791,9 +560,8 @@ export const translations: Record<Lang, Record<string, string>> = {
     coverLetterPlaceholder: 'Kernpunkte, Einstieg, Warum diese Stelle...',
     saveDraft: 'Entwurf speichern',
     clear: 'Löschen',
-
     // Analytics
-    exportCsv: '⬇ CSV exportieren',
+    exportCsv: 'CSV exportieren',
     exporting: 'Wird exportiert...',
     exportFailed: 'Export fehlgeschlagen — erneut versuchen',
     failedToLoadAnalytics: 'Analysen konnten nicht geladen werden',
@@ -802,30 +570,26 @@ export const translations: Record<Lang, Record<string, string>> = {
     jobsBySource: 'Stellen nach Quelle',
     statusBreakdown: 'Statusaufschlüsselung',
     responseRate: 'Rücklaufquote',
-
     // Login
     loginSubtitle: 'Ihr automatisierter Jobsuche-Assistent',
     forgotPassword: 'Passwort vergessen?',
     signingIn: 'Anmelden...',
     or: 'oder',
-    tryDemo: '⚡ Demo ausprobieren — keine Registrierung',
+    tryDemo: 'Demo ausprobieren — keine Registrierung',
     loadingDemo: 'Demo wird geladen...',
     noAccount: 'Noch kein Konto?',
     createOneFree: 'Kostenlos registrieren',
     loginFooter: 'afavers.online · Stellen automatisch von Bundesagentur für Arbeit — alle 2h',
     invalidCredentials: 'Ungültige E-Mail oder Passwort',
     demoUnavailable: 'Demo-Konto nicht verfügbar. Bitte später erneut versuchen.',
-
     // Idle timeout modal
     stillThere: 'Noch da?',
     idleWarningMsg: 'Aufgrund von Inaktivität werden Sie abgemeldet in',
     signOut: 'Abmelden',
     stayLoggedIn: 'Angemeldet bleiben',
-
     // Demo banner
     demoBannerMsg: 'Demo-Modus — erkunde mit Beispieldaten. Nichts wird dauerhaft gespeichert.',
     createFreeAccount: 'Kostenloses Konto erstellen →',
-
     // Kanban
     trackNewJobs: '+ Neue Stellen verfolgen',
     jobsTracked: 'Stellen werden verfolgt',
@@ -833,20 +597,16 @@ export const translations: Record<Lang, Record<string, string>> = {
     noJobsTrackedHint: 'Gehe zu Stellen und speichere interessante Angebote, um sie hier zu verfolgen',
     browseJobs2: 'Stellen durchsuchen →',
     daysWaiting: 'T. in Bearb.',
-
     // Quick actions
     markApplied: 'Beworben',
-
     // Dashboard widgets
     upcomingInterviews: 'Anstehende Gespräche',
-
     // Auth
     signIn: 'Anmelden',
     createAccount: 'Konto erstellen',
     email: 'E-Mail',
     password: 'Passwort',
     confirmPassword: 'Passwort bestätigen',
-
     // Interview Prep
     interviewPrep: 'Interview-Vorbereitung',
     interviewPrepSubtitle: 'Kuratierte Videos, damit du dein nächstes Interview meisterst',
@@ -857,37 +617,31 @@ export const translations: Record<Lang, Record<string, string>> = {
     confidenceMindset: 'Selbstvertrauen',
     germanySpecific: '🇩🇪 Deutschland',
     aufDeutsch: 'Auf Deutsch',
-
     // Calendar
     calendar: 'Kalender',
     noEventsDay: 'Keine Ereignisse an diesem Tag',
     calendarInterview: 'Interview',
     calendarFollowUp: 'Nachfassaktion',
-
     // Toast notifications
-    toastJobSaved: 'Stelle gespeichert ⭐',
+    toastJobSaved: 'Stelle gespeichert ',
     toastJobApplied: 'Als beworben markiert ✓',
     toastJobHidden: 'Stelle ausgeblendet',
     toastJobUnsaved: 'Aus Gespeicherten entfernt',
     toastJobReverted: 'Zurück zu Gespeichert',
-
     // Unsave / revert actions
     unsave: 'Entfernen',
     unsaveJob: 'Aus Gespeicherten entfernen',
     revertToSaved: 'Rückgängig',
     revertToSavedJob: 'Zurück zu Gespeichert',
-
     // Filter indicator
     activeFilters: 'Filter aktiv',
     clearAll: 'Alle löschen',
-
     // News
     news: 'Nachrichten',
     newsLatest: 'Aktuelle Nachrichten',
     newsEnergyClimate: 'Energie & Klima',
     newsEconomy: 'Wirtschaft',
     newsAll: 'Alle Nachrichten',
-
     // Login / Register extras
     welcomeBack: 'Willkommen zurück',
     signInSubtitle: 'Melden Sie sich an, um fortzufahren',
@@ -901,7 +655,6 @@ export const translations: Record<Lang, Record<string, string>> = {
     passwordsDontMatch: 'Die Passwörter stimmen nicht überein.',
     registrationFailed: 'Registrierung fehlgeschlagen',
     freeNoCard: 'Kostenlos · Keine Kreditkarte nötig',
-
     // Dashboard header extras
     headerFollowUpsDue: 'Nachfassaktion(en) fällig',
     interviewsComingUp: 'anstehende(s) Gespräch(e)',
@@ -909,12 +662,10 @@ export const translations: Record<Lang, Record<string, string>> = {
     dayStreak: '-Tage-Serie',
     editDashboard: 'Dashboard bearbeiten',
     done: 'Fertig',
-
     // Kanban extras
     kanbanEmpty: 'Keine Stellen',
     kanbanDropHere: '↓ Hier ablegen',
     kanbanHint: 'Karten zwischen Spalten ziehen, um den Status zu ändern',
-
     // Jobs filter extras
     allStates: 'Alle Bundesländer',
     bestMatch: 'Beste Übereinstimmung',
@@ -923,144 +674,38 @@ export const translations: Record<Lang, Record<string, string>> = {
     werkstudentOnly: 'Werkstudent',
     clearFilters: 'Filter zurücksetzen',
     noJobsHint: 'Versuche einen Filter zu entfernen, mehr Städte in den Einstellungen zu ergänzen oder breitere Suchbegriffe wie Analyst, Projekt, GIS, Energie, Beratung zu verwenden.',
-
     // Accessibility
     skipToContent: 'Zum Hauptinhalt springen',
-
     // Bottom nav "More" sheet
     moreMenu: 'Mehr',
     closeMenu: 'Schließen',
     switchEnglish: 'Auf Englisch wechseln',
     switchGerman: 'Auf Deutsch wechseln',
-
-    // Landing page
-    landingExtensionBar: 'Chrome- & Firefox-Erweiterung jetzt verfügbar',
-    landingExtensionBarMobile: 'Browser-Erweiterung verfügbar',
-    landingInstallFree: 'Kostenlos installieren →',
-    landingFeatures: 'Funktionen',
-    landingExtension: 'Erweiterung',
-    landingLiveJobs: 'Live-Stellen',
-    landingDashboardCta: 'Dashboard →',
-    landingLogin: 'Anmelden',
-    landingGetStarted: 'Loslegen',
     landingBadge: 'Alle 2 Stunden aktualisiert · grüne Jobs in Deutschland',
-    landingHeadlineTop: 'Dein Job-Tracker,',
-    landingHeadlineAccent: 'auf Autopilot.',
-    landingSubtitle: 'afavers findet, filtert und verfolgt passende grüne Jobs in Deutschland automatisch. Du konzentrierst dich aufs Bewerben.',
-    landingStartFree: 'Kostenlos starten',
-    landingBrowseLive: 'Live-Stellen ansehen',
     landingTrust: '200+ Jobsuchende vertrauen afavers',
     landingFreeForever: 'Dauerhaft kostenlos',
-    landingTryFree: 'Kostenlos testen',
     landingStatsJobs: 'Aktive grüne Jobs',
     landingStatsJobsSub: 'Alle 2 Stunden aktualisiert',
     landingStatsCities: 'Städte abgedeckt',
     landingStatsCitiesSub: 'Deutschlandweit',
     landingStatsSetup: 'Einrichtungszeit',
     landingStatsSetupSub: 'Wirklich, versprochen',
-    landingLiveNow: 'Gerade live',
-    landingJobsToday: 'Heute verfügbare Stellen',
-    landingListings: 'Anzeigen · alle 2h aktualisiert',
-    landingLoading: 'Lädt...',
-    landingSeeAll: 'Alle ansehen',
-    landingSeeAllJobs: 'Alle Stellen ansehen',
-    landingTrackApply: 'Verfolgen & bewerben an einem Ort',
-    landingSignupFree: 'Kostenlos registrieren →',
-    landingExtensionTitle: 'Speichere jede Stelle von jeder Website. Mit einem Klick.',
-    landingExtensionBody: 'Du suchst auf LinkedIn, StepStone oder anderen Jobbörsen? Klicke die afavers-Erweiterung und speichere die Stelle direkt in deinem Tracker — ohne Copy-Paste.',
-    landingDownloadChrome: 'Für Chrome herunterladen',
-    landingAddFirefox: 'Zu Firefox hinzufügen',
-    landingStepInstall: 'Erweiterung installieren',
-    landingStepInstallDesc: 'Füge afavers in Sekunden zu Chrome oder Firefox hinzu. Sie bleibt ruhig in deiner Browserleiste.',
-    landingStepBrowse: 'Auf jeder Jobbörse suchen',
-    landingStepBrowseDesc: 'LinkedIn, StepStone, Indeed, XING — suche dort, wo du normalerweise suchst.',
-    landingStepSave: 'Klicken, speichern & verfolgen',
-    landingStepSaveDesc: 'Klicke auf einer Stellenanzeige das afavers-Symbol. Titel, Firma, Link und alles Weitere landen direkt im Dashboard.',
-    landingConnected: 'Verbunden',
-    landingDetected: 'Stelle auf dieser Seite erkannt',
-    landingSaveToAfavers: 'In afavers speichern',
-    landingSync: 'Gespeicherte Stellen synchronisieren sofort mit deinem Dashboard',
-    landingFinalTop: 'Dein nächster Job',
-    landingFinalAccent: 'beginnt hier.',
-    landingFinalSub: 'Dauerhaft kostenlos · Keine Kreditkarte · In 60 Sekunden eingerichtet.',
-    landingAlreadyAccount: 'Ich habe schon ein Konto',
-    landingFooter: 'Green-Job-Tracker für Deutschland',
-    landingPrivacy: 'Datenschutz',
-    landingGoPosting: 'Zur Stellenausschreibung →',
-    landingTrackApplication: 'Registrieren, um diese Bewerbung zu verfolgen',
-    landingNoCard: 'Kostenlos · Keine Kreditkarte nötig',
     landingSetPrefs: 'Präferenzen festlegen',
-    landingJobKeywords: 'Suchbegriffe',
     landingCities: 'Städte',
     landingAdd: '+ Hinzufügen',
     landingFindJobs: 'Meine Jobs finden →',
-    landingLatestJobs: 'Neue Stellen',
-    landingClickBookmark: 'Klicke auf das Lesezeichen, um eine Stelle zu speichern',
-    landingHidden: 'ausgeblendet',
-    landingAllHidden: 'Alles ausgeblendet! Dein Feed bleibt aufgeräumt.',
-    landingRestoreAll: 'Alle wiederherstellen',
-    landingPipeline: 'Bewerbungspipeline',
-    landingAutoStages: 'automatischer Durchlauf der Phasen',
     landingNew: 'Neu',
-    landingUcSetupTag: 'Smarte Einrichtung',
-    landingUcSetupHead: 'Gib deinen Bereich ein. Wir erledigen den Rest.',
-    landingUcSetupBody: 'Sag in Sekunden, wonach du suchst. afavers lernt deine Keywords und Städte und ruft automatisch alle 2 Stunden passende Stellen ab.',
-    landingUcSwipeTag: 'Hot Picks · Swipe',
-    landingUcSwipeHead: 'Sortiere Jobs wie beim Swipen.',
-    landingUcSwipeBody: 'Nach rechts speichern, nach links überspringen. Keine endlosen Listen — nur schnelle, klare Entscheidungen.',
-    landingUcSaveTag: 'Speichern mit einem Klick',
-    landingUcSaveHead: 'Etwas Gutes gesehen? Sofort speichern.',
-    landingUcSaveBody: 'Tippe auf das Lesezeichen und die Stelle landet direkt in deiner Merkliste. Keine verlorenen Tabs, keine vergessenen Chancen.',
-    landingUcHideTag: 'Ausblenden & aufräumen',
-    landingUcHideHead: 'Nicht relevant? Einfach verschwinden lassen.',
-    landingUcHideBody: 'Blende Jobs aus, die dich nicht interessieren. Sie verschwinden aus deinem Feed, damit dein Dashboard fokussiert bleibt.',
-    landingUcTrackTag: 'Fortschritt verfolgen',
-    landingUcTrackHead: 'Sieh, wie deine Pipeline vorankommt.',
-    landingUcTrackBody: 'Jede Bewerbung wandert durch Gespeichert, Beworben, Interview und Angebot. Du siehst jederzeit, wo jede Chance steht.',
-
-    // Setup/onboarding
-    setupWelcome: 'Willkommen bei afavers',
-    setupSubtitle: 'Lass uns deinen persönlichen Jobfeed einrichten.',
-    setupAutoTitle: 'Automatisch alle 2 Stunden',
-    setupAutoDesc: 'Stellen von der Bundesagentur für Arbeit, automatisch aktualisiert',
-    setupTrackTitle: 'Jede Bewerbung verfolgen',
-    setupTrackDesc: 'Kanban-Board, Nachfassaktionen, Interviewtermine — alles an einem Ort',
-    setupPersonalTitle: 'Personalisiert für dich',
-    setupPersonalDesc: 'Match-Score, Städte, Jobtypen, Sprache und Wochenziele',
     setupFeed: 'Meinen Feed einrichten →',
     setupSkip: 'Überspringen — ich richte es später ein',
-    setupWhatJobs: 'Welche Art von Jobs?',
-    setupWhatJobsDesc: 'Wähle einen Bereich oder gib eigene Suchbegriffe ein',
-    setupCustomKeywords: 'Eigene Suchbegriffe',
-    setupComma: '(durch Kommas getrennt)',
-    setupKeywordPlaceholder: 'z.B. Projektmanager, Analyst, Ingenieur',
-    setupJobTypes: 'Jobtypen',
-    setupBack: '← Zurück',
     setupNext: 'Weiter →',
-    setupWhere: 'Wo suchst du?',
-    setupWhereDesc: 'Wähle Städte — so viele du möchtest',
-    setupOtherCities: 'Weitere Städte',
-    setupOtherCitiesPlaceholder: 'z.B. Bonn, Wuppertal, remote',
-    setupRadius: 'Suchradius',
-    setupLanguage: 'Arbeitssprache',
-    setupMomentum: 'Dranbleiben',
-    setupMomentumDesc: 'Setze ein Ziel und sag afavers, wie Jobs priorisiert werden sollen.',
-    setupWeeklyGoal: 'Wöchentliches Bewerbungsziel',
-    setupWorkStatus: 'Arbeitsstatus',
-    setupOptional: '(optional)',
-    setupAfter: 'Nach der Einrichtung',
-    setupAfterDesc: 'Du landest zuerst bei deinen stärksten Matches. Hot Picks nutzt dieses Profil für Swipe-Entscheidungen.',
-    setupSettingUp: 'Wird eingerichtet...',
-    setupFindJobs: 'Meine Jobs finden 🚀',
-    setupChangeLater: 'Du kannst alle Präferenzen jederzeit in den Einstellungen ändern',
-
+    setupFindJobs: 'Meine Jobs finden ',
     // Hot Picks
     hotPicksDeck: 'im heutigen Stapel',
     undo: 'Rückgängig',
     savedBang: 'Gespeichert!',
     applySoon: 'Bald bewerben',
     passed: 'Übersprungen',
-    hotPicksHint: '← Überspringen · Speichern ⭐ → · ↑ Bald bewerben',
+    hotPicksHint: '← Überspringen · Speichern → · ↑ Bald bewerben',
     hotPicksSubtitle: 'Prüfe deine stärksten Matches schnell und verschiebe die guten direkt in deinen Tracker.',
     startOver: 'Neu starten',
     browseAllJobs: 'Alle Stellen durchsuchen →',
@@ -1077,7 +722,6 @@ export const translations: Record<Lang, Record<string, string>> = {
     viewFullListing: 'Ganze Anzeige ansehen →',
     soon: 'bald',
     applySoonTomorrow: 'Morgen bewerben',
-
     // Reminders
     reminders: 'Erinnerungen',
     remaining: 'offen',
@@ -1098,7 +742,6 @@ export const translations: Record<Lang, Record<string, string>> = {
     add: 'Hinzufügen',
     completed: 'Erledigt',
     delete: 'Löschen',
-
     // News extras
     readOnTagesschau: 'Auf Tagesschau lesen',
     germanNews: 'Deutsche Nachrichten',
@@ -1109,7 +752,6 @@ export const translations: Record<Lang, Record<string, string>> = {
     noArticlesTopic: 'Keine Artikel zu diesem Thema gefunden',
     newsRefreshHint: 'Schau gleich wieder vorbei — Nachrichten werden alle 90 Minuten aktualisiert',
     articlesGermanSource: 'Artikel sind auf Deutsch · Quelle: Tagesschau (ARD)',
-
     // Password reset
     forgotPasswordTitle: 'Passwort vergessen',
     forgotPasswordSubtitle: 'Wir senden dir einen Reset-Link per E-Mail',
@@ -1128,50 +770,10 @@ export const translations: Record<Lang, Record<string, string>> = {
     updating: 'Wird aktualisiert...',
     requestNewReset: 'Neuen Reset-Link anfordern →',
     resetExpired: 'Reset-Link ist ungültig oder abgelaufen.',
-
-    // Settings extras
-    howItWorks: 'So funktioniert es:',
-    settingsInfo: 'Stellen werden alle 2 Stunden von der Bundesagentur für Arbeit anhand deiner Suchbegriffe und Standorte abgerufen. Werte mit Kommas trennen. Änderungen gelten beim nächsten Abruf.',
-    priorityAlerts: 'Priorisierte E-Mail-Benachrichtigungen',
-    priorityAlertsDesc: 'Erhalte eine kompakte E-Mail, wenn neue starke Matches zu deinem aktuellen Fokus passen.',
-    priorityAlertsExample: 'Beispiel:',
-    priorityAlertsExampleText: 'Werkstudentenstellen in NRW für IT, GIS, Datenanalyse oder ähnliche Suchbegriffe. Afavers mailt nur Jobs, die deinen Match-Score erreichen und dir noch nicht gesendet wurden.',
-    alertKeywords: 'Benachrichtigungs-Suchbegriffe',
-    alertKeywordsDesc: 'Nutze deinen aktuellen Suchfokus. Werte mit Kommas trennen.',
-    alertLocations: 'Benachrichtigungs-Standorte',
-    alertLocationsDesc: 'NRW wird als Düsseldorf, Köln, Essen, Dortmund, Bochum, Bonn, Duisburg, Münster und nahe Städte verstanden.',
-    howOften: 'Wie oft',
-    everyJobFetch: 'Bei jedem Jobabruf',
-    dailyDigest: 'Tägliche Zusammenfassung',
-    minimumMatch: 'Mindest-Match',
-    goodMatchAbove: 'Guter Match und höher',
-    highMatchAbove: 'Hoher Match und höher',
-    veryHighMatchOnly: 'Nur sehr hohe Matches',
-    lastAlertSent: 'Letzte Benachrichtigung gesendet',
     jobFeedFilters: 'Jobfeed-Filter',
-    jobFeedFiltersDesc: 'Filtere, welche Jobs in Story-Bubbles und Hot Picks erscheinen.',
-    addKeywordHint: 'Füge mindestens ein Keyword hinzu, um den Filter zu aktivieren.',
-    filterEnabledHint: 'Nur Jobs mit diesen Keywords erscheinen in Stories und Hot Picks.',
-    filterDisabledHint: 'Filter ist aus — alle Jobs werden angezeigt.',
-    noKeywordsYet: 'Noch keine Keywords',
-    typeKeywordEnter: 'Keyword eingeben, Enter drücken',
-    quickAddPreset: 'Schnell-Preset',
-    newsPreferences: 'Nachrichten-Einstellungen',
-    newsPreferencesDesc: 'Wähle, welche Nachrichtenthemen wo erscheinen.',
-    showNewsDashboard: 'Nachrichten im Dashboard anzeigen',
-    showNewsDashboardDesc: 'Zeigt nach deiner Begrüßung ein rotierendes Schlagzeilen-Karussell',
-    topicsToShow: 'Anzuzeigende Themen',
-    allTopicsShown: 'Alle Themen werden angezeigt — wähle einzelne, um zu filtern.',
-    selectedTopics: 'Thema/Themen ausgewählt',
-    clearSelectionShowAll: 'Auswahl löschen (alle Themen anzeigen)',
     unsavedChangesTitle: 'Ungespeicherte Änderungen',
     unsavedChangesBody: 'Du hast ungespeicherte Änderungen. Seite trotzdem verlassen?',
     leaveAnyway: 'Trotzdem verlassen',
-    appRecovery: 'App-Wiederherstellung',
-    appRecoveryDesc: 'Wenn die Seite eine alte gecachte Version lädt oder sich anders als im privaten Browser verhält, setze den lokalen App-Cache zurück und lade neu.',
-    resetAppCache: 'App-Cache zurücksetzen',
-    resettingCache: 'Wird zurückgesetzt...',
-    resetAppCacheNote: 'Das meldet dich in diesem Browser ab, deine normalen Profildaten in Supabase bleiben erhalten.',
     todayLabel: 'Heute',
     attentionTitle: 'Was braucht deine Aufmerksamkeit?',
     attentionSubtitle: 'Starte mit der nächsten sinnvollen Aktion und mach dann weiter.',
@@ -1188,6 +790,6 @@ export const translations: Record<Lang, Record<string, string>> = {
     continueApplications: 'Bewerbungen fortsetzen',
     savedPreparingJobs: 'Gespeicherte oder vorbereitete Stellen',
     clearForNow: 'Für den Moment ist alles klar.',
-    reviewOrSwipe: 'Prüfe neue Rollen oder swipe durch Hot Picks, wenn du frische Optionen möchtest.',
-  },
+    reviewOrSwipe: 'Prüfe neue Rollen oder swipe durch Hot Picks, wenn du frische Optionen möchtest.'
+  }
 };

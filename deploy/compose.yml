@@ -1,0 +1,151 @@
+name: afavers
+x-owned: &owned
+  local.agent.owner: ${AGENT_RESOURCE_OWNER:?owner required}
+  local.agent.lifecycle: persistent
+  local.agent.reason: User-requested self-hosted afavers application on the shared VPS
+x-common: &common
+  restart: unless-stopped
+  labels: *owned
+  logging:
+    driver: json-file
+    options: { max-size: 5m, max-file: '2' }
+  security_opt: [no-new-privileges:true]
+  extra_hosts: [host.docker.internal:host-gateway]
+
+services:
+  db:
+    <<: *common
+    image: supabase/postgres:17.6.1.136
+    mem_limit: 384m
+    memswap_limit: 384m
+    cpus: 0.75
+    pids_limit: 128
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?password required}
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: postgres
+      POSTGRES_HOST: /var/run/postgresql
+      POSTGRES_PORT: '5432'
+      PGPORT: '5432'
+      JWT_EXP: '3600'
+    volumes:
+      - db-data:/var/lib/postgresql/data
+      - db-config:/etc/postgresql-custom
+      - ./bootstrap/roles.sql:/docker-entrypoint-initdb.d/init-scripts/99-roles.sql:ro
+      - ./bootstrap/jwt.sql:/docker-entrypoint-initdb.d/init-scripts/99-jwt.sql:ro
+    command: [postgres, -c, config_file=/etc/postgresql/postgresql.conf, -c, shared_buffers=64MB, -c, work_mem=2MB, -c, maintenance_work_mem=32MB, -c, max_connections=40, -c, log_min_messages=warning]
+    healthcheck:
+      test: [CMD, pg_isready, -U, postgres, -h, localhost]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+  auth:
+    <<: *common
+    extra_hosts: [host.docker.internal:host-gateway, ubuntu:host-gateway]
+    image: supabase/gotrue:v2.197.0
+    mem_limit: 128m
+    memswap_limit: 128m
+    cpus: 0.3
+    pids_limit: 64
+    ports: ['127.0.0.1:18991:9999']
+    depends_on: { db: { condition: service_healthy } }
+    volumes:
+      - ./smtp/ca-bundle.crt:/etc/afavers/smtp-ca-bundle.crt:ro
+    environment:
+      GOTRUE_API_HOST: 0.0.0.0
+      GOTRUE_API_PORT: '9999'
+      API_EXTERNAL_URL: https://afavers.saintcreators.com/backend
+      GOTRUE_SITE_URL: https://afavers.saintcreators.com
+      GOTRUE_URI_ALLOW_LIST: https://afavers.saintcreators.com/reset-password,capacitor://localhost/**
+      GOTRUE_DB_DRIVER: postgres
+      GOTRUE_DB_DATABASE_URL: postgres://supabase_auth_admin:${POSTGRES_PASSWORD}@db:5432/postgres
+      GOTRUE_DB_MAX_POOL_SIZE: '5'
+      GOTRUE_JWT_ADMIN_ROLES: service_role
+      GOTRUE_JWT_AUD: authenticated
+      GOTRUE_JWT_DEFAULT_GROUP_NAME: authenticated
+      GOTRUE_JWT_SECRET: ${JWT_SECRET:?jwt secret required}
+      GOTRUE_JWT_EXP: '3600'
+      GOTRUE_JWT_ISSUER: https://afavers.saintcreators.com/backend/auth/v1
+      GOTRUE_DISABLE_SIGNUP: 'false'
+      GOTRUE_EXTERNAL_EMAIL_ENABLED: 'true'
+      GOTRUE_EXTERNAL_PHONE_ENABLED: 'false'
+      GOTRUE_MAILER_AUTOCONFIRM: 'false'
+      GOTRUE_SMTP_HOST: ubuntu
+      SSL_CERT_FILE: /etc/afavers/smtp-ca-bundle.crt
+      GOTRUE_SMTP_PORT: '18995'
+      GOTRUE_SMTP_ADMIN_EMAIL: afavers@saintcreators.com
+      GOTRUE_SMTP_SENDER_NAME: afavers
+      GOTRUE_MAILER_URLPATHS_INVITE: /backend/auth/v1/verify
+      GOTRUE_MAILER_URLPATHS_CONFIRMATION: /backend/auth/v1/verify
+      GOTRUE_MAILER_URLPATHS_RECOVERY: /backend/auth/v1/verify
+      GOTRUE_MAILER_URLPATHS_EMAIL_CHANGE: /backend/auth/v1/verify
+    healthcheck:
+      test: [CMD, wget, --no-verbose, --tries=1, --spider, 'http://localhost:9999/health']
+      interval: 10s
+      timeout: 5s
+      retries: 6
+  rest:
+    <<: *common
+    image: postgrest/postgrest:v14.18
+    mem_limit: 96m
+    memswap_limit: 96m
+    cpus: 0.3
+    pids_limit: 64
+    ports: ['127.0.0.1:18992:3000']
+    depends_on: { db: { condition: service_healthy } }
+    environment:
+      PGRST_DB_URI: postgres://authenticator:${POSTGRES_PASSWORD}@db:5432/postgres
+      PGRST_DB_SCHEMAS: public
+      PGRST_DB_ANON_ROLE: anon
+      PGRST_DB_POOL: '5'
+      PGRST_DB_MAX_ROWS: '1000'
+      PGRST_JWT_SECRET: ${JWT_SECRET}
+      PGRST_DB_USE_LEGACY_GUCS: 'false'
+      PGRST_ADMIN_SERVER_PORT: '3001'
+      PGRST_ADMIN_SERVER_HOST: localhost
+    healthcheck:
+      test: [CMD, postgrest, --ready]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+  functions:
+    <<: *common
+    image: supabase/edge-runtime:v1.77.4
+    mem_limit: 384m
+    memswap_limit: 384m
+    cpus: 0.75
+    pids_limit: 128
+    ports: ['127.0.0.1:18993:9000']
+    depends_on: { auth: { condition: service_healthy }, rest: { condition: service_started } }
+    volumes:
+      - ./functions:/home/deno/functions:ro
+      - deno-cache:/root/.cache/deno
+    environment:
+      SUPABASE_URL: http://host.docker.internal:18980
+      SUPABASE_PUBLIC_URL: https://afavers.saintcreators.com/backend
+      SUPABASE_ANON_KEY: ${ANON_KEY:?anon key required}
+      SUPABASE_SERVICE_ROLE_KEY: ${SERVICE_ROLE_KEY:?service key required}
+      JWT_SECRET: ${JWT_SECRET}
+      CRON_SECRET: ${CRON_SECRET:?cron secret required}
+      VERIFY_JWT: 'false'
+      APP_URL: https://afavers.saintcreators.com
+      SMTP_HOST: host.docker.internal
+      SMTP_PORT: '18995'
+      SMTP_FROM: afavers@saintcreators.com
+      BUNDESAGENTUR_API_KEY: ${BUNDESAGENTUR_API_KEY:-jobboerse-jobsuche}
+      ADZUNA_APP_ID: ${ADZUNA_APP_ID:-}
+      ADZUNA_APP_KEY: ${ADZUNA_APP_KEY:-}
+    command: [start, --user-worker-request-idle-timeout, '150000', --main-service, /home/deno/functions/main]
+    healthcheck:
+      test: [CMD-SHELL, "timeout 2 bash -c '</dev/tcp/127.0.0.1/9000'"]
+      interval: 15s
+      timeout: 5s
+      retries: 6
+
+networks:
+  default:
+    labels: *owned
+volumes:
+  db-data: { labels: *owned }
+  db-config: { labels: *owned }
+  deno-cache: { labels: *owned }

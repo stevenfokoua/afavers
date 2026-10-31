@@ -31,6 +31,10 @@ export interface Job {
   history?: JobHistoryEvent[];
   created_at: string;
   updated_at: string;
+  /** Feed observation time, unaffected by personal notes/status changes. */
+  last_seen_at?: string;
+  /** Personal status/content exists; an empty hide/undo row is not retained. */
+  is_tracked?: boolean;
   match_score?: number;
   match_reasons?: string[];
   match_gaps?: string[];

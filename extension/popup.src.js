@@ -387,9 +387,13 @@ $('save-btn').addEventListener('click', async () => {
     if (!jobId) throw new Error('Save failed — no job id returned.');
 
     // 2) Upsert the per-user overlay row (user_jobs).
-    const appliedDate = ['applied', 'followup', 'interviewing', 'offered'].includes(status)
+    const { data: existing, error: existingError } = await client.from('user_jobs')
+      .select('status,applied_date,checklist,history')
+      .eq('user_id', appUserId).eq('job_id', jobId).maybeSingle();
+    if (existingError) throw new Error(existingError.message);
+    const appliedDate = existing?.applied_date || (['applied', 'followup', 'interviewing', 'offered'].includes(status)
       ? now.slice(0, 10)
-      : null;
+      : null);
     const { error: overlayError } = await client
       .from('user_jobs')
       .upsert({
@@ -397,11 +401,12 @@ $('save-btn').addEventListener('click', async () => {
         job_id: jobId,
         status,
         applied_date: appliedDate,
-        checklist: status === 'applied' ? { 'Application submitted': true } : {},
+        checklist: { ...(existing?.checklist || {}), ...(status === 'applied' ? { 'Application submitted': true } : {}) },
         history: [
+          ...(Array.isArray(existing?.history) ? existing.history : []),
           { type: 'manual', label: 'Captured from browser extension', at: now },
           { type: 'status', label: `Moved to ${status}`, at: now },
-        ],
+        ].slice(-80),
         updated_at: now,
       }, { onConflict: 'user_id,job_id' });
 

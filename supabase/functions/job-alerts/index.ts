@@ -1,5 +1,8 @@
-import { adminClient } from '../_shared/jobs.ts';
+import { scoreListing, splitMatchTerms } from '../_shared/matching.ts';
 import { handleOptions, jsonResponse } from '../_shared/cors.ts';
+import { sendSmtpEmail } from '../_shared/smtp.ts';
+import { runJobAlerts } from '../_shared/job-alert-runner.ts';
+import { alertMessageId } from '../_shared/alert-delivery.ts';
 
 type Frequency = 'instant' | 'daily';
 
@@ -14,11 +17,6 @@ interface JobAlert {
   last_sent_at: string | null;
 }
 
-interface UserRow {
-  id: number;
-  email: string;
-}
-
 interface JobRow {
   id: number;
   title: string;
@@ -31,6 +29,7 @@ interface JobRow {
   salary: string | null;
   language: string | null;
   created_at: string;
+  deadline: string | null;
 }
 
 interface ScoredJob extends JobRow {
@@ -38,23 +37,8 @@ interface ScoredJob extends JobRow {
   reasons: string[];
 }
 
-const REMOTE_TERMS = ['remote', 'homeoffice', 'home office', 'hybrid', 'mobiles arbeiten'];
-const STUDENT_TERMS = ['werkstudent', 'working student', 'studentische', 'student assistant', 'praktikum', 'internship'];
-const SENIOR_TERMS = ['senior', 'lead', 'leiter', 'leitung', 'principal', 'head of'];
-
 function env(name: string): string {
   return Deno.env.get(name) ?? '';
-}
-
-function splitTerms(value: string): string[] {
-  return value
-    .split(',')
-    .map((term) => term.trim().toLowerCase())
-    .filter(Boolean);
-}
-
-function containsAny(text: string, terms: string[]): boolean {
-  return terms.some((term) => text.includes(term));
 }
 
 function escapeHtml(value: string): string {
@@ -67,57 +51,8 @@ function escapeHtml(value: string): string {
 }
 
 function scoreJob(job: JobRow, alert: JobAlert): ScoredJob {
-  const keywords = splitTerms(alert.keywords);
-  const locations = splitTerms(alert.locations);
-  const text = `${job.title} ${job.company ?? ''} ${job.location ?? ''} ${job.description ?? ''}`.toLowerCase();
-  const jobLocation = (job.location ?? '').toLowerCase();
-  const reasons: string[] = [];
-  let score = 20;
-
-  const keywordHits = keywords.filter((term) => text.includes(term));
-  if (keywordHits.length > 0) {
-    score += Math.min(40, keywordHits.length * 14);
-    reasons.push(`Keyword: ${keywordHits.slice(0, 3).join(', ')}`);
-  }
-
-  const locationHits = locations.filter((term) => jobLocation.includes(term) || (term === 'nrw' && /nrw|nordrhein|düsseldorf|duesseldorf|köln|koeln|essen|dortmund|bochum|bonn|wuppertal|duisburg|münster|muenster/.test(jobLocation)));
-  if (locationHits.length > 0) {
-    score += 22;
-    reasons.push(`Location: ${locationHits[0]}`);
-  } else if (containsAny(text, REMOTE_TERMS)) {
-    score += 10;
-    reasons.push('Remote-friendly');
-  }
-
-  if (containsAny(text, STUDENT_TERMS)) {
-    score += 12;
-    reasons.push('Werkstudent');
-  }
-
-  if (job.language === 'en') {
-    score += 8;
-    reasons.push('English-friendly');
-  }
-
-  if (job.posted_date) {
-    const ageDays = Math.floor((Date.now() - new Date(job.posted_date).getTime()) / 86400000);
-    if (ageDays <= 7) {
-      score += 10;
-      reasons.push('Fresh');
-    } else if (ageDays <= 30) {
-      score += 5;
-    }
-  }
-
-  if (containsAny(text, SENIOR_TERMS) && keywords.some((term) => ['junior', 'entry', 'werkstudent', 'praktikum', 'internship'].includes(term))) {
-    score -= 10;
-  }
-
-  return {
-    ...job,
-    score: Math.max(0, Math.min(100, score)),
-    reasons: reasons.slice(0, 5),
-  };
+  const match = scoreListing(job, splitMatchTerms(alert.keywords), splitMatchTerms(alert.locations));
+  return { ...job, score: match.score, reasons: match.reasons };
 }
 
 function shouldSkipForFrequency(alert: JobAlert): boolean {
@@ -177,7 +112,8 @@ function buildEmail(alert: JobAlert, jobs: ScoredJob[]) {
   return { subject: title, html };
 }
 
-async function sendEmail(to: string, subject: string, html: string) {
+async function sendEmail(to: string, subject: string, html: string, batchId: string) {
+  if (env('SMTP_HOST')) return sendSmtpEmail(to, subject, html, { messageId: alertMessageId(batchId) });
   const apiKey = env('RESEND_API_KEY');
   if (!apiKey) throw new Error('RESEND_API_KEY is not configured');
   const from = env('ALERT_EMAIL_FROM') || 'Afavers <notifications@afavers.online>';
@@ -187,120 +123,22 @@ async function sendEmail(to: string, subject: string, html: string) {
     headers: {
       Authorization: `Bearer ${apiKey}`,
       'Content-Type': 'application/json',
+      'Idempotency-Key': batchId,
     },
     body: JSON.stringify({ from, to, subject, html }),
+    signal: AbortSignal.timeout(15000),
   });
 
   if (!response.ok) {
-    const body = await response.text();
-    throw new Error(`Email send failed (${response.status}): ${body.slice(0, 300)}`);
+    throw Object.assign(new Error('Email delivery rejected'), { uncertain: false, retryable: response.status === 429 || response.status >= 500 });
   }
 }
 
 Deno.serve(async (req) => {
   const options = handleOptions(req);
   if (options) return options;
-
   const cronSecret = Deno.env.get('CRON_SECRET');
-  if (!cronSecret) {
-    return jsonResponse({ error: 'CRON_SECRET is not configured' }, 401, req);
-  }
-  if (req.headers.get('x-cron-secret') !== cronSecret) {
-    return jsonResponse({ error: 'Unauthorized' }, 401, req);
-  }
-
-  const supabase = adminClient();
-  const now = new Date();
-  const since = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
-
-  try {
-    const { data: alerts, error: alertsError } = await supabase
-      .from('job_alerts')
-      .select('id,user_id,name,keywords,locations,min_score,frequency,last_sent_at')
-      .eq('enabled', true);
-    if (alertsError) throw alertsError;
-
-    const activeAlerts = (alerts ?? []).filter((alert: JobAlert) => !shouldSkipForFrequency(alert));
-    if (!activeAlerts.length) {
-      return jsonResponse({ success: true, checked: 0, sent: 0, matches: 0 }, 200, req);
-    }
-
-    const userIds = [...new Set(activeAlerts.map((alert: JobAlert) => alert.user_id))];
-    const { data: users, error: usersError } = await supabase
-      .from('users')
-      .select('id,email')
-      .in('id', userIds);
-    if (usersError) throw usersError;
-    const usersById = new Map((users ?? []).map((user: UserRow) => [user.id, user]));
-
-    const { data: jobs, error: jobsError } = await supabase
-      .from('jobs')
-      .select('id,title,company,location,description,url,source,posted_date,salary,language,created_at')
-      .eq('is_hidden', false)
-      .gte('created_at', since)
-      .order('created_at', { ascending: false })
-      .limit(500);
-    if (jobsError) throw jobsError;
-
-    let sent = 0;
-    let matches = 0;
-    const errors: string[] = [];
-
-    for (const alert of activeAlerts as JobAlert[]) {
-      const user = usersById.get(alert.user_id);
-      if (!user?.email) continue;
-
-      const scored = ((jobs ?? []) as JobRow[])
-        .map((job) => scoreJob(job, alert))
-        .filter((job) => job.score >= alert.min_score)
-        .sort((a, b) => b.score - a.score || Date.parse(b.created_at) - Date.parse(a.created_at))
-        .slice(0, 20);
-      if (!scored.length) {
-        await supabase.from('job_alerts').update({ last_sent_at: now.toISOString() }).eq('id', alert.id);
-        continue;
-      }
-
-      const jobIds = scored.map((job) => job.id);
-      const [{ data: deliveries, error: deliveriesError }, { data: overlays, error: overlaysError }] = await Promise.all([
-        supabase.from('job_alert_deliveries').select('job_id').eq('alert_id', alert.id).in('job_id', jobIds),
-        supabase.from('user_jobs').select('job_id,status,is_hidden').eq('user_id', alert.user_id).in('job_id', jobIds),
-      ]);
-      if (deliveriesError) throw deliveriesError;
-      if (overlaysError) throw overlaysError;
-
-      const delivered = new Set((deliveries ?? []).map((row: { job_id: number }) => row.job_id));
-      const touched = new Set((overlays ?? [])
-        .filter((row: { status: string | null; is_hidden: boolean | null }) => row.is_hidden || (row.status && row.status !== 'new'))
-        .map((row: { job_id: number }) => row.job_id));
-      const freshMatches = scored.filter((job) => !delivered.has(job.id) && !touched.has(job.id)).slice(0, 10);
-      if (!freshMatches.length) {
-        await supabase.from('job_alerts').update({ last_sent_at: now.toISOString() }).eq('id', alert.id);
-        continue;
-      }
-
-      const email = buildEmail(alert, freshMatches);
-      try {
-        await sendEmail(user.email, email.subject, email.html);
-        const { error: insertError } = await supabase.from('job_alert_deliveries').insert(
-          freshMatches.map((job) => ({ alert_id: alert.id, user_id: alert.user_id, job_id: job.id, sent_at: now.toISOString() })),
-        );
-        if (insertError) throw insertError;
-        await supabase.from('job_alerts').update({ last_sent_at: now.toISOString() }).eq('id', alert.id);
-        sent += 1;
-        matches += freshMatches.length;
-      } catch (error) {
-        errors.push(`${user.email}: ${error instanceof Error ? error.message : 'Unknown email error'}`);
-      }
-    }
-
-    return jsonResponse({
-      success: errors.length === 0,
-      checked: activeAlerts.length,
-      sent,
-      matches,
-      errors: errors.slice(0, 5),
-    }, errors.length ? 207 : 200, req);
-  } catch (error) {
-    return jsonResponse({ success: false, error: error instanceof Error ? error.message : 'Job alert run failed' }, 500, req);
-  }
+  if (!cronSecret) return jsonResponse({ error: 'CRON_SECRET is not configured' }, 401, req);
+  if (req.headers.get('x-cron-secret') !== cronSecret) return jsonResponse({ error: 'Unauthorized' }, 401, req);
+  return runJobAlerts(req, { scoreJob, buildEmail, sendEmail, shouldSkip: shouldSkipForFrequency });
 });

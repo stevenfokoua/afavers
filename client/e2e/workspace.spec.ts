@@ -1,0 +1,77 @@
+import { test, expect, signIn, futureDate, environment } from './fixtures';
+
+test('search is lexical; manual application, preparation, stage and settings persist', async ({ page, account, backend }) => {
+  await signIn(page, account);
+  await page.goto('/jobs');
+  await page.getByRole('textbox', { name: 'Search jobs', exact: true }).fill('GIS');
+  await expect(page.getByRole('button', { name: /^CI GIS Analyst/ }).first()).toBeVisible();
+  await expect(page.getByRole('button', { name: /^Psychologischen Studienberatung/ })).toHaveCount(0);
+  await page.getByRole('button', { name: 'Add job manually', exact: true }).click();
+  const form = page.getByRole('dialog', { name: 'Track a job manually', exact: true });
+  await form.getByRole('textbox', { name: 'Job title', exact: true }).fill('CI private manual application');
+  await form.getByRole('textbox', { name: 'Company', exact: true }).fill('CI manual studio');
+  await form.getByRole('textbox', { name: 'Location', exact: true }).fill('Köln');
+  await form.getByRole('button', { name: 'Add job', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'CI private manual application', exact: true })).toBeVisible();
+  const jobId = Number(new URL(page.url()).pathname.split('/').at(-1));
+  await page.getByRole('tab', { name: 'Preparation', exact: true }).click();
+  await page.getByRole('textbox', { name: 'Notes', exact: true }).fill('CI saved research note');
+  await page.getByRole('button', { name: 'Save Notes', exact: true }).click();
+  await expect(page.getByRole('checkbox', { name: 'CV tailored', exact: true })).toBeEnabled();
+  await page.getByRole('checkbox', { name: 'CV tailored', exact: true }).check();
+  await expect.poll(async () => (await backend.rows<{ notes: string; checklist: Record<string, boolean> }>(`user_jobs?select=notes,checklist&user_id=eq.${account.profileId}&job_id=eq.${jobId}`))[0]).toMatchObject({ notes: 'CI saved research note', checklist: { 'CV tailored': true } });
+  await page.goto('/kanban');
+  await expect(page.getByRole('button', { name: 'CI private manual application', exact: true })).toBeVisible();
+  await page.getByRole('combobox', { name: 'Stage for CI private manual application', exact: true }).selectOption('applied');
+  await expect.poll(async () => (await backend.rows<{ status: string }>(`user_jobs?select=status&user_id=eq.${account.profileId}&job_id=eq.${jobId}`))[0]?.status).toBe('applied');
+  await page.reload();
+  if (await page.getByRole('combobox', { name: 'Application stage', exact: true }).isVisible()) await page.getByRole('combobox', { name: 'Application stage', exact: true }).selectOption('applied');
+  await expect(page.getByRole('combobox', { name: 'Stage for CI private manual application', exact: true })).toHaveValue('applied');
+  await page.goto('/settings');
+  await page.getByRole('textbox', { name: 'Job Keywords', exact: true }).fill('GIS, geospatial');
+  await page.getByRole('button', { name: 'Save Settings', exact: true }).click();
+  await expect.poll(async () => (await backend.rows<{ keywords: string }>(`user_settings?select=keywords&user_id=eq.${account.profileId}`))[0]?.keywords).toBe('GIS, geospatial');
+  await page.reload();
+  await expect(page.getByRole('textbox', { name: 'Job Keywords', exact: true })).toHaveValue('GIS, geospatial');
+  await expect(page.locator('.settings-groups')).toBeVisible();
+  const anon = await backend.api.get('rest/v1/public_jobs?select=id&id=eq.' + jobId, { headers: { Authorization: 'Bearer ' + environment.anonKey } });
+  expect(await anon.json()).toEqual([]);
+});
+
+test('agenda and featured opportunities retain their real actions', async ({ page, account, backend }) => {
+  const jobResponse = await backend.api.post('rest/v1/jobs', { headers: { Prefer: 'return=representation' }, data: { external_id: 'ci-agenda-' + account.authId, title: 'CI scheduled application', company: 'CI interview studio', location: 'Köln', source: 'manual', is_manual: true, owner_user_id: account.profileId } });
+  expect(jobResponse.ok()).toBeTruthy();
+  const [job] = await jobResponse.json() as { id: number }[];
+  expect((await backend.api.post('rest/v1/user_jobs', { data: { user_id: account.profileId, job_id: job.id, status: 'interviewing', interview_date: futureDate(2) } })).ok()).toBeTruthy();
+  await signIn(page, account);
+  await page.goto('/dashboard');
+  await page.getByRole('button', { name: 'Prepare interview: CI interview studio', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'CI scheduled application', exact: true })).toBeVisible();
+  await page.goto('/hotpicks');
+  const title = await page.locator('.opportunity-card h2').textContent();
+  await expect(page.locator('.opportunity-reasons')).toBeVisible();
+  const save = page.getByRole('button', { name: page.viewportSize()!.width < 640 ? 'Saved' : 'Save to board', exact: true });
+  await save.click();
+  await expect(page.getByRole('button', { name: 'Undo', exact: true })).toBeEnabled();
+  await page.getByRole('button', { name: 'Undo', exact: true }).click();
+  await expect(page.locator('.opportunity-card h2')).toHaveText(title!);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
+});
+
+test('phone detail return preserves the search and selected result focus', async ({ page, account }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await signIn(page, account);
+  await page.goto('/jobs');
+  await page.getByRole('textbox', { name: 'Search jobs', exact: true }).fill('GIS');
+  const result = page.getByRole('button', { name: /^CI GIS Analyst/ }).first();
+  await result.click();
+  await expect(page.getByRole('heading', { name: 'CI GIS Analyst', exact: true })).toBeVisible();
+  await page.getByRole('button', { name: '← All Jobs', exact: true }).click();
+  await expect(page.getByRole('textbox', { name: 'Search jobs', exact: true })).toHaveValue('GIS');
+  await expect(result).toBeFocused();
+  await page.getByRole('button', { name: 'Filters (1)', exact: true }).click();
+  await page.getByRole('dialog', { name: 'Filter jobs', exact: true }).getByRole('combobox', { name: 'Posted', exact: true }).selectOption('7');
+  await page.getByRole('button', { name: 'Show results', exact: true }).click();
+  await expect(page).toHaveURL(/days=7/);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
+});

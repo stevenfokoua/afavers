@@ -1,7 +1,7 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.1';
 import { handleOptions, jsonResponse } from '../_shared/cors.ts';
+import { BUNDESAGENTUR_URL, parseBundesagenturResponse } from '../_shared/bundesagentur.ts';
 
-const BA_URL = 'https://rest.arbeitsagentur.de/jobboerse/jobsuche-service/pc/v4/app/jobs';
 const DEFAULT_LOCATIONS = ['Düsseldorf', 'Köln', 'Essen', 'Bochum', 'Dortmund'];
 
 Deno.serve(async (req) => {
@@ -15,6 +15,7 @@ Deno.serve(async (req) => {
       auth: { persistSession: false, autoRefreshToken: false },
     });
     const { data: userData } = await supabase.auth.getUser();
+    if (!userData.user) return jsonResponse({ error: 'Unauthorized' }, 401, req);
     const body = await req.json().catch(() => ({}));
     const keyword = String(body.keyword ?? '').trim();
     const location = String(body.location ?? '').trim();
@@ -46,7 +47,7 @@ Deno.serve(async (req) => {
     const apiKey = Deno.env.get('BUNDESAGENTUR_API_KEY') || 'jobboerse-jobsuche';
 
     for (const loc of locations.slice(0, 6)) {
-      const url = new URL(BA_URL);
+      const url = new URL(BUNDESAGENTUR_URL);
       url.searchParams.set('was', searchTerm);
       url.searchParams.set('wo', loc);
       url.searchParams.set('size', '25');
@@ -62,19 +63,17 @@ Deno.serve(async (req) => {
           },
         });
         if (!response.ok) continue;
-        const data = await response.json();
-        for (const item of data?.stellenangebote ?? []) {
-          if (seen.has(item.refnr)) continue;
-          seen.add(item.refnr);
-          const city = item.arbeitsort?.ort || loc;
-          const plz = item.arbeitsort?.plz || '';
+        const parsed = parseBundesagenturResponse(await response.json(), loc);
+        for (const item of parsed.jobs) {
+          if (seen.has(item.reference)) continue;
+          seen.add(item.reference);
           jobs.push({
-            refnr: item.refnr,
-            title: item.titel || item.beruf || 'Werkstudent Position',
-            company: item.arbeitgeber || 'Nicht angegeben',
-            location: plz ? `${city} (${plz})` : city,
-            postedDate: item.aktuelleVeroeffentlichungsdatum || item.modifikationsTimestamp,
-            url: `https://www.arbeitsagentur.de/jobsuche/jobdetail/${item.refnr}`,
+            refnr: item.reference,
+            title: item.title,
+            company: item.company,
+            location: item.location,
+            postedDate: item.postedDate,
+            url: item.url,
           });
         }
       } catch {

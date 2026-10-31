@@ -1,0 +1,20 @@
+[
+  {
+    "family": "dm-sans",
+    "source": "https://fonts.gstatic.com/s/dmsans/v17/rP2Yp2ywxg089UriI5-g4vlH9VoD8Cmcqbu0-K4.woff2",
+    "bytes": 36932,
+    "sha256": "9FEA608A947E67020C33CAD9A6FE3D60C54119DFB8CFF87768A8117A15ED7543"
+  },
+  {
+    "family": "manrope",
+    "source": "https://fonts.gstatic.com/s/manrope/v23/xn7gYHE41ni1AdIRggexSg.woff2",
+    "bytes": 24532,
+    "sha256": "8C2DEF024C1BF31AACF3624AE3C4D701269B4EC3DC765C04830839F0D36B2D9E"
+  },
+  {
+    "family": "figtree-logo",
+    "source": "https://fonts.gstatic.com/l/font?kit=_Xmz-HUzqDCFdgfMsYiV_F7wfS-Bs_f_R15b2kJdgAmVBp2A&skey=3eaac920d8b62e62&v=v9",
+    "bytes": 1228,
+    "sha256": "0644727508BE13D24A24B100F6C6F2B8237AD1021646AEC044D055AE965026EA"
+  }
+]

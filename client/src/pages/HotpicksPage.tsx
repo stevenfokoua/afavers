@@ -1,15 +1,16 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { FeaturedOpportunity } from '../components/jobs/FeaturedOpportunity';
+import { LabourMarketContext } from '../components/jobs/LabourMarketContext';
 import { jobsService } from '../services/jobs.service';
 import type { Job } from '../types';
 import { usePreferencesStore, jobMatchesFilter } from '../store/preferencesStore';
 import { useLanguage } from '../store/languageStore';
+import { useToastStore } from '../store/toastStore';
 
-const BATCH_SIZE = 20;
 const SWIPE_THRESHOLD = 80;
 type SwipeDirection = 'left' | 'right' | 'up';
 
-const stripHtml = (html: string) => html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
 
 const IconFire = ({ size = 24 }: { size?: number }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
@@ -51,8 +52,8 @@ const IconX = ({ size = 16 }: { size?: number }) => (
 );
 
 const SOURCE_LABELS: Record<string, { label: string; cls: string }> = {
-  bundesagentur: { label: 'Bundesagentur', cls: 'bg-blue-50 text-blue-600 border-blue-100' },
-  adzuna: { label: 'Adzuna', cls: 'bg-purple-50 text-purple-600 border-purple-100' },
+  bundesagentur: { label: 'Bundesagentur', cls: 'bg-subtle text-muted border-line' },
+  adzuna: { label: 'Adzuna', cls: 'bg-subtle text-muted border-line' },
 };
 
 export const HotpicksPage = () => {
@@ -74,7 +75,7 @@ export const HotpicksPage = () => {
   const dragOffsetRef = useRef(0);
   const dragYRef = useRef(0);
   const fetchingRef = useRef(false);
-  const fetchOffsetRef = useRef(0);
+  const actionPendingRef = useRef(false);
 
   useEffect(() => {
     fetchMore();
@@ -98,26 +99,25 @@ export const HotpicksPage = () => {
     return () => window.removeEventListener('keydown', handler);
   }, [flying, queue.length]);
 
-  const fetchMore = async () => {
-    if (fetchingRef.current || exhausted) return;
+  const fetchMore = async (force = false) => {
+    if (fetchingRef.current || (!force && exhausted)) return;
     fetchingRef.current = true;
     try {
       const response = await jobsService.getJobs({
         status: 'new',
-        limit: BATCH_SIZE,
-        offset: fetchOffsetRef.current,
+        // The service already merges the corpus in memory. Take one stable
+        // review snapshot instead of paging a result set that shrinks on save.
+        limit: Number.MAX_SAFE_INTEGER,
         sortBy: 'match_score',
         sortOrder: 'DESC',
       });
-      if (response.jobs.length === 0) {
-        setExhausted(true);
-      } else {
-        const filtered = response.jobs.filter((job) => jobMatchesFilter(job, filterKeywords, filterEnabled));
-        setQueue((prev) => [...prev, ...filtered]);
-        fetchOffsetRef.current += response.jobs.length;
-      }
+      const filtered = response.jobs.filter((job) => jobMatchesFilter(job, filterKeywords, filterEnabled));
+      setQueue(filtered);
+      setExhausted(true);
     } catch (err) {
       console.error('Hotpicks fetch error:', err);
+      setExhausted(true);
+      useToastStore.getState().show('Jobs could not be loaded. Use Start over to retry.', 'error');
     } finally {
       fetchingRef.current = false;
       setLoading(false);
@@ -125,26 +125,29 @@ export const HotpicksPage = () => {
   };
 
   const handleRefresh = () => {
+    if (actionPendingRef.current || fetchingRef.current) return;
     setQueue([]);
     setExhausted(false);
     setLoading(true);
-    fetchOffsetRef.current = 0;
     fetchingRef.current = false;
     setLastSwiped(null);
     setSessionStats({ saved: 0, passed: 0, soon: 0 });
-    fetchMore();
+    void fetchMore(true);
   };
 
-  const triggerAction = (direction: SwipeDirection) => {
-    if (flying || queue.length === 0) return;
+  const triggerAction = async (direction: SwipeDirection) => {
+    if (actionPendingRef.current || flying || queue.length === 0) return;
+    actionPendingRef.current = true;
     setFlying(direction);
     const job = queue[0];
-    setTimeout(async () => {
+    try {
+      if (direction === 'right') await jobsService.updateStatus(job.id, 'saved');
+      else if (direction === 'up') await jobsService.markApplySoon(job.id);
+      else await jobsService.toggleHidden(job.id, true);
       setQueue((prev) => prev.slice(1));
       setDragOffset(0);
       dragOffsetRef.current = 0;
       dragYRef.current = 0;
-      setFlying(null);
       setIsSwiping(false);
       lockedDir.current = null;
       setLastSwiped({ job, direction });
@@ -155,35 +158,33 @@ export const HotpicksPage = () => {
       }));
       setLastAction(direction === 'right' ? 'saved' : direction === 'up' ? 'soon' : 'passed');
       setTimeout(() => setLastAction(null), 1500);
-      try {
-        if (direction === 'right') {
-          await jobsService.updateStatus(job.id, 'saved');
-        } else if (direction === 'up') {
-          await jobsService.markApplySoon(job.id);
-        } else {
-          await jobsService.toggleHidden(job.id, true);
-        }
-      } catch {}
-    }, 320);
+    } catch {
+      useToastStore.getState().show('This job was not saved. Please try again.', 'error');
+    } finally {
+      setFlying(null);
+      actionPendingRef.current = false;
+    }
   };
 
   const handleUndo = async () => {
-    if (!lastSwiped || flying) return;
+    if (!lastSwiped || flying || actionPendingRef.current) return;
     const { job, direction } = lastSwiped;
-    setQueue((prev) => [job, ...prev.filter((item) => item.id !== job.id)]);
-    setLastSwiped(null);
-    setSessionStats((prev) => ({
-      saved: Math.max(0, prev.saved - (direction === 'right' ? 1 : 0)),
-      passed: Math.max(0, prev.passed - (direction === 'left' ? 1 : 0)),
-      soon: Math.max(0, prev.soon - (direction === 'up' ? 1 : 0)),
-    }));
+    actionPendingRef.current = true;
     try {
-      if (direction === 'left') {
-        await jobsService.toggleHidden(job.id, false);
-      } else {
-        await jobsService.updateStatus(job.id, 'new');
-      }
-    } catch {}
+      if (direction === 'left') await jobsService.toggleHidden(job.id, false);
+      else await jobsService.updateStatus(job.id, 'new');
+      setQueue((prev) => [job, ...prev.filter((item) => item.id !== job.id)]);
+      setLastSwiped(null);
+      setSessionStats((prev) => ({
+        saved: Math.max(0, prev.saved - (direction === 'right' ? 1 : 0)),
+        passed: Math.max(0, prev.passed - (direction === 'left' ? 1 : 0)),
+        soon: Math.max(0, prev.soon - (direction === 'up' ? 1 : 0)),
+      }));
+    } catch {
+      useToastStore.getState().show('Undo failed. Your tracker was not changed.', 'error');
+    } finally {
+      actionPendingRef.current = false;
+    }
   };
 
   const onTouchStart = (e: React.TouchEvent) => {
@@ -252,10 +253,10 @@ export const HotpicksPage = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center bg-gray-50" style={{ height: 'calc(100dvh - 5rem)' }}>
+      <div className="flex items-center justify-center bg-canvas" style={{ height: 'calc(100dvh - 5rem)' }}>
         <div className="text-center">
-          <div className="mb-4 text-green-600"><IconFire size={42} /></div>
-          <div className="inline-block h-8 w-8 animate-spin rounded-full border-b-2 border-green-600" />
+          <div className="mb-4 text-accent"><IconFire size={42} /></div>
+          <p role="status">{t('loading')}</p>
         </div>
       </div>
     );
@@ -263,21 +264,21 @@ export const HotpicksPage = () => {
 
   if (!loading && queue.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center bg-gray-50 px-6 text-center" style={{ height: 'calc(100dvh - 5rem)' }}>
-        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
+      <div className="flex flex-col items-center justify-center bg-canvas px-6 text-center" style={{ height: 'calc(100dvh - 5rem)' }}>
+        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-md bg-subtle">
           <IconCheck size={32} />
         </div>
-        <h2 className="mb-2 text-xl font-bold text-gray-900">{t('allCaughtUp')}</h2>
-        <p className="mb-8 text-sm text-gray-500">{t('freshPicksHint')}</p>
+        <h2 className="mb-2 text-xl font-semibold text-ink">{t('allCaughtUp')}</h2>
+        <p className="mb-8 text-sm text-muted">{t('freshPicksHint')}</p>
         <button
           onClick={handleRefresh}
-          className="rounded-lg bg-green-600 px-6 py-3 font-semibold text-white shadow-sm transition hover:bg-green-700 active:scale-95"
+          className="rounded-lg bg-ink px-6 py-3 font-semibold text-on-ink shadow-none transition hover:bg-ink "
         >
           <span className="flex items-center gap-2"><IconRefresh size={16} /> {t('startOver')}</span>
         </button>
         <button
           onClick={() => navigate('/jobs')}
-          className="mt-4 text-sm text-gray-500 transition hover:text-gray-700"
+          className="mt-4 text-sm text-muted transition hover:text-ink"
         >
           {t('browseAllJobs')}
         </button>
@@ -287,29 +288,28 @@ export const HotpicksPage = () => {
 
   const currentJob = queue[0];
   const nextJob = queue[1];
-  const afterJob = queue[2];
-  const src = SOURCE_LABELS[currentJob?.source?.toLowerCase()] ?? { label: currentJob?.source || 'Source', cls: 'bg-gray-100 text-gray-500 border-gray-200' };
+  const src = SOURCE_LABELS[currentJob?.source?.toLowerCase()] ?? { label: currentJob?.source || 'Source', cls: 'bg-subtle text-muted border-line' };
 
   return (
-    <div className="min-h-[calc(100dvh-5rem)] bg-gray-50 pb-24 sm:pb-0">
-      <div className="border-b border-gray-200 bg-white">
+    <div className="min-h-[calc(100dvh-5rem)] bg-canvas pb-24 sm:pb-0">
+      <div className="border-b border-line bg-surface">
         <div className="mx-auto max-w-6xl px-4 py-4 sm:px-6 sm:py-5">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div>
-              <h1 className="flex items-center gap-2 text-xl font-bold text-gray-900 sm:text-2xl">
-                <span className="text-green-600"><IconFire size={20} /></span>
+              <h1 className="flex items-center gap-2 text-xl font-semibold text-ink sm:text-2xl">
+                <span className="text-accent"><IconFire size={20} /></span>
                 {t('hotPicks')}
               </h1>
-              <p className="mt-1 max-w-2xl text-xs text-gray-500 sm:text-sm">{t('hotPicksSubtitle')}</p>
+              <p className="mt-1 max-w-2xl text-xs text-muted sm:text-sm">{t('hotPicksSubtitle')}</p>
             </div>
             <div className="flex items-center gap-2 self-start">
               {lastAction && (
                 <span className={`rounded-md border px-2.5 py-1.5 text-xs font-semibold sm:px-3 sm:py-2 sm:text-sm ${
                   lastAction === 'saved'
-                    ? 'border-yellow-200 bg-yellow-50 text-yellow-800'
+                    ? 'border-line bg-subtle text-muted'
                     : lastAction === 'soon'
-                      ? 'border-blue-200 bg-blue-50 text-blue-800'
-                      : 'border-gray-200 bg-gray-100 text-gray-700'
+                      ? 'border-line bg-subtle text-muted'
+                      : 'border-line bg-subtle text-ink'
                 }`}>
                   {lastAction === 'saved' ? t('savedBang') : lastAction === 'soon' ? t('applySoon') : t('passed')}
                 </span>
@@ -317,7 +317,7 @@ export const HotpicksPage = () => {
               <button
                 onClick={handleUndo}
                 disabled={!lastSwiped || !!flying}
-                className="rounded-md border border-gray-300 bg-white px-2.5 py-1.5 text-xs font-semibold text-gray-600 transition hover:border-gray-400 hover:text-gray-900 disabled:opacity-40 sm:px-3 sm:py-2 sm:text-sm"
+                className="rounded-md border border-line bg-surface px-2.5 py-1.5 text-xs font-semibold text-muted transition hover:border-line hover:text-ink disabled:opacity-40 sm:px-3 sm:py-2 sm:text-sm"
               >
                 {t('undo')}
               </button>
@@ -327,150 +327,35 @@ export const HotpicksPage = () => {
       </div>
 
       <div className="mx-auto grid max-w-6xl gap-4 px-4 py-4 sm:gap-6 sm:px-6 sm:py-6 lg:grid-cols-[18rem_minmax(0,1fr)]">
-        <aside className="order-2 space-y-4 lg:order-1">
-          <div className="rounded-lg border border-gray-200 bg-white p-4">
-            <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">{t('reviewQueue')}</p>
-            <p className="mt-2 text-3xl font-bold text-gray-900">{queue.length}</p>
-            <p className="mt-1 text-sm text-gray-500">{t('hotPicksDeck')}</p>
-            <div className="mt-4 grid grid-cols-3 gap-2">
-              <div className="rounded-md bg-yellow-50 px-3 py-2 text-center">
-                <p className="text-lg font-bold text-yellow-700">{sessionStats.saved}</p>
-                <p className="text-[11px] font-semibold text-yellow-800">{t('saved')}</p>
-              </div>
-              <div className="rounded-md bg-gray-100 px-3 py-2 text-center">
-                <p className="text-lg font-bold text-gray-700">{sessionStats.passed}</p>
-                <p className="text-[11px] font-semibold text-gray-700">{t('passed')}</p>
-              </div>
-              <div className="rounded-md bg-blue-50 px-3 py-2 text-center">
-                <p className="text-lg font-bold text-blue-700">{sessionStats.soon}</p>
-                <p className="text-[11px] font-semibold text-blue-800">{t('soon')}</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="rounded-lg border border-gray-200 bg-white p-4">
-            <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">{t('upNext')}</p>
-            <p className="mt-2 line-clamp-2 text-sm font-semibold text-gray-900">
-              {nextJob?.title || t('allCaughtUp')}
-            </p>
-            {nextJob && (
-              <p className="mt-1 line-clamp-2 text-xs text-gray-500">
-                {nextJob.company} · {nextJob.location}
-              </p>
-            )}
-            <p className="mt-4 text-xs text-gray-500">{t('swipeStillWorks')}</p>
-          </div>
-
-          <div className="flex gap-2">
-            <button
-              onClick={handleRefresh}
-              className="flex-1 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-gray-700 transition hover:border-gray-400 hover:text-gray-900"
-            >
-              <span className="flex items-center justify-center gap-2"><IconRefresh size={16} /> {t('startOver')}</span>
-            </button>
-            <button
-              onClick={() => navigate('/jobs')}
-              className="flex-1 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-gray-700 transition hover:border-gray-400 hover:text-gray-900"
-            >
-              {t('browseAllJobs')}
-            </button>
-          </div>
+        <aside className="order-2 lg:order-1 min-w-0">
+          <div className="review-summary"><strong>{queue.length}</strong><span>{t('reviewQueue')}</span></div>
+          <div className="review-session"><span><strong>{sessionStats.saved}</strong>{t('saved')}</span><span><strong>{sessionStats.passed}</strong>{t('passed')}</span><span><strong>{sessionStats.soon}</strong>{t('soon')}</span></div>
+          <section className="review-next"><h2>{t('upNext')}</h2><p>{nextJob?.title || t('allCaughtUp')}</p>{nextJob && <small>{nextJob.company} · {nextJob.location}</small>}<small className="mt-4">{t('swipeStillWorks')}</small></section>
+          <div className="ui-actions"><button type="button" className="ui-button" onClick={handleRefresh}><IconRefresh size={16} />{t('startOver')}</button><button type="button" className="ui-button" onClick={() => navigate('/jobs')}>{t('browseAllJobs')}</button></div>
+          <LabourMarketContext />
         </aside>
 
         <section className="order-1 min-w-0 lg:order-2">
-          <div className="mb-3 flex items-center justify-between gap-3 rounded-lg border border-green-100 bg-green-50 px-3 py-2.5 sm:mb-4 sm:px-4 sm:py-3">
-            <p className="text-xs font-medium text-green-800 sm:text-sm">{t('hotPicksHint')}</p>
-            <span className="hidden rounded-md bg-white px-3 py-1.5 text-xs font-semibold text-green-800 sm:inline-block">
+          <div className="mb-3 flex items-center justify-between gap-3 rounded-lg border border-line bg-subtle px-3 py-2.5 sm:mb-4 sm:px-4 sm:py-3">
+            <p className="text-xs font-medium text-accent sm:text-sm">{t('hotPicksHint')}</p>
+            <span className="hidden rounded-md bg-surface px-3 py-1.5 text-xs font-semibold text-accent sm:inline-block">
               {t('reviewQueue')}
             </span>
           </div>
 
-          <div className="relative min-h-[28rem] sm:min-h-[34rem]">
-            {afterJob && (
-              <div
-                className="absolute inset-x-5 top-4 h-[calc(100%-1rem)] rounded-lg border border-gray-200 bg-white/70 sm:inset-x-8"
-                style={{ transform: 'scale(0.98)', zIndex: 1 }}
-              />
-            )}
-            {nextJob && (
-              <div
-                className="absolute inset-x-2 top-2 h-[calc(100%-0.5rem)] rounded-lg border border-gray-200 bg-white/85 sm:inset-x-4"
-                style={{ transform: 'scale(0.99)', zIndex: 2 }}
-              />
-            )}
-
+          <div className="relative">
             {currentJob && (
               <div
-                className="relative z-10 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm"
+                className="opportunity-card relative z-10"
                 style={cardStyle}
                 onTouchStart={onTouchStart}
                 onTouchMove={onTouchMove}
                 onTouchEnd={onTouchEnd}
               >
-                <div className="border-b border-gray-100 px-4 py-4 sm:px-6 sm:py-5">
-                  <div className="mb-3 flex flex-wrap items-center justify-between gap-2 sm:mb-4 sm:gap-3">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className={`rounded-full border px-2.5 py-1 text-xs font-semibold ${src.cls}`}>
-                        {src.label}
-                      </span>
-                      <span className="rounded-full border border-green-200 bg-green-50 px-2.5 py-1 text-xs font-semibold text-green-800">
-                        {currentJob.match_score ?? 0}% {t('match')}
-                      </span>
-                    </div>
-                    <span className="text-xs font-medium text-gray-400">
-                      {queue.length} {t('hotPicksDeck')}
-                    </span>
-                  </div>
-
-                  <h2 className="text-xl font-bold leading-tight text-gray-900 sm:text-2xl">{currentJob.title}</h2>
-                  <p className="mt-3 text-sm font-semibold text-gray-700 sm:text-base">{currentJob.company}</p>
-                  <p className="mt-1 text-sm text-gray-500">{currentJob.location}</p>
-                  {currentJob.salary && (
-                    <p className="mt-3 text-sm font-semibold text-green-700">{currentJob.salary}</p>
-                  )}
-                </div>
-
-                <div className="space-y-4 px-4 py-4 sm:space-y-5 sm:px-6 sm:py-5">
-                  <div className="rounded-lg border border-green-100 bg-green-50 px-4 py-3">
-                    <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-green-800">{t('whyThisPick')}</p>
-                    <div className="flex flex-wrap gap-2">
-                      {(currentJob.match_reasons ?? []).slice(0, 4).map((reason) => (
-                        <span key={reason} className="rounded-full border border-green-200 bg-white px-2.5 py-1 text-xs font-semibold text-green-800">
-                          {reason}
-                        </span>
-                      ))}
-                      {(currentJob.match_gaps ?? []).slice(0, 2).map((gap) => (
-                        <span key={gap} className="rounded-full border border-amber-200 bg-white px-2.5 py-1 text-xs font-semibold text-amber-800">
-                          {t('missing')}: {gap}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-
-                  {currentJob.description && (
-                    <div>
-                      <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-400">{t('jobSummary')}</p>
-                      <p className="line-clamp-5 text-sm leading-6 text-gray-600 sm:line-clamp-6 sm:leading-7">
-                        {stripHtml(currentJob.description)}
-                      </p>
-                    </div>
-                  )}
-
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    <button
-                      onClick={() => navigate(`/jobs/${currentJob.id}`)}
-                      className="rounded-md border border-gray-300 bg-white px-4 py-3 text-sm font-semibold text-gray-700 transition hover:border-gray-400 hover:text-gray-900"
-                    >
-                      {t('viewFullListing')}
-                    </button>
-                    <button
-                      onClick={() => navigate('/kanban')}
-                      className="rounded-md border border-gray-300 bg-white px-4 py-3 text-sm font-semibold text-gray-700 transition hover:border-gray-400 hover:text-gray-900"
-                    >
-                      {t('applicationsBoard')}
-                    </button>
-                  </div>
-                </div>
+                <FeaturedOpportunity job={currentJob} source={src.label} t={t}>
+                  <button type="button" onClick={() => navigate(`/jobs/${currentJob.id}`)}>{t('viewFullListing')}</button>
+                  <button type="button" onClick={() => navigate('/kanban')}>{t('applicationsBoard')}</button>
+                </FeaturedOpportunity>
               </div>
             )}
           </div>
@@ -479,7 +364,7 @@ export const HotpicksPage = () => {
             <button
               onClick={() => triggerAction('left')}
               disabled={!!flying}
-              className="flex items-center justify-center gap-2 rounded-md border border-gray-300 bg-white px-4 py-3 text-sm font-semibold text-gray-700 transition hover:border-gray-400 hover:text-gray-900 disabled:opacity-50"
+              className="flex items-center justify-center gap-2 rounded-md border border-line bg-surface px-4 py-3 text-sm font-semibold text-ink transition hover:border-line hover:text-ink disabled:opacity-50"
             >
               <IconX size={16} />
               {t('passForNow')}
@@ -487,7 +372,7 @@ export const HotpicksPage = () => {
             <button
               onClick={() => triggerAction('right')}
               disabled={!!flying}
-              className="flex items-center justify-center gap-2 rounded-md border border-yellow-300 bg-yellow-50 px-4 py-3 text-sm font-semibold text-yellow-800 transition hover:bg-yellow-100 disabled:opacity-50"
+              className="flex items-center justify-center gap-2 rounded-md border border-line bg-subtle px-4 py-3 text-sm font-semibold text-muted transition hover:bg-subtle disabled:opacity-50"
             >
               <IconStar size={16} />
               {t('saveToBoard')}
@@ -495,19 +380,19 @@ export const HotpicksPage = () => {
             <button
               onClick={() => triggerAction('up')}
               disabled={!!flying}
-              className="flex items-center justify-center gap-2 rounded-md border border-blue-300 bg-blue-50 px-4 py-3 text-sm font-semibold text-blue-800 transition hover:bg-blue-100 disabled:opacity-50"
+              className="flex items-center justify-center gap-2 rounded-md border border-line bg-subtle px-4 py-3 text-sm font-semibold text-muted transition hover:bg-subtle disabled:opacity-50"
             >
               <IconArrowUp size={16} />
               {t('applySoon')}
             </button>
           </div>
 
-          <div className="fixed inset-x-0 bottom-0 z-20 border-t border-gray-200 bg-white/95 px-4 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-3 shadow-[0_-8px_24px_rgba(15,23,42,0.08)] backdrop-blur sm:hidden">
+          <div className="fixed inset-x-0 bottom-[var(--mobile-nav-height)] z-20 border-t border-line bg-surface px-4 pb-3 pt-3 shadow-none  sm:hidden">
             <div className="grid grid-cols-3 gap-2">
               <button
                 onClick={() => triggerAction('left')}
                 disabled={!!flying}
-                className="flex min-h-[3.25rem] flex-col items-center justify-center gap-1 rounded-md border border-gray-300 bg-white px-2 py-2 text-xs font-semibold text-gray-700 transition hover:border-gray-400 disabled:opacity-50"
+                className="flex min-h-[3.25rem] flex-col items-center justify-center gap-1 rounded-md border border-line bg-surface px-2 py-2 text-xs font-semibold text-ink transition hover:border-line disabled:opacity-50"
               >
                 <IconX size={16} />
                 {t('passed')}
@@ -515,7 +400,7 @@ export const HotpicksPage = () => {
               <button
                 onClick={() => triggerAction('right')}
                 disabled={!!flying}
-                className="flex min-h-[3.25rem] flex-col items-center justify-center gap-1 rounded-md border border-yellow-300 bg-yellow-50 px-2 py-2 text-xs font-semibold text-yellow-800 transition hover:bg-yellow-100 disabled:opacity-50"
+                className="flex min-h-[3.25rem] flex-col items-center justify-center gap-1 rounded-md border border-line bg-subtle px-2 py-2 text-xs font-semibold text-muted transition hover:bg-subtle disabled:opacity-50"
               >
                 <IconStar size={16} />
                 {t('saved')}
@@ -523,7 +408,7 @@ export const HotpicksPage = () => {
               <button
                 onClick={() => triggerAction('up')}
                 disabled={!!flying}
-                className="flex min-h-[3.25rem] flex-col items-center justify-center gap-1 rounded-md border border-blue-300 bg-blue-50 px-2 py-2 text-xs font-semibold text-blue-800 transition hover:bg-blue-100 disabled:opacity-50"
+                className="flex min-h-[3.25rem] flex-col items-center justify-center gap-1 rounded-md border border-line bg-subtle px-2 py-2 text-xs font-semibold text-muted transition hover:bg-subtle disabled:opacity-50"
               >
                 <IconArrowUp size={16} />
                 {t('applySoon')}

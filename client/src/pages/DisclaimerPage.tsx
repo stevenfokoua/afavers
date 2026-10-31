@@ -8,20 +8,20 @@ export const DisclaimerPage = () => {
       <meta name="description" content="Disclaimer and privacy notice for afavers — a free job application tracker for Germany. Learn how we handle your data and where job listings come from." />
       <link rel="canonical" href="https://afavers.online/disclaimer" />
     </Helmet>
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-canvas">
       <div className="max-w-3xl mx-auto px-6 py-16">
         {/* Header */}
         <div className="mb-10">
-          <a href="/" className="text-green-600 text-sm font-medium hover:underline">← Back to afavers</a>
-          <h1 className="mt-6 text-3xl font-bold text-gray-900">Disclaimer &amp; Privacy Notice</h1>
-          <p className="mt-2 text-sm text-gray-500">Last updated: March 2026</p>
+          <a href="/" className="text-accent text-sm font-medium hover:underline">← Back to afavers</a>
+          <h1 className="mt-6 text-3xl font-semibold text-ink">Disclaimer &amp; Privacy Notice</h1>
+          <p className="mt-2 text-sm text-muted">Last updated: March 2026</p>
         </div>
 
-        <div className="space-y-10 text-gray-700 leading-relaxed">
+        <div className="space-y-10 text-ink leading-relaxed">
 
           {/* Service */}
           <section>
-            <h2 className="text-xl font-semibold text-gray-900 mb-3">1. About afavers</h2>
+            <h2 className="text-xl font-semibold text-ink mb-3">1. About afavers</h2>
             <p>
               afavers is a personal job-tracking tool that helps users in Germany organise their job search.
               Job listings displayed on the platform are sourced from the{' '}
@@ -33,7 +33,7 @@ export const DisclaimerPage = () => {
 
           {/* Third-party content */}
           <section>
-            <h2 className="text-xl font-semibold text-gray-900 mb-3">2. Third-Party Job Listings</h2>
+            <h2 className="text-xl font-semibold text-ink mb-3">2. Third-Party Job Listings</h2>
             <p>
               Job listings shown on afavers are retrieved from external sources including the Bundesagentur
               für Arbeit, Adzuna, StepStone, LinkedIn, Indeed, XING, and other job boards. afavers does not own,
@@ -49,7 +49,7 @@ export const DisclaimerPage = () => {
 
           {/* No liability */}
           <section>
-            <h2 className="text-xl font-semibold text-gray-900 mb-3">3. Limitation of Liability</h2>
+            <h2 className="text-xl font-semibold text-ink mb-3">3. Limitation of Liability</h2>
             <p>
               afavers is provided "as is" without warranties of any kind. We are not liable for any direct
               or indirect damages arising from the use of this platform, including missed job opportunities,
@@ -60,11 +60,11 @@ export const DisclaimerPage = () => {
 
           {/* Data & Privacy */}
           <section>
-            <h2 className="text-xl font-semibold text-gray-900 mb-3">4. Data &amp; Privacy (GDPR)</h2>
+            <h2 className="text-xl font-semibold text-ink mb-3">4. Data &amp; Privacy (GDPR)</h2>
             <p>
               afavers collects the minimum data necessary to provide the service:
             </p>
-            <ul className="mt-3 space-y-2 list-disc list-inside text-gray-600">
+            <ul className="mt-3 space-y-2 list-disc list-inside text-muted">
               <li><strong>Account data:</strong> email address and encrypted password, used solely for authentication.</li>
               <li><strong>Job tracking data:</strong> job titles, companies, and statuses you save — stored privately in your account and not shared with third parties.</li>
               <li><strong>Local storage:</strong> your login session token is stored in your browser's local storage to keep you signed in. This is not a cookie and does not track you across websites.</li>
@@ -79,10 +79,10 @@ export const DisclaimerPage = () => {
 
           {/* Contact */}
           <section>
-            <h2 className="text-xl font-semibold text-gray-900 mb-3">5. Contact</h2>
+            <h2 className="text-xl font-semibold text-ink mb-3">5. Contact</h2>
             <p>
               For privacy requests or questions about this notice, please contact us at{' '}
-              <a href="mailto:contact@afavers.online" className="text-green-600 hover:underline">contact@afavers.online</a>.
+              <a href="mailto:contact@afavers.online" className="text-accent hover:underline">contact@afavers.online</a>.
             </p>
           </section>
 

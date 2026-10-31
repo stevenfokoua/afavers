@@ -1,0 +1,32 @@
+{
+  "date": "2026-10-28",
+  "scope": "Final mockups and specifications only, per explicit user clarification",
+  "implementationStarted": false,
+  "productionChanged": false,
+  "fontRoles": {
+    "interface": "DM Sans",
+    "logo": "Existing Afavers wordmark preserved",
+    "headings": "Manrope"
+  },
+  "fontSources": {
+    "manrope": "https://github.com/google/fonts/blob/main/ofl/manrope/OFL.txt",
+    "dmSans": "https://github.com/googlefonts/dm-fonts"
+  },
+  "motionMs": {
+    "detail": 180,
+    "save": 120,
+    "applicationMove": 180
+  },
+  "reducedMotion": "Instantaneous movement with visible state feedback",
+  "previewChecksPassed": 27,
+  "openSpecValid": true,
+  "requirements": 38,
+  "scenarios": 47,
+  "implementationTasks": 39,
+  "browserLayoutVerified": false,
+  "animationSmoothnessMeasured": false,
+  "desktopSha256": "794D82A3080FF84E9A65A00719AB31F845CDF6D925068DD92507924B4E24AD48",
+  "phoneSha256": "D9E8C91B1EA7C21C4D2EE7B5BC136716F21A420E24716AFB4284C7348B748D50",
+  "temporaryHelpers": [],
+  "dockerUsed": false
+}

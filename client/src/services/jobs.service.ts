@@ -2,8 +2,12 @@ import { supabase } from '../lib/supabase';
 import { useAuthStore } from '../store/authStore';
 import { useReminderStore, type ReminderType } from '../store/reminderStore';
 import type { Job, JobsResponse, JobFilters, DashboardStats, FollowUpAlert, AnalyticsData, JobHistoryEvent } from '../types';
-import { scheduleReminder } from './notification.service';
+import { scheduleReminder, cancelReminder } from './notification.service';
 import { settingsService } from './settings.service';
+import { feedHealthService } from './feedHealth.service';
+import { invalidateJobSnapshot, readJobSnapshot } from './jobSnapshot';
+import { discoveryJobs } from '../../../supabase/functions/_shared/job-quality';
+import { HIGH_MATCH_SCORE, isRemoteListing, isStudentListing, listingSearchScore as searchScore, matchesJobLocation, scoreListing, splitMatchTerms as splitTerms } from '../../../supabase/functions/_shared/matching';
 
 type UserJobOverlay = Partial<Pick<Job,
   'status' | 'notes' | 'cover_letter' | 'applied_date' | 'follow_up_date' | 'interview_date' | 'is_hidden' | 'checklist' | 'history'
@@ -25,24 +29,13 @@ export const APPLICATION_CHECKLIST = [
   'Application submitted',
   'Follow-up sent',
 ];
-const STUDENT_TERMS = ['werkstudent', 'working student', 'studentische', 'student assistant', 'praktikum', 'internship'];
-const REMOTE_TERMS = ['remote', 'homeoffice', 'home office', 'hybrid', 'mobiles arbeiten'];
-const SENIOR_TERMS = ['senior', 'lead', 'leiter', 'leitung', 'principal', 'head of'];
-const SEARCH_ALIASES: Record<string, string[]> = {
-  gis: ['gis', 'geoinformatik', 'geospatial', 'geomatics', 'qgis', 'arcgis', 'mapping', 'cartography'],
-  geoinformatik: ['geoinformatik', 'gis', 'geospatial', 'geomatics', 'qgis', 'arcgis'],
-  geospatial: ['geospatial', 'gis', 'geoinformatik', 'geomatics', 'qgis', 'arcgis'],
-  data: ['data', 'analytics', 'analysis', 'analyst', 'bi', 'business intelligence'],
-  werkstudent: ['werkstudent', 'working student', 'studentische', 'student assistant'],
-};
-
 function getUserId(): number {
   const userId = useAuthStore.getState().user?.id;
   if (!userId) throw new Error('You need to sign in again.');
   return userId;
 }
 
-function defaultJob(job: any): Job {
+function defaultJob(job: Job): Job {
   return {
     ...job,
     status: job.status ?? 'new',
@@ -58,17 +51,27 @@ function defaultJob(job: any): Job {
   };
 }
 
-function mergeJob(job: any, overlay?: UserJobOverlay): Job {
+function mergeJob(job: Job, overlay?: UserJobOverlay): Job {
   const base = defaultJob(job);
+  // Deactivation also updates jobs.updated_at; it is not a feed observation.
+  base.last_seen_at = job.source !== 'manual' && !job.is_manual && job.is_active !== false ? job.updated_at : undefined;
+  // Retain personal research before a status change, but not the empty row
+  // left by hide/undo. Otherwise an expired vacancy would stay "new" forever.
+  base.is_tracked = Boolean(overlay && (
+    (overlay.status && overlay.status !== 'new') || overlay.is_hidden ||
+    overlay.notes?.trim() || overlay.cover_letter?.trim() ||
+    overlay.applied_date || overlay.follow_up_date || overlay.interview_date ||
+    Object.keys(overlay.checklist ?? {}).length || overlay.history?.length
+  ));
   if (!overlay) return base;
   return {
     ...base,
     status: (overlay.status ?? base.status) as Job['status'],
     notes: overlay.notes ?? base.notes,
     cover_letter: overlay.cover_letter ?? base.cover_letter,
-    applied_date: overlay.applied_date ?? base.applied_date,
-    follow_up_date: overlay.follow_up_date ?? base.follow_up_date,
-    interview_date: overlay.interview_date ?? base.interview_date,
+    applied_date: overlay.applied_date === undefined ? base.applied_date : overlay.applied_date,
+    follow_up_date: overlay.follow_up_date === undefined ? base.follow_up_date : overlay.follow_up_date,
+    interview_date: overlay.interview_date === undefined ? base.interview_date : overlay.interview_date,
     is_hidden: overlay.is_hidden ?? base.is_hidden,
     checklist: overlay.checklist ?? base.checklist ?? {},
     history: overlay.history ?? base.history ?? [],
@@ -76,143 +79,15 @@ function mergeJob(job: any, overlay?: UserJobOverlay): Job {
   };
 }
 
-function splitTerms(value: string): string[] {
-  return value
-    .split(',')
-    .map((term) => term.trim().toLowerCase())
-    .filter(Boolean);
-}
-
-function containsAny(text: string, terms: string[]): boolean {
-  return terms.some((term) => text.includes(term));
-}
-
-function normalizeSearchText(value: string): string {
-  return value
-    .toLowerCase()
-    .normalize('NFKD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/[^a-z0-9]+/g, ' ')
-    .trim();
-}
-
-function getSearchTerms(query: string): string[] {
-  const normalized = normalizeSearchText(query);
-  const baseTerms = normalized.split(/\s+/).filter(Boolean);
-  const expanded = new Set<string>();
-
-  for (const term of baseTerms) {
-    expanded.add(term);
-    for (const alias of SEARCH_ALIASES[term] ?? []) {
-      expanded.add(alias);
-    }
-  }
-
-  return [...expanded];
-}
-
-function searchScore(job: Job, query: string): number {
-  const normalizedQuery = normalizeSearchText(query);
-  if (!normalizedQuery) return 0;
-
-  const terms = getSearchTerms(query);
-  const title = normalizeSearchText(job.title);
-  const company = normalizeSearchText(job.company);
-  const location = normalizeSearchText(job.location);
-  const description = normalizeSearchText(job.description);
-  const source = normalizeSearchText(job.source);
-  const combined = `${title} ${company} ${location} ${description} ${source}`.trim();
-
-  let score = 0;
-
-  if (title === normalizedQuery) score += 150;
-  if (title.includes(normalizedQuery)) score += 90;
-  if (company.includes(normalizedQuery)) score += 40;
-  if (location.includes(normalizedQuery)) score += 35;
-  if (description.includes(normalizedQuery)) score += 25;
-  if (source.includes(normalizedQuery)) score += 10;
-
-  for (const term of terms) {
-    if (title.includes(term)) score += 45;
-    if (company.includes(term)) score += 20;
-    if (location.includes(term)) score += 15;
-    if (description.includes(term)) score += 12;
-    if (source.includes(term)) score += 5;
-  }
-
-  if (!combined.includes(normalizedQuery) && !terms.some((term) => combined.includes(term))) {
-    return 0;
-  }
-
-  return score;
-}
-
 function scoreJob(job: Job, keywords: string[], locations: string[]): Job {
-  const text = `${job.title} ${job.company} ${job.location} ${job.description}`.toLowerCase();
-  const reasons: string[] = [];
-  const gaps: string[] = [];
-  let score = 20;
-
-  const keywordHits = keywords.filter((term) => text.includes(term));
-  if (keywordHits.length > 0) {
-    score += Math.min(35, keywordHits.length * 12);
-    reasons.push(`Keyword: ${keywordHits.slice(0, 2).join(', ')}`);
-  } else if (keywords.length > 0) {
-    gaps.push('No saved keyword hit');
-  }
-
-  const locationHits = locations.filter((term) => job.location?.toLowerCase().includes(term));
-  if (locationHits.length > 0) {
-    score += 20;
-    reasons.push(`Location: ${locationHits[0]}`);
-  } else if (locations.length > 0 && !containsAny(text, REMOTE_TERMS)) {
-    gaps.push('Outside your saved cities');
-  }
-
-  if (job.language === 'en') {
-    score += 10;
-    reasons.push('Working language: English');
-  } else if (keywords.some((term) => term.includes('english')) && job.language === 'de') {
-    gaps.push('Likely German-language role');
-  }
-
-  if (containsAny(text, REMOTE_TERMS)) {
-    score += 10;
-    reasons.push('Remote-friendly');
-  }
-
-  if (containsAny(text, STUDENT_TERMS)) {
-    score += 8;
-    reasons.push('Werkstudent');
-  }
-
-  if (containsAny(text, SENIOR_TERMS) && keywords.some((term) => ['junior', 'entry', 'werkstudent', 'praktikum', 'internship'].includes(term))) {
-    score -= 8;
-    gaps.push('May be senior-level');
-  }
-
-  if (job.posted_date) {
-    const ageDays = Math.floor((Date.now() - new Date(job.posted_date).getTime()) / 86400000);
-    if (ageDays <= 7) {
-      score += 10;
-      reasons.push('Fresh');
-    } else if (ageDays <= 30) {
-      score += 5;
-    }
-  }
-
-  return {
-    ...job,
-    match_score: Math.max(0, Math.min(100, score)),
-    match_reasons: reasons.slice(0, 5),
-    match_gaps: gaps.slice(0, 3),
-  };
+  const match = scoreListing(job, keywords, locations);
+  return { ...job, match_score: match.score, match_reasons: match.reasons, match_gaps: match.gaps };
 }
 
-function dateInDays(days: number): string {
-  const date = new Date();
+function dateInDays(days: number, from?: string): string {
+  const date = from ? new Date(`${from}T12:00:00`) : new Date();
   date.setDate(date.getDate() + days);
-  return date.toISOString().slice(0, 10);
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 }
 
 function addJobReminder(job: Pick<Job, 'id' | 'title' | 'company'>, type: ReminderType, title: string, date: string, notes?: string): void {
@@ -237,21 +112,26 @@ function addJobReminder(job: Pick<Job, 'id' | 'title' | 'company'>, type: Remind
 }
 
 function scheduleApplicationReminders(job: Job, appliedDate: string): void {
-  addJobReminder(job, 'followup', `Follow up: ${job.company}`, dateInDays(7), '7 days after applying');
-  addJobReminder(job, 'followup', `Review response: ${job.company}`, dateInDays(14), 'If there is no answer, follow up or move it on the board.');
+  addJobReminder(job, 'followup', `Follow up: ${job.company}`, dateInDays(7, appliedDate), '7 days after applying');
+  addJobReminder(job, 'followup', `Review response: ${job.company}`, dateInDays(14, appliedDate), 'If there is no answer, follow up or move it on the board.');
   if (job.deadline && job.deadline > appliedDate) {
     addJobReminder(job, 'deadline', `Deadline: ${job.company}`, job.deadline, job.title);
   }
 }
 
 async function getUserOverlays(userId: number): Promise<Map<number, UserJobOverlay>> {
-  const { data, error } = await supabase
-    .from('user_jobs')
-    .select('job_id,status,notes,cover_letter,applied_date,follow_up_date,interview_date,is_hidden,checklist,history,updated_at')
-    .eq('user_id', userId);
-
-  if (error) throw new Error(error.message);
-  return new Map((data ?? []).map((row) => [row.job_id, row as UserJobOverlay]));
+  const overlays = new Map<number, UserJobOverlay>();
+  for (let from = 0; ; from += JOB_FETCH_LIMIT) {
+    const { data, error } = await supabase
+      .from('user_jobs')
+      .select('job_id,status,notes,cover_letter,applied_date,follow_up_date,interview_date,is_hidden,checklist,history,updated_at')
+      .eq('user_id', userId)
+      .order('job_id', { ascending: true })
+      .range(from, from + JOB_FETCH_LIMIT - 1);
+    if (error) throw new Error(error.message);
+    for (const row of data ?? []) overlays.set(row.job_id, row as UserJobOverlay);
+    if ((data ?? []).length < JOB_FETCH_LIMIT) return overlays;
+  }
 }
 
 function appendHistory(job: Job, label: string, type: JobHistoryEvent['type'] = 'status'): JobHistoryEvent[] {
@@ -267,7 +147,7 @@ function appendHistory(job: Job, label: string, type: JobHistoryEvent['type'] = 
 }
 
 function applyFilters(jobs: Job[], filters?: JobFilters): Job[] {
-  let rows = jobs.filter((job) => !job.is_hidden);
+  let rows = discoveryJobs(jobs).filter((job) => !job.is_hidden);
   const searchScores = new Map<number, number>();
 
   if (filters?.status) {
@@ -280,20 +160,17 @@ function applyFilters(jobs: Job[], filters?: JobFilters): Job[] {
     rows = rows.filter((job) => job.language === filters.language);
   }
   if (filters?.remoteOnly) {
-    rows = rows.filter((job) => containsAny(`${job.location} ${job.title} ${job.description}`.toLowerCase(), REMOTE_TERMS));
+    rows = rows.filter(isRemoteListing);
   }
   if (filters?.studentOnly) {
-    rows = rows.filter((job) => {
-      const text = `${job.title} ${job.company} ${job.description}`.toLowerCase();
-      return containsAny(text, STUDENT_TERMS);
-    });
+    rows = rows.filter(isStudentListing);
   }
   if (filters?.highMatchOnly) {
-    rows = rows.filter((job) => (job.match_score ?? 0) >= 70);
+    rows = rows.filter((job) => (job.match_score ?? 0) >= HIGH_MATCH_SCORE);
   }
   if (filters?.location) {
     const locations = filters.location.split('|').map((value) => value.trim().toLowerCase()).filter(Boolean);
-    rows = rows.filter((job) => locations.some((location) => job.location?.toLowerCase().includes(location)));
+    rows = rows.filter((job) => locations.some((location) => matchesJobLocation(job.location, location)));
   }
   if (filters?.dateFrom) {
     const from = new Date(filters.dateFrom).getTime();
@@ -318,8 +195,8 @@ function applyFilters(jobs: Job[], filters?: JobFilters): Job[] {
       if (scoreDiff !== 0) return scoreDiff;
     }
 
-    const av = (a as any)[sortBy] ?? '';
-    const bv = (b as any)[sortBy] ?? '';
+    const av = a[sortBy as keyof Job] ?? '';
+    const bv = b[sortBy as keyof Job] ?? '';
     if (typeof av === 'number' || typeof bv === 'number') {
       const result = Number(av) - Number(bv);
       return sortOrder === 'ASC' ? result : -result;
@@ -331,8 +208,12 @@ function applyFilters(jobs: Job[], filters?: JobFilters): Job[] {
   return rows;
 }
 
-async function getMergedJobs(): Promise<Job[]> {
+function getMergedJobs(): Promise<Job[]> {
   const userId = getUserId();
+  return readJobSnapshot(userId, () => loadMergedJobs(userId));
+}
+
+async function loadMergedJobs(userId: number): Promise<Job[]> {
   const [{ data: jobs, error }, overlays, settings] = await Promise.all([
     supabase.from('jobs').select('*').order('created_at', { ascending: false }).limit(JOB_FETCH_LIMIT),
     getUserOverlays(userId),
@@ -347,17 +228,18 @@ async function getMergedJobs(): Promise<Job[]> {
   const rows = [...(jobs ?? [])];
   const loadedIds = new Set(rows.map((job) => job.id));
   const missingIds = [...overlays.keys()].filter((id) => !loadedIds.has(id));
-  if (missingIds.length) {
+  for (let from = 0; from < missingIds.length; from += 150) {
     const { data: tracked, error: trackedError } = await supabase
       .from('jobs')
       .select('*')
-      .in('id', missingIds);
+      .in('id', missingIds.slice(from, from + 150));
     if (trackedError) throw new Error(trackedError.message);
     rows.push(...(tracked ?? []));
   }
 
   const keywords = splitTerms(settings.keywords);
   const locations = splitTerms(settings.locations);
+  if (getUserId() !== userId) throw new Error('Your account changed. Please reload this page.');
   return rows.map((job) => scoreJob(mergeJob(job, overlays.get(job.id)), keywords, locations));
 }
 
@@ -373,29 +255,25 @@ async function upsertOverlay(id: number, values: Partial<UserJobOverlay>): Promi
     }, { onConflict: 'user_id,job_id' });
 
   if (error) throw new Error(error.message);
+  invalidateJobSnapshot();
   return jobsService.getJob(id);
 }
 
 export const jobsService = {
   async getStats(): Promise<DashboardStats> {
-    // Merged rows carry the user's own overlay updated_at, so the real fetch
-    // time has to come straight from the shared jobs table.
+    // Listing updates (including deactivation) cannot prove an import finished.
+    // Use the feed run ledger rather than labelling jobs.updated_at a success.
     const [jobs, lastFetch] = await Promise.all([
       getMergedJobs(),
-      supabase
-        .from('jobs')
-        .select('updated_at')
-        .neq('source', 'manual')
-        .order('updated_at', { ascending: false })
-        .limit(1)
-        .maybeSingle(),
+      feedHealthService.get().catch(() => null),
     ]);
+    const visibleJobs = discoveryJobs(jobs);
     const today = new Date().toISOString().slice(0, 10);
-    const lastFetchAt = lastFetch.error ? null : lastFetch.data?.updated_at ?? null;
+    const lastFetchAt = lastFetch?.last_successful_at ?? null;
 
     return {
-      total: jobs.filter((job) => !job.is_hidden).length,
-      new: jobs.filter((job) => job.status === 'new').length,
+      total: visibleJobs.filter((job) => !job.is_hidden).length,
+      new: visibleJobs.filter((job) => !job.is_hidden && job.status === 'new').length,
       saved: jobs.filter((job) => job.status === 'saved').length,
       preparing: jobs.filter((job) => job.status === 'preparing').length,
       applied: jobs.filter((job) => job.status === 'applied').length,
@@ -404,7 +282,7 @@ export const jobsService = {
       offered: jobs.filter((job) => job.status === 'offered').length,
       rejected: jobs.filter((job) => job.status === 'rejected').length,
       archived: jobs.filter((job) => job.status === 'archived').length,
-      new_today: jobs.filter((job) => job.created_at?.slice(0, 10) === today).length,
+      new_today: visibleJobs.filter((job) => !job.is_hidden && !job.is_manual && job.source !== 'manual' && job.created_at?.slice(0, 10) === today).length,
       applied_today: jobs.filter((job) => job.applied_date?.slice(0, 10) === today).length,
       last_fetch_at: lastFetchAt,
     };
@@ -429,7 +307,7 @@ export const jobsService = {
    * instead of issuing N status-filtered calls that each refetch everything.
    */
   async getAllJobs(): Promise<Job[]> {
-    return getMergedJobs();
+    return discoveryJobs(await getMergedJobs());
   },
 
   async getJob(id: number): Promise<Job> {
@@ -511,6 +389,7 @@ export const jobsService = {
       updated_at: now,
     }, { onConflict: 'user_id,job_id' });
     if (overlayError) throw new Error(overlayError.message);
+    invalidateJobSnapshot();
     return jobsService.getJob(data.id);
   },
 
@@ -537,14 +416,17 @@ export const jobsService = {
       .eq('user_id', userId)
       .eq('job_id', id);
     if (error) throw new Error(error.message);
+    invalidateJobSnapshot();
   },
 
-  async fetchJobs(): Promise<{ success: boolean; message: string; inserted: number; updated: number; total: number }> {
+  async fetchJobs(): Promise<{ success: boolean; message: string; inserted: number; updated: number; total: number; complete: boolean }> {
     const { data, error } = await supabase.functions.invoke<{
       success: boolean;
       inserted: number;
       updated?: number;
       total?: number;
+      complete?: boolean;
+      outcome?: string;
       error?: string;
     }>('fetch-jobs', { body: {} });
 
@@ -561,13 +443,16 @@ export const jobsService = {
         : data.error || 'We could not refresh jobs right now. Please try again in a moment.';
       throw new Error(message);
     }
-
+    invalidateJobSnapshot();
+    feedHealthService.invalidate();
+    const complete = data.complete !== false && data.outcome !== 'partial';
     return {
       success: true,
-      message: 'Job refresh completed',
+      message: complete ? 'Job refresh completed' : 'Available jobs refreshed; some searches were incomplete.',
       inserted: data.inserted ?? 0,
       updated: data.updated ?? 0,
       total: data.total ?? 0,
+      complete,
     };
   },
 
@@ -576,11 +461,14 @@ export const jobsService = {
   },
 
   async updateInterviewDate(id: number, interviewDate: string | null): Promise<Job> {
-    const updated = await upsertOverlay(id, { interview_date: interviewDate ?? undefined });
+    const updated = await upsertOverlay(id, { interview_date: interviewDate });
+    const reminderStore = useReminderStore.getState();
+    for (const reminder of reminderStore.reminders.filter((item) => item.linkedJobId === id && item.type === 'interview' && !item.completed)) {
+      await cancelReminder(reminder.id);
+      reminderStore.removeReminder(reminder.id);
+    }
     if (interviewDate) {
-      const reminderDate = new Date(`${interviewDate}T00:00:00`);
-      reminderDate.setDate(reminderDate.getDate() - 1);
-      addJobReminder(updated, 'interview', `Prepare interview: ${updated.company}`, reminderDate.toISOString().slice(0, 10), updated.title);
+      addJobReminder(updated, 'interview', `Prepare interview: ${updated.company}`, dateInDays(-1, interviewDate), updated.title);
     }
     return updated;
   },

@@ -1,3 +1,4 @@
+import { keywordMatches } from '../../../supabase/functions/_shared/matching';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
@@ -52,5 +53,5 @@ export function jobMatchesFilter(
 ): boolean {
   if (!filterEnabled || filterKeywords.length === 0) return true;
   const text = `${job.title ?? ''} ${job.company ?? ''} ${job.description ?? ''}`.toLowerCase();
-  return filterKeywords.some(kw => kw.trim() && text.includes(kw.trim().toLowerCase()));
+  return keywordMatches(text, filterKeywords).length > 0;
 }

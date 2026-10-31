@@ -1,5 +1,6 @@
 import { supabase } from '../lib/supabase';
 import { useAuthStore } from '../store/authStore';
+import { invalidateJobSnapshot } from './jobSnapshot';
 
 export interface Settings {
   keywords: string;
@@ -42,5 +43,6 @@ export const settingsService = {
       }, { onConflict: 'user_id' });
 
     if (error) throw new Error(error.message);
+    invalidateJobSnapshot();
   },
 };

@@ -1,0 +1,440 @@
+{
+  "method": "Built-in browser native getScreenshot, one viewport or named scrolled section. Full-page capture API was unavailable for the recapture batch. No whole-document recapture claim. No generated shipping imagery.",
+  "captures": [
+    {
+      "name": "landing-desktop",
+      "extent": "top viewport",
+      "documentHeight": 5871,
+      "height": 900,
+      "route": "/",
+      "width": 1440,
+      "y": 0,
+      "originalFormat": "PNG",
+      "rasterSize": [
+        1425,
+        891
+      ],
+      "sha256": "5cd252403d44809575eef85c715a395291f3ae7136d11b13a2721a249ff26feb"
+    },
+    {
+      "name": "landing-desktop-hero",
+      "extent": "top viewport",
+      "documentHeight": 5871,
+      "height": 900,
+      "route": "/",
+      "width": 1440,
+      "y": 0,
+      "originalFormat": "PNG",
+      "rasterSize": [
+        1425,
+        891
+      ],
+      "sha256": "5cd252403d44809575eef85c715a395291f3ae7136d11b13a2721a249ff26feb"
+    },
+    {
+      "name": "landing-desktop-samples",
+      "extent": "labelled sample-vacancy section",
+      "documentHeight": 5871,
+      "height": 900,
+      "route": "/",
+      "width": 1440,
+      "y": 3238.39990234375,
+      "originalFormat": "PNG",
+      "rasterSize": [
+        1425,
+        891
+      ],
+      "sha256": "d97dd512a79de3793b45215e67f290d2e2b7c0b501985ed75c60e5fa4c5c59b7"
+    },
+    {
+      "name": "landing-sample-detail",
+      "extent": "sample dialog and honest destination",
+      "documentHeight": 5871,
+      "height": 900,
+      "route": "/",
+      "width": 1440,
+      "y": 3422.39990234375,
+      "originalFormat": "PNG",
+      "rasterSize": [
+        1425,
+        891
+      ],
+      "sha256": "2c8ca63105f58e6132fe353a50d1482f4f786df9c3fdbc406d09e915ff804672"
+    },
+    {
+      "name": "landing-desktop-extension",
+      "extent": "extension heading without eyebrow",
+      "documentHeight": 5871,
+      "height": 900,
+      "route": "/",
+      "width": 1440,
+      "y": 3755.199951171875,
+      "originalFormat": "PNG",
+      "rasterSize": [
+        1425,
+        891
+      ],
+      "sha256": "2885a0d1e1d8fcf93b10924e5eece5a68ea704f4ab481a4eb9a7dced4894de45"
+    },
+    {
+      "name": "landing-mobile",
+      "extent": "top viewport",
+      "documentHeight": 7666,
+      "height": 844,
+      "route": "/",
+      "width": 390,
+      "y": 0,
+      "originalFormat": "PNG",
+      "rasterSize": [
+        375,
+        811
+      ],
+      "sha256": "043c73ef159b0e33ae808d93aebcb75f7e67d5edb5691a296333e7458b91d69c"
+    },
+    {
+      "name": "landing-mobile-hero",
+      "extent": "top viewport",
+      "documentHeight": 7666,
+      "height": 844,
+      "route": "/",
+      "width": 390,
+      "y": 0,
+      "originalFormat": "PNG",
+      "rasterSize": [
+        375,
+        811
+      ],
+      "sha256": "043c73ef159b0e33ae808d93aebcb75f7e67d5edb5691a296333e7458b91d69c"
+    },
+    {
+      "name": "landing-mobile-samples",
+      "extent": "labelled sample-vacancy section",
+      "documentHeight": 7666,
+      "height": 844,
+      "route": "/",
+      "width": 390,
+      "y": 4500,
+      "originalFormat": "PNG",
+      "rasterSize": [
+        375,
+        811
+      ],
+      "sha256": "83a8a11f9584582bbfb4037ae975a94ba9144f95b268ba3ef5fda8027741fa1a"
+    },
+    {
+      "name": "dark-desktop",
+      "extent": "settled top viewport",
+      "documentHeight": 1248,
+      "height": 900,
+      "route": "/jobs",
+      "width": 1440,
+      "y": 0,
+      "originalFormat": "PNG",
+      "rasterSize": [
+        1425,
+        891
+      ],
+      "sha256": "b27ea2021d8f5926e55abecfd32f410918be5f6a49466e68467c45cbb8416618"
+    },
+    {
+      "name": "dark-mobile",
+      "extent": "settled top viewport",
+      "documentHeight": 844,
+      "height": 844,
+      "route": "/jobs",
+      "width": 390,
+      "y": 0,
+      "originalFormat": "PNG",
+      "rasterSize": [
+        390,
+        843
+      ],
+      "sha256": "8cc285d8d2fd167367ca235e85519dacc58eadc9e051baa3e4650f460abb26b1"
+    },
+    {
+      "name": "settings-dark-mobile",
+      "extent": "settled top viewport",
+      "documentHeight": 4069,
+      "height": 844,
+      "route": "/settings",
+      "width": 390,
+      "y": 0,
+      "originalFormat": "PNG",
+      "rasterSize": [
+        375,
+        811
+      ],
+      "sha256": "fb55abd050d3c71eca0612d65438779d94127a0f13b1c86b11a35765fb1101b4"
+    },
+    {
+      "name": "settings-dark-desktop",
+      "extent": "settled top viewport",
+      "documentHeight": 3172,
+      "height": 900,
+      "route": "/settings",
+      "width": 1440,
+      "y": 0,
+      "originalFormat": "PNG",
+      "rasterSize": [
+        1425,
+        891
+      ],
+      "sha256": "6f8ba14ceb874a92466daebc0b78b432c526141ebad2b4b91eebc6dc11d8d6ae"
+    },
+    {
+      "name": "desktop",
+      "extent": "settled top viewport",
+      "documentHeight": 1248,
+      "height": 900,
+      "route": "/jobs",
+      "width": 1440,
+      "y": 0,
+      "originalFormat": "PNG",
+      "rasterSize": [
+        1425,
+        891
+      ],
+      "sha256": "99e62afbee4674ec6284b2c6d8229f1adce0c27b6ad59c3f5c5b41b1ced8533f"
+    },
+    {
+      "name": "mobile",
+      "extent": "settled top viewport",
+      "documentHeight": 844,
+      "height": 844,
+      "route": "/jobs",
+      "width": 390,
+      "y": 0,
+      "originalFormat": "PNG",
+      "rasterSize": [
+        390,
+        843
+      ],
+      "sha256": "b9bc0a1807e2f36b6fa63e15aa7518b192768d57d6e13da0198e49b8a15f6db8"
+    },
+    {
+      "name": "jobs-320",
+      "extent": "settled top viewport after root-overflow correction",
+      "documentHeight": 866,
+      "height": 844,
+      "route": "/jobs",
+      "width": 320,
+      "y": 0,
+      "originalFormat": "JPEG",
+      "rasterSize": [
+        305,
+        804
+      ],
+      "sha256": "aa89b274f45a1873bba15e8629e49320378580282f44b6be0b13ec3c220141ee"
+    },
+    {
+      "name": "jobs-768",
+      "extent": "settled top viewport",
+      "documentHeight": 900,
+      "height": 900,
+      "route": "/jobs",
+      "width": 768,
+      "y": 0,
+      "originalFormat": "PNG",
+      "rasterSize": [
+        768,
+        900
+      ],
+      "sha256": "59f304ad56b5056613fb40397c4f1488a812ca7f30ec4762326e03f06fa136aa"
+    },
+    {
+      "name": "jobs-1024",
+      "extent": "settled top viewport",
+      "documentHeight": 900,
+      "height": 900,
+      "route": "/jobs",
+      "width": 1024,
+      "y": 0,
+      "originalFormat": "PNG",
+      "rasterSize": [
+        1024,
+        900
+      ],
+      "sha256": "08ff5bf7c4e862e76cb75d32f908b2462e75fae5a5fce381f8c57a5ac13706ec"
+    },
+    {
+      "name": "jobs-1024-expanded",
+      "extent": "settled expanded navigation",
+      "documentHeight": 900,
+      "height": 900,
+      "route": "/jobs",
+      "width": 1024,
+      "y": 0,
+      "originalFormat": "PNG",
+      "rasterSize": [
+        1024,
+        900
+      ],
+      "sha256": "fca29af071ed57c4b2280de14ab53be59727e1f63efeca8cdcafcc63b52d1f36"
+    },
+    {
+      "name": "user-1280",
+      "extent": "settled top viewport",
+      "documentHeight": 1068,
+      "height": 720,
+      "route": "/jobs",
+      "width": 1280,
+      "y": 0,
+      "originalFormat": "PNG",
+      "rasterSize": [
+        1265,
+        712
+      ],
+      "sha256": "ca4108967f93bf502fc0d3008207422da814607484a6668f371041135b86057f"
+    },
+    {
+      "name": "dashboard-desktop",
+      "extent": "settled top viewport",
+      "documentHeight": 2409,
+      "height": 900,
+      "route": "/dashboard",
+      "width": 1440,
+      "y": 0,
+      "originalFormat": "PNG",
+      "rasterSize": [
+        1425,
+        891
+      ],
+      "sha256": "449f0f6920302101b062b2316c20dbd9712b7850c02c4bd5d6de8f552647ca14"
+    },
+    {
+      "name": "dashboard-desktop-feed",
+      "extent": "settled aligned rows and quick actions",
+      "documentHeight": 2409,
+      "height": 900,
+      "route": "/dashboard",
+      "width": 1440,
+      "y": 494.3999938964844,
+      "originalFormat": "PNG",
+      "rasterSize": [
+        1425,
+        891
+      ],
+      "sha256": "95627470da03fabf2674c51441f1c33d43359440e1f8b2fe600a79abefab77b5"
+    },
+    {
+      "name": "dashboard-mobile",
+      "extent": "settled top viewport",
+      "documentHeight": 4189,
+      "height": 844,
+      "route": "/dashboard",
+      "width": 390,
+      "y": 0,
+      "originalFormat": "PNG",
+      "rasterSize": [
+        375,
+        811
+      ],
+      "sha256": "18c0a5e50707d87e87111399cb188f8d74966aa32e4fc4a62cf2fdc8216108fa"
+    },
+    {
+      "name": "dashboard-mobile-feed",
+      "extent": "settled aligned job feed rows",
+      "documentHeight": 4189,
+      "height": 844,
+      "route": "/dashboard",
+      "width": 390,
+      "y": 810.4000244140625,
+      "originalFormat": "PNG",
+      "rasterSize": [
+        375,
+        811
+      ],
+      "sha256": "7adc5b008a19f2caa18ccfd177ea8ef6ae802c627c4331b1d0f82b459acf803c"
+    },
+    {
+      "name": "board-desktop",
+      "extent": "settled top viewport",
+      "documentHeight": 900,
+      "height": 900,
+      "route": "/kanban",
+      "width": 1440,
+      "y": 0,
+      "originalFormat": "PNG",
+      "rasterSize": [
+        1440,
+        900
+      ],
+      "sha256": "7313f6f9163ffbf8c5213f5e6cc8867eb6c87f375165fa2373124b4990b0b7cc"
+    },
+    {
+      "name": "board-mobile",
+      "extent": "settled top viewport",
+      "documentHeight": 844,
+      "height": 844,
+      "route": "/kanban",
+      "width": 390,
+      "y": 0,
+      "originalFormat": "PNG",
+      "rasterSize": [
+        390,
+        843
+      ],
+      "sha256": "cfc5781be78415ccdc8cc7cead74115682cf44171c02f2fee7c1c762ed4b7723"
+    },
+    {
+      "name": "login-desktop",
+      "extent": "settled top viewport",
+      "documentHeight": 900,
+      "height": 900,
+      "route": "/login",
+      "width": 1440,
+      "y": 0,
+      "originalFormat": "PNG",
+      "rasterSize": [
+        1440,
+        900
+      ],
+      "sha256": "60730e31818cd5f4fb6daedee501c078f697f5b428a1b5410101dcb4333b036e"
+    },
+    {
+      "name": "login-mobile",
+      "extent": "settled top viewport",
+      "documentHeight": 844,
+      "height": 844,
+      "route": "/login",
+      "width": 390,
+      "y": 0,
+      "originalFormat": "PNG",
+      "rasterSize": [
+        390,
+        843
+      ],
+      "sha256": "6c70b665248bb7cd3d8bc686369bd3a69796c2c29099ee4e2d92db7ae9aa1abe"
+    },
+    {
+      "name": "landing-category-strip",
+      "extent": "settled Jobs/Applications/Reminders category strip",
+      "width": 1440,
+      "height": 900,
+      "y": 553.5999755859375,
+      "documentHeight": 5871,
+      "route": "/",
+      "originalFormat": "JPEG",
+      "rasterSize": [
+        1425,
+        891
+      ],
+      "sha256": "f0ec4eb264ef70dac13f10900da7118acd72f322de19675f4bce9fcf70de47f2"
+    },
+    {
+      "name": "landing-category-strip-mobile",
+      "extent": "settled category strip on phone",
+      "width": 390,
+      "height": 844,
+      "y": 695.2000122070312,
+      "documentHeight": 7666,
+      "route": "/",
+      "originalFormat": "JPEG",
+      "rasterSize": [
+        375,
+        811
+      ],
+      "sha256": "9de803a56b5b933e2331637d3a813581032ecf6de0125e083899e5e75a665cd8"
+    }
+  ]
+}

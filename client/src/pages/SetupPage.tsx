@@ -3,18 +3,19 @@ import { useNavigate } from 'react-router-dom';
 import { settingsService } from '../services/settings.service';
 import { markSetupSeen } from '../routes/OnboardingRedirect';
 import { useAuthStore } from '../store/authStore';
-import { useLanguage } from '../store/languageStore';
+import {usePageLanguage} from '../hooks/usePageLanguage';
+import {messages} from '../i18n/SetupPage';
 import { LanguageToggle } from '../components/common/LanguageToggle';
 
 const FIELD_PRESETS = [
-  { label: 'Tech / IT',     keywords: 'developer,software engineer,data analyst,DevOps,IT',            emoji: '💻' },
-  { label: 'Environment',   keywords: 'umwelt,klimaschutz,nachhaltigkeit,GIS,energie,renewables',       emoji: '🌱' },
-  { label: 'Business',      keywords: 'consulting,beratung,project manager,finance,accounting',          emoji: '📊' },
-  { label: 'Healthcare',    keywords: 'nurse,Pflegefachkraft,doctor,Arzt,medical',                      emoji: '🏥' },
-  { label: 'Engineering',   keywords: 'Ingenieur,engineer,mechanical,electrical,civil',                 emoji: '⚙️' },
-  { label: 'Marketing',     keywords: 'marketing,social media,SEO,content,brand manager',               emoji: '📣' },
-  { label: 'Design / UX',   keywords: 'designer,UX,UI,Grafik,product design,creative',                 emoji: '🎨' },
-  { label: 'Logistics',     keywords: 'logistics,supply chain,Spedition,warehouse,transport',           emoji: '🚛' },
+  { label: 'Tech / IT',     keywords: 'developer,software engineer,data analyst,DevOps,IT',            emoji: '' },
+  { label: 'Environment',   keywords: 'umwelt,klimaschutz,nachhaltigkeit,GIS,energie,renewables',       emoji: '' },
+  { label: 'Business',      keywords: 'consulting,beratung,project manager,finance,accounting',          emoji: '' },
+  { label: 'Healthcare',    keywords: 'nurse,Pflegefachkraft,doctor,Arzt,medical',                      emoji: '' },
+  { label: 'Engineering',   keywords: 'Ingenieur,engineer,mechanical,electrical,civil',                 emoji: '' },
+  { label: 'Marketing',     keywords: 'marketing,social media,SEO,content,brand manager',               emoji: '' },
+  { label: 'Design / UX',   keywords: 'designer,UX,UI,Grafik,product design,creative',                 emoji: '' },
+  { label: 'Logistics',     keywords: 'logistics,supply chain,Spedition,warehouse,transport',           emoji: '' },
 ];
 
 const LOCATION_PRESETS = [
@@ -52,9 +53,9 @@ const ProgressDots = ({ current }: { current: number }) => (
     {Array.from({ length: TOTAL_STEPS }).map((_, i) => (
       <div
         key={i}
-        className={`rounded-full transition-all duration-300 ${
-          i < current   ? 'w-6 h-2 bg-[#16a34a]' :
-          i === current ? 'w-8 h-2 bg-[#16a34a]' :
+        className={`rounded-md transition-colors duration-300 ${
+          i < current   ? 'w-6 h-2 bg-ink' :
+          i === current ? 'w-8 h-2 bg-ink' :
                           'w-2 h-2 bg-[#dfe3eb]'
         }`}
       />
@@ -64,7 +65,7 @@ const ProgressDots = ({ current }: { current: number }) => (
 
 export const SetupPage = () => {
   const navigate = useNavigate();
-  const { t } = useLanguage();
+  const { t, lang } = usePageLanguage(messages);
   const userId = useAuthStore((state) => state.user?.id);
   const [step, setStep] = useState(0);
   const [keywords, setKeywords] = useState('');
@@ -76,6 +77,7 @@ export const SetupPage = () => {
   const [selectedField, setSelectedField] = useState<string | null>(null);
   const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState(false);
 
   const selectedCities = locations.split(',').map(l => l.trim()).filter(Boolean);
 
@@ -100,6 +102,7 @@ export const SetupPage = () => {
 
   const handleSave = async () => {
     setSaving(true);
+    setSaveError(false);
     try {
       const typeKeywords = JOB_TYPE_PRESETS
         .filter(type => selectedTypes.includes(type.label))
@@ -115,8 +118,9 @@ export const SetupPage = () => {
         keywords: resolvedKeywords || 'developer,analyst,engineer',
         locations: locations.trim() || 'Berlin,München,Hamburg',
       });
-      localStorage.setItem('afavers-weekly-goal', weeklyGoal);
-      localStorage.setItem('afavers-search-profile', JSON.stringify({
+      try {
+        localStorage.setItem(`afavers-weekly-goal:user:${userId}`, weeklyGoal);
+        localStorage.setItem(`afavers-search-profile:user:${userId}`, JSON.stringify({
         field: selectedField,
         types: selectedTypes,
         language: languagePreference,
@@ -124,18 +128,22 @@ export const SetupPage = () => {
         weeklyGoal,
         workStatus,
         savedAt: new Date().toISOString(),
-      }));
+        }));
+      } catch {
+        // Keywords/cities already saved on the server. Optional device details
+        // must not turn that success into an unrecoverable save-error loop.
+      }
       markSetupSeen(userId);
-      navigate('/jobs?match=high');
+      navigate('/jobs?sort=match_score');
     } catch {
-      navigate('/dashboard');
+      setSaveError(true);
     } finally {
       setSaving(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-[#f4f6fa] flex items-center justify-center p-4" style={{ fontFamily: "'Lato', 'Inter', sans-serif" }}>
+    <div className="min-h-screen bg-canvas flex items-center justify-center p-4" style={{ fontFamily: 'var(--font-ui)' }}>
       <div className="absolute right-4 top-4">
         <LanguageToggle />
       </div>
@@ -143,33 +151,33 @@ export const SetupPage = () => {
 
         {step > 0 && step < TOTAL_STEPS && <ProgressDots current={step - 1} />}
 
-        <div className="bg-white border border-[#dfe3eb] rounded-2xl overflow-hidden shadow-[0_4px_24px_0_rgba(15,44,65,0.08)]">
+        <div className="bg-surface border border-line rounded-lg overflow-hidden shadow-none-[0_4px_24px_0_rgba(15,44,65,0.08)]">
 
           {/* ── STEP 0: Welcome ── */}
           {step === 0 && (
             <div className="p-8">
               {/* Brand header */}
               <div className="text-center mb-8">
-                <div className="w-14 h-14 rounded-2xl bg-[#16a34a] flex items-center justify-center mx-auto mb-4 shadow-[0_4px_12px_0_rgba(22,163,74,0.3)]">
+                <div className="w-14 h-14 rounded-lg bg-ink flex items-center justify-center mx-auto mb-4 shadow-none-[0_4px_12px_0_rgba(22,163,74,0.3)]">
                   <svg viewBox="0 0 24 24" className="w-8 h-8 fill-white">
                     <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
                   </svg>
                 </div>
-                <h1 className="text-[26px] font-black text-[#0a1a25] leading-tight">{t('setupWelcome')}</h1>
-                <p className="text-[#6f839c] text-[14px] mt-2">{t('setupSubtitle')}</p>
+                <h1 className="text-[26px] font-semibold text-ink leading-tight">{t('setupWelcome')}</h1>
+                <p className="text-muted text-[14px] mt-2">{t('setupSubtitle')}</p>
               </div>
 
               <div className="space-y-3 mb-8">
                 {[
-                  { icon: '⏱️', title: t('setupAutoTitle'), desc: t('setupAutoDesc') },
-                  { icon: '📋', title: t('setupTrackTitle'), desc: t('setupTrackDesc') },
-                  { icon: '🎯', title: t('setupPersonalTitle'), desc: t('setupPersonalDesc') },
+                  { icon: '', title: t('setupAutoTitle'), desc: t('setupAutoDesc') },
+                  { icon: '', title: t('setupTrackTitle'), desc: t('setupTrackDesc') },
+                  { icon: '', title: t('setupPersonalTitle'), desc: t('setupPersonalDesc') },
                 ].map(({ icon, title, desc }) => (
-                  <div key={title} className="flex items-start gap-3 p-3 rounded-xl bg-[#f4f6fa]">
+                  <div key={title} className="flex items-start gap-3 p-3 rounded-lg bg-canvas">
                     <span className="text-xl shrink-0 mt-0.5">{icon}</span>
                     <div>
-                      <p className="text-[13px] font-black text-[#0a1a25]">{title}</p>
-                      <p className="text-[12px] text-[#6f839c] leading-snug mt-0.5">{desc}</p>
+                      <p className="text-[13px] font-semibold text-ink">{title}</p>
+                      <p className="text-[12px] text-muted leading-snug mt-0.5">{desc}</p>
                     </div>
                   </div>
                 ))}
@@ -177,13 +185,13 @@ export const SetupPage = () => {
 
               <button
                 onClick={() => setStep(1)}
-                className="w-full bg-[#16a34a] hover:bg-green-700 text-white font-black py-3.5 px-4 rounded-xl transition text-[15px] shadow-[0_2px_8px_0_rgba(22,163,74,0.3)] active:scale-[0.98]"
+                className="w-full bg-ink hover:bg-ink text-on-ink font-semibold py-3.5 px-4 rounded-lg transition text-[15px] shadow-none-[0_2px_8px_0_rgba(22,163,74,0.3)] "
               >
                 {t('setupFeed')}
               </button>
               <button
-                onClick={() => { markSetupSeen(userId); navigate('/dashboard'); }}
-                className="w-full text-[13px] text-[#c1cbd5] hover:text-[#6f839c] transition mt-3 py-1.5 font-bold"
+                onClick={() => { markSetupSeen(userId); navigate('/jobs'); }}
+                className="w-full text-[13px] text-muted hover:text-muted transition mt-3 py-1.5 font-semibold"
               >
                 {t('setupSkip')}
               </button>
@@ -194,9 +202,9 @@ export const SetupPage = () => {
           {step === 1 && (
             <div className="p-8">
               <div className="text-center mb-7">
-                <div className="text-4xl mb-3">🎯</div>
-                <h2 className="text-[22px] font-black text-[#0a1a25]">{t('setupWhatJobs')}</h2>
-                <p className="text-[#6f839c] text-[13px] mt-1.5">{t('setupWhatJobsDesc')}</p>
+                <div className="text-4xl mb-3"></div>
+                <h2 className="text-[22px] font-semibold text-ink">{t('setupWhatJobs')}</h2>
+                <p className="text-muted text-[13px] mt-1.5">{t('setupWhatJobsDesc')}</p>
               </div>
 
               <div className="grid grid-cols-2 gap-2.5 mb-5">
@@ -204,34 +212,35 @@ export const SetupPage = () => {
                   <button
                     key={preset.label}
                     onClick={() => handleFieldSelect(preset)}
-                    className={`text-left p-3.5 rounded-xl border-2 transition-all active:scale-[0.97] ${
+                    className={`text-left p-3.5 rounded-lg border-2 transition-colors  ${
                       selectedField === preset.label
-                        ? 'border-[#16a34a] bg-[#f0fdf4] shadow-sm'
-                        : 'border-[#dfe3eb] hover:border-[#c1cbd5] hover:bg-[#f4f6fa]'
+                        ? 'border-[#16a34a] bg-[#f0fdf4] shadow-none'
+                        : 'border-line hover:border-line hover:bg-canvas'
                     }`}
                   >
                     <div className="text-2xl mb-1">{preset.emoji}</div>
-                    <div className="font-black text-[#0a1a25] text-[13px]">{preset.label}</div>
-                    <div className="text-[#6f839c] text-[11px] mt-0.5 truncate">{preset.keywords.split(',')[0]}…</div>
+                    <div className="font-semibold text-ink text-[13px]">{preset.label}</div>
+                    <div className="text-muted text-[11px] mt-0.5 truncate">{preset.keywords.split(',')[0]}…</div>
                   </button>
                 ))}
               </div>
 
               <div>
-                <label className="block text-[12px] font-black text-[#6f839c] uppercase tracking-wide mb-1.5">
+                <label className="block text-[12px] font-semibold text-muted uppercase tracking-wide mb-1.5">
                   {t('setupCustomKeywords')} <span className="normal-case font-normal">{t('setupComma')}</span>
                 </label>
                 <textarea
+                  aria-label={t('setupCustomKeywords')}
                   rows={2}
                   value={keywords}
                   onChange={e => { setKeywords(e.target.value); setSelectedField(null); }}
-                  className="w-full px-3 py-2.5 border border-[#dfe3eb] rounded-xl focus-visible:ring-2 focus-visible:ring-[#16a34a] focus-visible:border-transparent outline-none text-[13px] resize-none text-[#0a1a25] bg-[#f4f6fa]"
+                  className="w-full px-3 py-2.5 border border-line rounded-lg focus-visible:ring-2 focus-visible:ring-[#16a34a] focus-visible:border-transparent outline-none text-[13px] resize-none text-ink bg-canvas"
                   placeholder={t('setupKeywordPlaceholder')}
                 />
               </div>
 
               <div className="mt-4">
-                <label className="block text-[12px] font-black text-[#6f839c] uppercase tracking-wide mb-2">
+                <label className="block text-[12px] font-semibold text-muted uppercase tracking-wide mb-2">
                   {t('setupJobTypes')}
                 </label>
                 <div className="flex flex-wrap gap-2">
@@ -240,10 +249,10 @@ export const SetupPage = () => {
                       key={type.label}
                       type="button"
                       onClick={() => toggleType(type.label)}
-                      className={`px-3 py-1.5 rounded-full text-[12px] font-bold border-2 transition-all ${
+                      className={`px-3 py-1.5 rounded-md text-[12px] font-semibold border-2 transition-colors ${
                         selectedTypes.includes(type.label)
-                          ? 'bg-[#0a1a25] text-white border-[#0a1a25]'
-                          : 'bg-white text-[#223a5a] border-[#dfe3eb] hover:border-[#0a1a25]'
+                          ? 'bg-ink text-on-ink border-[#0a1a25]'
+                          : 'bg-surface text-ink border-line hover:border-[#0a1a25]'
                       }`}
                     >
                       {type.label}
@@ -253,13 +262,13 @@ export const SetupPage = () => {
               </div>
 
               <div className="flex justify-between items-center mt-6">
-                <button onClick={() => setStep(0)} className="text-[13px] font-bold text-[#c1cbd5] hover:text-[#6f839c] transition">
+                <button onClick={() => setStep(0)} className="text-[13px] font-semibold text-muted hover:text-muted transition">
                   {t('setupBack')}
                 </button>
                 <button
                   onClick={() => setStep(2)}
                   disabled={!keywords.trim()}
-                  className="px-6 py-2.5 bg-[#0a1a25] hover:bg-[#223a5a] disabled:opacity-30 disabled:cursor-not-allowed text-white font-black rounded-xl transition text-[13px] active:scale-[0.98]"
+                  className="px-6 py-2.5 bg-ink hover:bg-ink disabled:opacity-30 disabled:cursor-not-allowed text-on-ink font-semibold rounded-lg transition text-[13px] "
                 >
                   {t('setupNext')}
                 </button>
@@ -271,9 +280,9 @@ export const SetupPage = () => {
           {step === 2 && (
             <div className="p-8">
               <div className="text-center mb-7">
-                <div className="text-4xl mb-3">📍</div>
-                <h2 className="text-[22px] font-black text-[#0a1a25]">{t('setupWhere')}</h2>
-                <p className="text-[#6f839c] text-[13px] mt-1.5">{t('setupWhereDesc')}</p>
+                <div className="text-4xl mb-3"></div>
+                <h2 className="text-[22px] font-semibold text-ink">{t('setupWhere')}</h2>
+                <p className="text-muted text-[13px] mt-1.5">{t('setupWhereDesc')}</p>
               </div>
 
               <div className="flex flex-wrap gap-2 mb-4">
@@ -281,10 +290,10 @@ export const SetupPage = () => {
                   <button
                     key={city}
                     onClick={() => handleCityToggle(city)}
-                    className={`px-3.5 py-1.5 rounded-full text-[13px] font-bold border-2 transition-all active:scale-95 ${
+                    className={`px-3.5 py-1.5 rounded-md text-[13px] font-semibold border-2 transition-colors  ${
                       selectedCities.includes(city)
-                        ? 'bg-[#16a34a] text-white border-[#16a34a] shadow-sm'
-                        : 'bg-white text-[#223a5a] border-[#dfe3eb] hover:border-[#16a34a] hover:text-[#16a34a]'
+                        ? 'bg-ink text-on-ink border-[#16a34a] shadow-none'
+                        : 'bg-surface text-ink border-line hover:border-[#16a34a] hover:text-accent'
                     }`}
                   >
                     {city}
@@ -293,20 +302,21 @@ export const SetupPage = () => {
               </div>
 
               <div className="mb-5">
-                <label className="block text-[12px] font-black text-[#6f839c] uppercase tracking-wide mb-1.5">
+                <label className="block text-[12px] font-semibold text-muted uppercase tracking-wide mb-1.5">
                   {t('setupOtherCities')}
                 </label>
                 <input
                   type="text"
+                  aria-label={t('setupOtherCities')}
                   value={locations}
                   onChange={e => setLocations(e.target.value)}
-                  className="w-full px-3 py-2.5 border border-[#dfe3eb] rounded-xl focus-visible:ring-2 focus-visible:ring-[#16a34a] focus-visible:border-transparent outline-none text-[13px] text-[#0a1a25] bg-[#f4f6fa]"
+                  className="w-full px-3 py-2.5 border border-line rounded-lg focus-visible:ring-2 focus-visible:ring-[#16a34a] focus-visible:border-transparent outline-none text-[13px] text-ink bg-canvas"
                   placeholder={t('setupOtherCitiesPlaceholder')}
                 />
               </div>
 
               <div className="mb-5">
-                <label className="block text-[12px] font-black text-[#6f839c] uppercase tracking-wide mb-2">
+                <label className="block text-[12px] font-semibold text-muted uppercase tracking-wide mb-2">
                   {t('setupRadius')}
                 </label>
                 <div className="grid grid-cols-4 gap-2">
@@ -315,10 +325,10 @@ export const SetupPage = () => {
                       key={value}
                       type="button"
                       onClick={() => setRadius(value)}
-                      className={`px-2 py-2 rounded-xl text-[12px] font-black border-2 transition-all ${
+                      className={`px-2 py-2 rounded-lg text-[12px] font-semibold border-2 transition-colors ${
                         radius === value
-                          ? 'bg-[#0a1a25] text-white border-[#0a1a25]'
-                          : 'bg-white text-[#223a5a] border-[#dfe3eb] hover:border-[#0a1a25]'
+                          ? 'bg-ink text-on-ink border-[#0a1a25]'
+                          : 'bg-surface text-ink border-line hover:border-[#0a1a25]'
                       }`}
                     >
                       {value} km
@@ -328,7 +338,7 @@ export const SetupPage = () => {
               </div>
 
               <div>
-                <label className="block text-[12px] font-black text-[#6f839c] uppercase tracking-wide mb-2">
+                <label className="block text-[12px] font-semibold text-muted uppercase tracking-wide mb-2">
                   {t('setupLanguage')}
                 </label>
                 <div className="space-y-2">
@@ -337,27 +347,27 @@ export const SetupPage = () => {
                       key={option.value}
                       type="button"
                       onClick={() => setLanguagePreference(option.value)}
-                      className={`w-full flex items-center justify-between p-3 rounded-xl border-2 transition-all ${
+                      className={`w-full flex items-center justify-between p-3 rounded-lg border-2 transition-colors ${
                         languagePreference === option.value
                           ? 'border-[#16a34a] bg-[#f0fdf4]'
-                          : 'border-[#dfe3eb] bg-[#f4f6fa] hover:border-[#c1cbd5]'
+                          : 'border-line bg-canvas hover:border-line'
                       }`}
                     >
-                      <span className="text-[13px] font-black text-[#0a1a25]">{option.label}</span>
-                      {languagePreference === option.value && <span className="text-[#16a34a] text-sm font-black">✓</span>}
+                      <span className="text-[13px] font-semibold text-ink">{option.label}</span>
+                      {languagePreference === option.value && <span className="text-accent text-sm font-semibold">✓</span>}
                     </button>
                   ))}
                 </div>
               </div>
 
               <div className="flex justify-between items-center mt-6">
-                <button onClick={() => setStep(1)} className="text-[13px] font-bold text-[#c1cbd5] hover:text-[#6f839c] transition">
+                <button onClick={() => setStep(1)} className="text-[13px] font-semibold text-muted hover:text-muted transition">
                   {t('setupBack')}
                 </button>
                 <button
                   onClick={() => setStep(3)}
                   disabled={saving || (!locations.trim() && selectedCities.length === 0)}
-                  className="px-6 py-2.5 bg-[#16a34a] hover:bg-green-700 disabled:opacity-30 disabled:cursor-not-allowed text-white font-black rounded-xl transition text-[13px] shadow-[0_2px_8px_0_rgba(22,163,74,0.3)] active:scale-[0.98] flex items-center gap-2"
+                  className="px-6 py-2.5 bg-ink hover:bg-ink disabled:opacity-30 disabled:cursor-not-allowed text-on-ink font-semibold rounded-lg transition text-[13px] shadow-none-[0_2px_8px_0_rgba(22,163,74,0.3)]  flex items-center gap-2"
                 >
                   {t('setupNext')}
                 </button>
@@ -369,13 +379,13 @@ export const SetupPage = () => {
           {step === 3 && (
             <div className="p-8">
               <div className="text-center mb-7">
-                <div className="text-4xl mb-3">📆</div>
-                <h2 className="text-[22px] font-black text-[#0a1a25]">{t('setupMomentum')}</h2>
-                <p className="text-[#6f839c] text-[13px] mt-1.5">{t('setupMomentumDesc')}</p>
+                <div className="text-4xl mb-3"></div>
+                <h2 className="text-[22px] font-semibold text-ink">{t('setupMomentum')}</h2>
+                <p className="text-muted text-[13px] mt-1.5">{t('setupMomentumDesc')}</p>
               </div>
 
               <div className="mb-5">
-                <label className="block text-[12px] font-black text-[#6f839c] uppercase tracking-wide mb-2">
+                <label className="block text-[12px] font-semibold text-muted uppercase tracking-wide mb-2">
                   {t('setupWeeklyGoal')}
                 </label>
                 <div className="grid grid-cols-4 gap-2">
@@ -384,10 +394,10 @@ export const SetupPage = () => {
                       key={value}
                       type="button"
                       onClick={() => setWeeklyGoal(value)}
-                      className={`px-2 py-3 rounded-xl text-[13px] font-black border-2 transition-all ${
+                      className={`px-2 py-3 rounded-lg text-[13px] font-semibold border-2 transition-colors ${
                         weeklyGoal === value
-                          ? 'bg-[#16a34a] text-white border-[#16a34a]'
-                          : 'bg-white text-[#223a5a] border-[#dfe3eb] hover:border-[#16a34a]'
+                          ? 'bg-ink text-on-ink border-[#16a34a]'
+                          : 'bg-surface text-ink border-line hover:border-[#16a34a]'
                       }`}
                     >
                       {value}
@@ -397,7 +407,7 @@ export const SetupPage = () => {
               </div>
 
               <div>
-                <label className="block text-[12px] font-black text-[#6f839c] uppercase tracking-wide mb-2">
+                <label className="block text-[12px] font-semibold text-muted uppercase tracking-wide mb-2">
                   {t('setupWorkStatus')} <span className="normal-case font-normal">{t('setupOptional')}</span>
                 </label>
                 <div className="space-y-2">
@@ -406,10 +416,10 @@ export const SetupPage = () => {
                       key={option}
                       type="button"
                       onClick={() => setWorkStatus(prev => prev === option ? '' : option)}
-                      className={`w-full text-left p-3 rounded-xl border-2 text-[13px] font-bold transition-all ${
+                      className={`w-full text-left p-3 rounded-lg border-2 text-[13px] font-semibold transition-colors ${
                         workStatus === option
-                          ? 'border-[#0a1a25] bg-[#eef2f6] text-[#0a1a25]'
-                          : 'border-[#dfe3eb] bg-[#f4f6fa] text-[#223a5a] hover:border-[#0a1a25]'
+                          ? 'border-[#0a1a25] bg-[#eef2f6] text-ink'
+                          : 'border-line bg-canvas text-ink hover:border-[#0a1a25]'
                       }`}
                     >
                       {option}
@@ -418,25 +428,25 @@ export const SetupPage = () => {
                 </div>
               </div>
 
-              <div className="mt-5 rounded-xl bg-[#f4f6fa] border border-[#dfe3eb] p-3">
-                <p className="text-[13px] font-black text-[#0a1a25]">{t('setupAfter')}</p>
-                <p className="text-[12px] text-[#6f839c] leading-snug mt-1">
+              <div className="mt-5 rounded-lg bg-canvas border border-line p-3">
+                <p className="text-[13px] font-semibold text-ink">{t('setupAfter')}</p>
+                <p className="text-[12px] text-muted leading-snug mt-1">
                   {t('setupAfterDesc')}
                 </p>
               </div>
 
               <div className="flex justify-between items-center mt-6">
-                <button onClick={() => setStep(2)} className="text-[13px] font-bold text-[#c1cbd5] hover:text-[#6f839c] transition">
+                <button onClick={() => setStep(2)} className="text-[13px] font-semibold text-muted hover:text-muted transition">
                   {t('setupBack')}
                 </button>
                 <button
                   onClick={handleSave}
                   disabled={saving}
-                  className="px-6 py-2.5 bg-[#16a34a] hover:bg-green-700 disabled:opacity-30 disabled:cursor-not-allowed text-white font-black rounded-xl transition text-[13px] shadow-[0_2px_8px_0_rgba(22,163,74,0.3)] active:scale-[0.98] flex items-center gap-2"
+                  className="px-6 py-2.5 bg-ink hover:bg-ink disabled:opacity-30 disabled:cursor-not-allowed text-on-ink font-semibold rounded-lg transition text-[13px] shadow-none-[0_2px_8px_0_rgba(22,163,74,0.3)]  flex items-center gap-2"
                 >
                   {saving ? (
                     <>
-                      <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
+                      <svg className=" h-4 w-4" viewBox="0 0 24 24" fill="none">
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
                       </svg>
@@ -445,12 +455,13 @@ export const SetupPage = () => {
                   ) : t('setupFindJobs')}
                 </button>
               </div>
+              {saveError && <p role="alert" className="mt-4 text-sm leading-relaxed text-danger">{lang === 'de' ? 'Deine Suche konnte nicht gespeichert werden. Deine Eingaben bleiben erhalten. Prüfe die Verbindung und versuche es erneut.' : 'We couldn’t save your search. Your choices are still here. Check your connection and try again.'}</p>}
             </div>
           )}
 
         </div>
 
-        <p className="text-center text-[12px] text-[#c1cbd5] mt-5 font-bold">
+        <p className="text-center text-[12px] text-muted mt-5 font-semibold">
           {t('setupChangeLater')}
         </p>
       </div>

@@ -5,14 +5,19 @@ import { useAuthStore } from '../store/authStore';
 
 const DEFAULT_KEYWORDS = 'consulting,beratung,nachhaltigkeit,umwelt,gis,energy';
 const DEFAULT_LOCATIONS = 'Düsseldorf,Köln,Essen,Bochum,Dortmund';
+const seenInThisTab = new Set<number>();
 
 function hasSeenSetup(userId: number): boolean {
-  return localStorage.getItem(`setup-seen:${userId}`) === 'true';
+  if (seenInThisTab.has(userId)) return true;
+  try { return localStorage.getItem(`setup-seen:${userId}`) === 'true'; }
+  catch { return false; }
 }
 
 export function markSetupSeen(userId: number | undefined): void {
   if (!userId) return;
-  localStorage.setItem(`setup-seen:${userId}`, 'true');
+  seenInThisTab.add(userId);
+  try { localStorage.setItem(`setup-seen:${userId}`, 'true'); }
+  catch { /* Setup still completes when device storage is blocked or full. */ }
 }
 
 export const OnboardingRedirect = ({ children }: { children: React.ReactNode }) => {
@@ -60,13 +65,10 @@ export const OnboardingRedirect = ({ children }: { children: React.ReactNode }) 
       <div
         role="status"
         aria-live="polite"
-        className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900"
+        className="min-h-screen flex items-center justify-center bg-canvas"
       >
         <span className="sr-only">Loading…</span>
-        <div
-          aria-hidden="true"
-          className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"
-        />
+        <span aria-hidden="true">…</span>
       </div>
     );
   }
