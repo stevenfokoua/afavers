@@ -14,6 +14,9 @@
 @media(max-width:767px){.dashboard-summary{grid-template-columns:repeat(3,minmax(0,1fr));row-gap:20px}.dashboard-summary-item:nth-child(4){padding-left:0}.dashboard-agenda-row{grid-template-columns:60px minmax(0,1fr);gap:12px;padding:16px}.dashboard-agenda-row>span:last-child{grid-column:2;font-size:12px}.dashboard-summary-item:nth-child(3){border-right:0}}
 .ui-modal-surface{padding:0;border:0;border-radius:var(--radius-panel);background:var(--surface);color:var(--ink);width:min(560px,calc(100% - 32px));max-height:calc(100dvh - 32px);overflow:auto}.ui-modal-surface--wide{width:min(1100px,calc(100% - 32px))}.ui-modal-surface::backdrop{background:rgb(0 0 0/.5)}.ui-modal-surface>div{margin-inline:auto}
 
+/* Long source text must reflow rather than widening the detail page. */
+.job-detail-title,.job-detail-company{overflow-wrap:anywhere;min-width:0}
+
 /* Corrections from the first desktop/phone review. */
 .jobs-list>div:not(:last-child) .job-result{border-bottom:1px solid var(--line)}
 @media(max-width:767px){.ui-button{min-height:44px}.jobs-controls{gap:8px}.jobs-controls .saved-searches{flex:0 1 auto}.jobs-sort{min-width:0}.app-mobile-header .ui-button{min-width:44px}.ui-page-header{gap:10px}}

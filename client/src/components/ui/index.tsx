@@ -1,4 +1,4 @@
-import { forwardRef, useEffect, useId, useRef, type ButtonHTMLAttributes, type ReactNode } from 'react';
+import { forwardRef, useEffect, useId, useRef, type ButtonHTMLAttributes, type KeyboardEvent, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { Icon } from './Icon';
 export { Icon } from './Icon';
@@ -55,6 +55,20 @@ export function EmptyState({
 }) {
   return <div className="ui-empty"><h2>{title}</h2>{children && <p>{children}</p>}{action}</div>;
 }
+
+// Native modal inertness does not consistently wrap reverse Tab before browser
+// chrome. Keep keyboard navigation within the visible, enabled modal controls.
+function containModalTab(event: KeyboardEvent<HTMLDialogElement>) {
+  if (event.key !== 'Tab') return;
+  const dialog = event.currentTarget;
+  const controls = [...dialog.querySelectorAll<HTMLElement>('a[href],button,input,select,textarea,[tabindex],[contenteditable="true"]')]
+    .filter(element => element.tabIndex >= 0 && !element.matches(':disabled') && element.getClientRects().length > 0 && getComputedStyle(element).visibility !== 'hidden');
+  const first = controls[0], last = controls.at(-1), active = document.activeElement;
+  if (!first || !last) { event.preventDefault(); dialog.focus(); return; }
+  if (event.shiftKey && (active === first || active === dialog)) { event.preventDefault(); last.focus(); }
+  else if (!event.shiftKey && (active === last || active === dialog)) { event.preventDefault(); first.focus(); }
+}
+
 export function Dialog({
   open,
   title,
@@ -82,7 +96,7 @@ export function Dialog({
     };
   }, [open]);
   if (!open) return null;
-  return createPortal(<dialog ref={ref} className="ui-dialog" aria-labelledby={id} onCancel={e => {
+  return createPortal(<dialog ref={ref} className="ui-dialog" aria-labelledby={id} onKeyDown={containModalTab} onCancel={e => {
     e.preventDefault();
     onClose();
   }}><header><h2 id={id}>{title}</h2><Button variant="quiet" aria-label="Close / Schließen" onClick={onClose}><Icon name="close" /></Button></header>{children}</dialog>, document.body);
@@ -111,7 +125,7 @@ export function ModalSurface({
       trigger?.focus?.();
     };
   }, []);
-  return createPortal(<dialog ref={ref} className={`ui-modal-surface${wide ? ' ui-modal-surface--wide' : ''}`} aria-label={label} onCancel={event => {
+  return createPortal(<dialog ref={ref} className={`ui-modal-surface${wide ? ' ui-modal-surface--wide' : ''}`} aria-label={label} onKeyDown={containModalTab} onCancel={event => {
     event.preventDefault();
     onClose();
   }}>{children}</dialog>, document.body);

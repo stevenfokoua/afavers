@@ -236,6 +236,7 @@ def reminder_unauthorized():
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--commit', required=True, help='Exact reviewed 40-character source commit')
+    parser.add_argument('--check-only', action='store_true', help='Verify source, migration drift and service ownership without installation')
     args = parser.parse_args()
     owner = os.environ['AGENT_RESOURCE_OWNER']
     if (ROOT / '.resource-owner').read_text().strip() != owner or (STAGE / '.owner').read_text().strip() != owner:
@@ -244,6 +245,13 @@ def main():
     if STAGE.is_symlink() or source.is_symlink() or not source.resolve().is_relative_to(ROOT.resolve()):
         raise RuntimeError('stage_source_symlink_or_escape')
     manifest = verify_source(source, args.commit); plan = copy_plan(manifest)
+    if args.check_only:
+        current = services(owner)
+        if not healthy(current): raise RuntimeError('unhealthy_backend_preflight')
+        pending = verify_migrations(source, manifest)
+        print(json.dumps({'commit':args.commit,'sourceVerified':True,'pendingMigrations':pending,
+                          'ownedHealthyServices':len(current),'mutationPerformed':False}))
+        return 0
     lock_path = ROOT / '.readiness-install.lock'
     with lock_path.open('a+') as lock:
         fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)

@@ -57,4 +57,42 @@ describe('shared application editor',()=>{
     fireEvent.change(screen.getByLabelText('interviewDate'),{target:{value:'2026-11-01'}});await screen.findByRole('alert');
     expect((screen.getByLabelText('interviewDate') as HTMLInputElement).value).toBe('2026-11-01');
   });
+  it('shows a checklist change immediately while acknowledgement is pending',async()=>{
+    let acknowledge!:(value:Job)=>void;
+    vi.mocked(jobsService.updateChecklist).mockReturnValueOnce(new Promise(resolve=>{acknowledge=resolve;}));
+    render(<JobDetails id={1} initialJob={job()}/>);fireEvent.click(screen.getByRole('tab',{name:'Preparation'}));
+    fireEvent.change(screen.getByLabelText('notes'),{target:{value:'Unrelated draft remains'}});
+    const checkbox=host.querySelector<HTMLInputElement>('input[type=checkbox]')!;
+    fireEvent.click(checkbox);
+    expect(checkbox.checked).toBe(true);expect(checkbox.disabled).toBe(true);
+    expect(jobsService.updateChecklist).toHaveBeenCalledWith(1,{'CV tailored':true});
+    await act(async()=>acknowledge({...job(),checklist:{'CV tailored':true}}));
+    expect(checkbox.checked).toBe(true);expect(checkbox.disabled).toBe(false);
+    expect((screen.getByLabelText('notes') as HTMLTextAreaElement).value).toBe('Unrelated draft remains');
+    expect(jobsService.updateNotes).not.toHaveBeenCalled();
+  });
+  it('rolls a failed checklist save back and allows the user to retry',async()=>{
+    let reject!:(error:Error)=>void;
+    vi.mocked(jobsService.updateChecklist).mockReturnValueOnce(new Promise((_resolve,fail)=>{reject=fail;})).mockResolvedValueOnce({...job(),checklist:{'CV tailored':true}});
+    render(<JobDetails id={1} initialJob={job()}/>);fireEvent.click(screen.getByRole('tab',{name:'Preparation'}));
+    const checkbox=host.querySelector<HTMLInputElement>('input[type=checkbox]')!;
+    fireEvent.click(checkbox);expect(checkbox.checked).toBe(true);
+    await act(async()=>reject(Error('offline')));
+    await screen.findByRole('alert');expect(checkbox.checked).toBe(false);expect(checkbox.disabled).toBe(false);
+    fireEvent.click(checkbox);
+    await waitFor(()=>expect(checkbox.checked&&!checkbox.disabled).toBe(true));
+    expect(jobsService.updateChecklist).toHaveBeenCalledTimes(2);
+  });
+  it('does not roll back a newly selected job when an earlier checklist save fails',async()=>{
+    let reject!:(error:Error)=>void;
+    vi.mocked(jobsService.updateChecklist).mockReturnValueOnce(new Promise((_resolve,fail)=>{reject=fail;}));
+    const view=render(<JobDetails id={1} initialJob={job()}/>);fireEvent.click(screen.getByRole('tab',{name:'Preparation'}));
+    fireEvent.click(host.querySelector<HTMLInputElement>('input[type=checkbox]')!);
+    view.rerender(<JobDetails id={2} initialJob={{...job(2),checklist:{'CV tailored':true}}}/>);
+    await act(async()=>reject(Error('old request failed')));
+    expect(screen.getByRole('heading',{name:'Frontend Engineer 2'})).not.toBeNull();
+    expect(host.querySelector<HTMLInputElement>('input[type=checkbox]')!.checked).toBe(true);
+    expect(host.querySelector<HTMLInputElement>('input[type=checkbox]')!.disabled).toBe(false);
+    expect(screen.queryByRole('alert')).toBeNull();
+  });
 });

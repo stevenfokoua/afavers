@@ -37,7 +37,7 @@ test('signup confirmation and password recovery reach the local-only SMTP captur
     await expect.poll(() => new URL(page.url()).origin).toBe(new URL(environment.appUrl).origin);
     expect((await auth.post('auth/v1/token?grant_type=password', { data: { email, password } })).ok()).toBeTruthy();
     await page.goto('/forgot-password');
-    await page.getByRole('textbox', { name: 'Email Address', exact: true }).fill(email);
+    await page.getByRole('textbox', { name: 'Email address', exact: true }).fill(email);
     await page.getByRole('button', { name: 'Send Reset Link', exact: true }).click();
     const recovery = await capturedLink(mail, email, /reset|recover/i);
     await page.goto(recovery);

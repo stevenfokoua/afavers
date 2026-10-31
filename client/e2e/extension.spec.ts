@@ -13,7 +13,7 @@ const EXTENSION_ID = [...createHash('sha256').update(Buffer.from(TEST_KEY, 'base
 test.describe('installed Chromium extension', () => {
   test.skip(({ browserName }) => browserName !== 'chromium', 'Unpacked Chrome extensions require Chromium');
 
-  test('popup signs in, saves a manual capture, preserves preparation and signs out', async ({ account, backend }, testInfo) => {
+  test('popup signs in, saves a manual capture, preserves preparation and signs out', async ({ account, backend }) => {
     const root = await mkdtemp(join(tmpdir(), 'afavers-extension-'));
     await writeFile(join(root, '.owner'), environment.owner);
     const installed = join(root, 'extension');
@@ -29,7 +29,6 @@ test.describe('installed Chromium extension', () => {
       await writeFile(join(installed, 'manifest.json'), JSON.stringify(manifest));
       await writeFile(join(installed, 'config.js'), 'self.__AFAVERS_CONFIG__ = ' + JSON.stringify({ SUPABASE_URL: environment.apiUrl, SUPABASE_ANON_KEY: environment.anonKey, DASHBOARD_URL: environment.appUrl + '/jobs' }) + ';\n');
       context = await chromium.launchPersistentContext('', { channel: 'chromium', headless: true, args: [`--disable-extensions-except=${installed}`, `--load-extension=${installed}`] });
-      await context.tracing.start({ screenshots: true, snapshots: true });
       const popup = await context.newPage();
       await popup.goto(`chrome-extension://${EXTENSION_ID}/popup.html`);
       await popup.getByPlaceholder('Email', { exact: true }).fill(account.email);
@@ -70,12 +69,13 @@ test.describe('installed Chromium extension', () => {
       await popup.reload();
       await expect(popup.getByRole('button', { name: 'Sign In', exact: true })).toBeVisible();
     } finally {
-      if (context) {
-        await context.tracing.stop({ path: testInfo.outputPath('installed-extension-trace.zip') }).catch(() => {});
-        await context.close();
+      try {
+        // Playwright Test already owns tracing for custom contexts as well.
+        if (context) await context.close();
+      } finally {
+        if (dirname(root) !== tmpdir() || (await readFile(join(root, '.owner'), 'utf8')) !== environment.owner) throw new Error('Refusing cleanup of an unowned extension fixture');
+        await rm(root, { recursive: true, force: true });
       }
-      if (dirname(root) !== tmpdir() || (await readFile(join(root, '.owner'), 'utf8')) !== environment.owner) throw new Error('Refusing cleanup of an unowned extension fixture');
-      await rm(root, { recursive: true, force: true });
     }
   });
 });

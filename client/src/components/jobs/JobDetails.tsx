@@ -68,6 +68,8 @@ export function JobDetails({
   const load = async () => {
     const current = ++sequence.current;
     setError('');
+    setBusy('');
+    setSaved('');
     setLoading(!initialJob);
     try {
       const value = initialJob?.id === id ? initialJob : await jobsService.getJob(id);
@@ -115,7 +117,7 @@ export function JobDetails({
   useEffect(() => {
     if (!loading && job && animateSelection) settleDetails(content.current);
   }, [loading, id]);
-  const mutate = async (key: string, operation: () => Promise<Job>) => {
+  const mutate = async (key: string, operation: () => Promise<Job>, rollback?: () => void) => {
     if (busy) return;
     const request = sequence.current;
     setBusy(key);
@@ -128,7 +130,10 @@ export function JobDetails({
       setSaved(key);
       if (key === 'notes' || key === 'letter') confirmSaved(saveButton.current);
     } catch {
-      if (sequence.current === request) setError(de ? 'Nicht gespeichert. Dein Entwurf bleibt erhalten. Bitte erneut versuchen.' : 'Not saved. Your draft is retained. Please try again.');
+      if (sequence.current === request && validOwner()) {
+        rollback?.();
+        setError(de ? 'Nicht gespeichert. Dein Entwurf bleibt erhalten. Bitte erneut versuchen.' : 'Not saved. Your draft is retained. Please try again.');
+      }
     } finally {
       if (sequence.current === request) setBusy('');
     }
@@ -201,10 +206,13 @@ export function JobDetails({
       <div className="job-freshness">{t('posted')}: {format(job.posted_date)}{job.deadline && <> · {t('deadline')}: {format(job.deadline)}</>}<br />{de ? 'Zuletzt im Feed gesehen' : 'Last seen in feed'}: {format(job.last_seen_at)}</div>
     </section>
     <section role="tabpanel" id={`${statusId}-panel-preparation`} aria-labelledby={`${statusId}-preparation`} hidden={tab !== 'preparation'} className="job-preparation">
-      <div><h2 className="text-lg mb-2">{de ? 'Checkliste' : 'Checklist'}</h2>{APPLICATION_CHECKLIST.map(item => <label className="ui-check" key={item}><input type="checkbox" checked={!!job.checklist?.[item]} disabled={!!busy} onChange={() => void mutate('checklist', () => jobsService.updateChecklist(id, {
-            ...job.checklist,
-            [item]: !job.checklist?.[item]
-          }))} />{de ? checklistDE[item] ?? item : item}</label>)}</div>
+      <div><h2 className="text-lg mb-2">{de ? 'Checkliste' : 'Checklist'}</h2>{APPLICATION_CHECKLIST.map(item => <label className="ui-check" key={item}><input type="checkbox" checked={!!job.checklist?.[item]} disabled={!!busy} onChange={event => {
+            if (busy) return;
+            const original = job;
+            const checklist = { ...job.checklist, [item]: event.currentTarget.checked };
+            setJob({ ...job, checklist });
+            void mutate('checklist', () => jobsService.updateChecklist(id, checklist), () => setJob(original));
+          }} />{de ? checklistDE[item] ?? item : item}</label>)}</div>
       <label className="ui-label">{t('notes')}<textarea className="ui-field" value={notes} onChange={event => {
           setNotes(event.target.value);
           setSaved('');

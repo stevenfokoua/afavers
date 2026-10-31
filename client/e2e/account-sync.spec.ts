@@ -6,7 +6,7 @@ test('reminders and saved searches survive independent device contexts and delet
   const other = await secondDevice(browser, account);
   try {
     await page.goto('/reminders');
-    await page.getByRole('button', { name: 'New Reminder', exact: true }).click();
+    await page.getByLabel('New Reminder', { exact: true }).click();
     const dialog = page.getByRole('dialog', { name: 'New reminder', exact: true });
     await dialog.getByRole('textbox', { name: 'Title', exact: true }).fill('CI synced reminder');
     await dialog.getByRole('textbox', { name: 'Notes', exact: true }).fill('Created on the first device');
