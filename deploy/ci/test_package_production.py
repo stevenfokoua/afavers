@@ -32,6 +32,7 @@ class ProductionPackageTests(unittest.TestCase):
         (self.repo / 'package-lock.json').write_text('{}')
         (self.extension / 'package-lock.json').write_text('{}')
         (self.dist / 'index.html').write_text('<html>Fixture</html>')
+        (self.dist / 'afavers-chrome-extension.zip').write_bytes(b'stale public-assets placeholder')
         (self.dist / 'version.json').write_text(json.dumps({'version': COMMIT[:12], 'builtAt': '2026-10-31T00:00:00Z'}))
         self.manifest = json.loads((REPO / 'extension/manifest.json').read_text())
         for name in PRODUCTION.EXTENSION_FILES:

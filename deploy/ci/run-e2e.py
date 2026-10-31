@@ -124,7 +124,7 @@ def run():
             sql(state, 'BEGIN;\n'+source+'\nCOMMIT;')
             state['migrationHashes'][migration.name] = hashlib.sha256(migration.read_bytes()).hexdigest()
             write_state(state)
-        sql(state, "UPDATE cron.job SET active=false; NOTIFY pgrst, 'reload schema';")
+        sql(state, "SELECT cron.alter_job(jobid, active := false) FROM cron.job; NOTIFY pgrst, 'reload schema';")
         base = f"http://127.0.0.1:{ports['AFAVERS_CI_API_PORT']}/backend"
         wait_http(base + '/auth/v1/health')
         test_env = {'apiUrl':base,'anonKey':values['ANON_KEY'],'serviceKey':values['SERVICE_ROLE_KEY'],'owner':owner,'mailUrl':f"http://127.0.0.1:{ports['AFAVERS_CI_MAIL_PORT']}",'appUrl':f"http://127.0.0.1:{ports['AFAVERS_CI_APP_PORT']}"}

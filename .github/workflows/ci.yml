@@ -44,6 +44,11 @@ jobs:
       - name: Run tests
         run: npm test --workspace=client
 
+      - name: Verify operations, capacity and release packaging contracts
+        run: |
+          python -m unittest discover -s deploy -p 'test_*.py'
+          python -m unittest discover -s deploy/ci -p 'test_*.py'
+
   # ─── Build ──────────────────────────────────────────────────────────────────
   build:
     name: Vite production build (client)

@@ -51,11 +51,13 @@ def package_production(repo, out, commit, url, key):
         raise ValueError('Extension manifest icons are missing')
     out.mkdir(parents=True, exist_ok=True)
     archive = out / 'frontend.tar.gz'
-    generated = [archive, out / 'frontend.tar.gz.sha256', out / 'source.json', dist / 'afavers-chrome-extension.zip', dist / 'SOURCE_VERSION', dist / 'source.json']
+    generated = [archive, out / 'frontend.tar.gz.sha256', out / 'source.json', dist / 'SOURCE_VERSION', dist / 'source.json']
     if any(path.exists() for path in generated):
         raise ValueError('Refusing to overwrite an existing production package or source metadata')
     config = {'SUPABASE_URL': url, 'SUPABASE_ANON_KEY': key, 'DASHBOARD_URL': APP_ORIGIN + '/jobs'}
-    with zipfile.ZipFile(dist / 'afavers-chrome-extension.zip', 'x', zipfile.ZIP_DEFLATED) as package:
+    # Vite copies an old public-assets ZIP into dist. Replace that build output
+    # with the extension just rebuilt in this job; never change source config.
+    with zipfile.ZipFile(dist / 'afavers-chrome-extension.zip', 'w', zipfile.ZIP_DEFLATED) as package:
         for name in EXTENSION_FILES:
             if name == 'manifest.json':
                 package.writestr(name, json.dumps(manifest, indent=2) + '\n')
