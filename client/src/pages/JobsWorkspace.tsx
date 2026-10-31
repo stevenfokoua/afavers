@@ -42,6 +42,7 @@ export function JobsWorkspace() {
       owner: number | null;
       jobs: Job[];
       total: number;
+      browseWindowLimited?: boolean;
     }>({
       owner,
       jobs: [],
@@ -100,10 +101,16 @@ export function JobsWorkspace() {
       setData({
         owner,
         jobs: response.jobs,
-        total: response.total
+        total: response.total,
+        browseWindowLimited: response.browse_window_limited
       });
     }).catch(() => {
-      if (!cancelled) setError(de ? 'Jobs konnten nicht geladen werden. Deine Filter bleiben erhalten.' : 'Unable to load jobs. Your filters have been retained.');
+      if (!cancelled && request === sequence.current && useAuthStore.getState().user?.id === owner) {
+        setData({ owner, jobs: [], total: 0 });
+        setError(search.search.trim()
+          ? de ? 'Die Suche konnte nicht abgeschlossen werden. Nutze einen genaueren Beruf oder Suchbegriff oder versuche es erneut.' : 'Search could not be completed. Use a more specific role or keyword, or retry.'
+          : de ? 'Jobs konnten nicht geladen werden. Deine Filter bleiben erhalten.' : 'Unable to load jobs. Your filters have been retained.');
+      }
     }).finally(() => {
       if (!cancelled && request === sequence.current) setLoading(false);
     });
@@ -272,6 +279,7 @@ export function JobsWorkspace() {
   return <div className="ui-page">
     <PageHeader title={de ? 'Jobs finden' : 'Find jobs'}><Button variant="primary" aria-label={t('addManualJob')} onClick={() => setManualOpen(true)}><Icon name="plus" /><span className="mobile-icon-label">{t('addManualJob')}</span></Button></PageHeader>
     <FeedHealth refreshKey={refresh} />
+    {!search.search.trim() && data.owner === owner && data.browseWindowLimited && <p className="ui-muted text-sm mb-4">{de ? 'Du siehst die neuesten 1.000 Stellen. Suche nach Beruf oder Stichwort, um den gesamten Feed zu durchsuchen.' : 'Browsing the latest 1,000 vacancies. Search the full feed by role or keyword.'}</p>}
     <div className="jobs-toolbar"><div className="jobs-search-line"><label className="jobs-search"><Icon name="search" /><input aria-label={de ? 'Jobs suchen' : 'Search jobs'} placeholder={t('searchPlaceholder')} value={input} onChange={event => setInput(event.target.value)} />{input && <button type="button" aria-label={de ? 'Suche löschen' : 'Clear search'} onClick={() => {
             setInput('');
             change({
@@ -289,14 +297,14 @@ export function JobsWorkspace() {
     <div className="jobs-tabs" aria-label={de ? 'Jobstatus' : 'Job status'}>{JOB_TABS.map(tab => <button type="button" key={tab} aria-pressed={search.tab === tab} onClick={() => change({
         tab
       })}>{t(tab)}<small>{tab === 'all' ? stats?.total : stats?.[tab]}</small></button>)}</div>
-    <div className="jobs-result-count"><span role="status">{loading ? de ? 'Wird geladen…' : 'Loading…' : `${total.toLocaleString(de ? 'de-DE' : 'en-GB')} ${de ? 'Stellen' : 'jobs'}`}</span><Button variant="quiet" onClick={() => {
+    <div className="jobs-result-count"><span role="status">{loading ? de ? 'Wird geladen…' : 'Loading…' : error ? de ? 'Ergebnisse nicht verfügbar' : 'Results unavailable' : `${total.toLocaleString(de ? 'de-DE' : 'en-GB')} ${de ? 'Stellen' : 'jobs'}`}</span><Button variant="quiet" onClick={() => {
         invalidateJobSnapshot();
         setRefresh(value => value + 1);
       }}><Icon name="refresh" />{de ? 'Aktualisieren' : 'Refresh'}</Button></div>
     {error && <InlineError retry={() => setRefresh(value => value + 1)} label={de ? 'Erneut versuchen' : 'Retry'}>{error}</InlineError>}
     <div className="jobs-workbench"><div className="jobs-list" ref={listRoot}>{loading && !jobs.length ? <Skeleton /> : jobs.length ? jobs.map(job => <SwipeableRow key={job.id} onSave={job.status === 'new' ? () => void saveJob(job) : undefined} onHide={() => void hideJob(job)} saveLabel={t('save')} hideLabel={t('hide')}><article className="job-result" data-job-id={job.id} data-selected={wide && selectedId === job.id}><div className="job-result-main"><button type="button" className="job-result-title" onClick={() => openJob(job)} aria-current={selectedId === job.id ? 'true' : undefined}><JobResultContent job={job} /></button>{(job.status === 'new' || job.status === 'saved') && <Button className="ui-icon-button" variant="quiet" disabled={action === job.id} aria-label={`${job.status === 'new' ? t('save') : t('unsave')} ${job.title}`} aria-pressed={job.status === 'saved'} onClick={event => void saveJob(job, event.currentTarget)}><Icon name="bookmark" /></Button>}</div><div className="job-result-meta">{job.match_score != null && <span className="job-match">{job.match_score}/100 {de ? 'Relevanz' : 'relevance'}</span>}<ListingEvidence job={job} compact t={t} /><span>{job.source}</span><span>{job.posted_date && !Number.isNaN(new Date(job.posted_date).getTime()) ? new Intl.DateTimeFormat(de ? 'de-DE' : 'en-GB', {
                   dateStyle: 'medium'
-                }).format(new Date(job.posted_date)) : ''}</span>{job.is_active === false && <span>{t('noLongerListed')}</span>}{job.status !== 'new' && <span>{t(job.status)}</span>}</div></article></SwipeableRow>) : <EmptyState title={de ? 'Keine passenden Jobs' : 'No matching jobs'}>{de ? 'Passe deine Suche an oder entferne einen Filter.' : 'Try changing your search or removing a filter.'}</EmptyState>}</div>{wide && selectedId && <aside className="jobs-inspector" aria-label={de ? 'Jobdetails' : 'Job details'}><Suspense fallback={<Skeleton/>}><JobDetails key={`${owner}:${selectedId}`} id={selectedId} initialJob={selected} animateSelection={userSelected.current} onChange={updateJob} /></Suspense></aside>}</div>
+                }).format(new Date(job.posted_date)) : ''}</span>{job.is_active === false && <span>{t('noLongerListed')}</span>}{job.status !== 'new' && <span>{t(job.status)}</span>}</div></article></SwipeableRow>) : error ? null : <EmptyState title={de ? 'Keine passenden Jobs' : 'No matching jobs'}>{de ? 'Passe deine Suche an oder entferne einen Filter.' : 'Try changing your search or removing a filter.'}</EmptyState>}</div>{wide && !error && selectedId && <aside className="jobs-inspector" aria-label={de ? 'Jobdetails' : 'Job details'}><Suspense fallback={<Skeleton/>}><JobDetails key={`${owner}:${selectedId}`} id={selectedId} initialJob={selected} animateSelection={userSelected.current} onChange={updateJob} /></Suspense></aside>}</div>
     {total > 50 && <div className="jobs-pagination"><Button disabled={search.page <= 1} onClick={() => change({
         page: search.page - 1
       })}>{t('prev')}</Button><span>{t('page')} {search.page} {t('of')} {Math.ceil(total / 50)}</span><Button disabled={search.page >= Math.ceil(total / 50)} onClick={() => change({

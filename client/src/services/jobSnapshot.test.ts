@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { invalidateJobSnapshot, readJobSnapshot } from './jobSnapshot';
+import { invalidateJobSnapshot, readJobSearchSnapshot, readJobSnapshot } from './jobSnapshot';
 import { activatePrivateDataOwner } from '../store/privateStorage';
 
 beforeEach(invalidateJobSnapshot);
@@ -40,5 +40,36 @@ describe('account-scoped job snapshot', () => {
     await old;
     expect(await readJobSnapshot(1, loadNew)).toEqual(['new']);
     expect(loadNew).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('bounded account/query search cache', () => {
+  it('shares a query for thirty seconds, scopes by owner, and clears with mutations/logout', async () => {
+    const clock = vi.spyOn(Date, 'now').mockReturnValue(1000);
+    await activatePrivateDataOwner(1);
+    const load = vi.fn().mockResolvedValue(['public candidates']);
+    await readJobSearchSnapshot(1, 'gis', load);
+    await readJobSearchSnapshot(1, 'gis', load);
+    expect(load).toHaveBeenCalledTimes(1);
+    await readJobSearchSnapshot(2, 'gis', load);
+    expect(load).toHaveBeenCalledTimes(2);
+    clock.mockReturnValue(31_001);
+    await readJobSearchSnapshot(1, 'gis', load);
+    expect(load).toHaveBeenCalledTimes(3);
+    invalidateJobSnapshot();
+    await readJobSearchSnapshot(1, 'gis', load);
+    await activatePrivateDataOwner(null);
+    await readJobSearchSnapshot(1, 'gis', load);
+    expect(load).toHaveBeenCalledTimes(5);
+  });
+  it('retains only four queries and rejects an invalidated in-flight result', async () => {
+    const load = vi.fn().mockResolvedValue([]);
+    for (const query of ['one', 'two', 'three', 'four', 'five']) await readJobSearchSnapshot(1, query, load);
+    await readJobSearchSnapshot(1, 'one', load);
+    expect(load).toHaveBeenCalledTimes(6);
+    let finish!: (value: string[]) => void;
+    const old = readJobSearchSnapshot(1, 'pending', () => new Promise<string[]>(resolve => { finish = resolve; }));
+    invalidateJobSnapshot(); finish(['obsolete']);
+    await expect(old).rejects.toThrow('changed');
   });
 });

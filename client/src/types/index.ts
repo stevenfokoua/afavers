@@ -85,6 +85,8 @@ export interface JobsResponse {
   total: number;
   page: number;
   limit: number;
+  /** Unqueried browsing uses the bounded recent feed, while text search covers the corpus. */
+  browse_window_limited?: boolean;
 }
 
 export interface JobFilters {

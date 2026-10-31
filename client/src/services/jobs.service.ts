@@ -5,9 +5,9 @@ import type { Job, JobsResponse, JobFilters, DashboardStats, FollowUpAlert, Anal
 import { scheduleReminder, cancelReminder } from './notification.service';
 import { settingsService } from './settings.service';
 import { feedHealthService } from './feedHealth.service';
-import { invalidateJobSnapshot, readJobSnapshot } from './jobSnapshot';
+import { invalidateJobSnapshot, readJobSearchSnapshot, readJobSnapshot } from './jobSnapshot';
 import { discoveryJobs } from '../../../supabase/functions/_shared/job-quality';
-import { HIGH_MATCH_SCORE, isRemoteListing, isStudentListing, listingSearchScore as searchScore, matchesJobLocation, scoreListing, splitMatchTerms as splitTerms } from '../../../supabase/functions/_shared/matching';
+import { expandedSearchTerms, HIGH_MATCH_SCORE, isRemoteListing, isStudentListing, listingSearchScore as searchScore, matchesJobLocation, normalizeMatchText, scoreListing, splitMatchTerms as splitTerms } from '../../../supabase/functions/_shared/matching';
 import { confirmedWorkingLanguage } from '../../../supabase/functions/_shared/language';
 
 type UserJobOverlay = Partial<Pick<Job,
@@ -22,6 +22,8 @@ const TRACKED_STATUSES = ['saved', 'preparing', 'applied', 'followup', 'intervie
 // Jobs the user has tracked are fetched separately by id in getMergedJobs, so
 // they stay visible however large the jobs table grows.
 const JOB_FETCH_LIMIT = 1000;
+const fullBrowseWindows = new WeakSet<Job[]>();
+const SEARCH_MAX_PAGES = 8;
 export const APPLICATION_CHECKLIST = [
   'CV tailored',
   'Cover letter ready',
@@ -242,7 +244,39 @@ async function loadMergedJobs(userId: number): Promise<Job[]> {
   const keywords = splitTerms(settings.keywords);
   const locations = splitTerms(settings.locations);
   if (getUserId() !== userId) throw new Error('Your account changed. Please reload this page.');
-  return rows.map((job) => scoreJob(mergeJob(job, overlays.get(job.id)), keywords, locations));
+  const merged = rows.map((job) => scoreJob(mergeJob(job, overlays.get(job.id)), keywords, locations));
+  if ((jobs ?? []).length === JOB_FETCH_LIMIT) fullBrowseWindows.add(merged);
+  return merged;
+}
+
+function assertSearchOwner(userId: number): void {
+  if (useAuthStore.getState().user?.id !== userId) throw new Error('Your account changed. Please retry your search.');
+}
+
+function searchCandidates(userId: number, query: string): Promise<Job[]> {
+  const terms = expandedSearchTerms(query);
+  if (!terms.length) return Promise.resolve([]);
+  return readJobSearchSnapshot(userId, normalizeMatchText(query), async () => {
+    const deadline = Date.now() + 15_000;
+    const candidates: Job[] = [];
+    for (let page = 0; page < SEARCH_MAX_PAGES; page++) {
+      assertSearchOwner(userId);
+      const remaining = deadline - Date.now();
+      if (remaining <= 0) throw new Error('Search could not be completed. Refine your search or retry.');
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), Math.min(8_000, remaining));
+      try {
+        const { data, error } = await supabase.rpc('search_job_candidates', { p_terms: terms })
+          .range(page * JOB_FETCH_LIMIT, (page + 1) * JOB_FETCH_LIMIT - 1).abortSignal(controller.signal);
+        assertSearchOwner(userId);
+        if (error || !Array.isArray(data)) throw new Error('Search could not be completed. Refine your search or retry.');
+        candidates.push(...data as Job[]);
+        if (data.length < JOB_FETCH_LIMIT) return candidates;
+      } finally { clearTimeout(timer); }
+    }
+    // Never present a truncated candidate window as an exhaustive zero/result count.
+    throw new Error('Search has too many candidates. Use a more specific role or keyword.');
+  });
 }
 
 async function upsertOverlay(id: number, values: Partial<UserJobOverlay>): Promise<Job> {
@@ -291,7 +325,20 @@ export const jobsService = {
   },
 
   async getJobs(filters?: JobFilters): Promise<JobsResponse> {
-    const filtered = applyFilters(await getMergedJobs(), filters);
+    const userId = getUserId();
+    const query = filters?.search?.trim() ?? '';
+    const [base, candidates] = await Promise.all([getMergedJobs(), query ? searchCandidates(userId, query) : Promise.resolve([])]);
+    assertSearchOwner(userId);
+    const merged = new Map(base.map(job => [job.id, job]));
+    if (candidates.length) {
+      const settings = await settingsService.get();
+      assertSearchOwner(userId);
+      const keywords = splitTerms(settings.keywords), locations = splitTerms(settings.locations);
+      // Base includes every personal overlay/tracked row, even outside its recent
+      // public window. It wins ID collisions so notes/status/private data survive.
+      for (const job of candidates) if (!merged.has(job.id)) merged.set(job.id, scoreJob(mergeJob(job), keywords, locations));
+    }
+    const filtered = applyFilters([...merged.values()], { ...filters, search: query || undefined });
     const offset = filters?.offset ?? 0;
     const limit = filters?.limit ?? 50;
     const jobs = filtered.slice(offset, offset + limit);
@@ -300,6 +347,7 @@ export const jobsService = {
       total: filtered.length,
       page: Math.floor(offset / limit) + 1,
       limit,
+      browse_window_limited: !query && fullBrowseWindows.has(base),
     };
   },
 

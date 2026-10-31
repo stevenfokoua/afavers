@@ -1,11 +1,17 @@
 import { describe, expect, it } from 'vitest';
-import { isRemoteListing, isStudentListing, keywordMatches, listingSearchScore, matchesJobLocation, matchesJobTerm, scoreListing, splitMatchTerms } from '../../../supabase/functions/_shared/matching';
+import { expandedSearchTerms, isRemoteListing, isStudentListing, keywordMatches, listingSearchScore, matchesJobLocation, matchesJobTerm, scoreListing, splitMatchTerms } from '../../../supabase/functions/_shared/matching';
 import { jobMatchesFilter } from '../store/preferencesStore';
 
 const now = Date.parse('2026-10-31T12:00:00Z');
 const role = { title: 'GIS Analyst', company: 'Example', location: 'Köln', description: 'QGIS, ArcGIS and spatial data analysis.', language: 'en', posted_date: '2026-10-31' };
 
 describe('lexical job matching', () => {
+  it('expands coarse corpus candidates without changing final lexical decisions', () => {
+    expect(expandedSearchTerms('GIS')).toEqual(expect.arrayContaining(['gis', 'qgis', 'arcgis', 'geospatial']));
+    expect(expandedSearchTerms('energy analyst')).toEqual(expect.arrayContaining(['energy', 'energie', 'analyst']));
+    expect(expandedSearchTerms('C++ .NET')).toEqual(expect.arrayContaining(['cplusplus', 'dotnet', 'c++', '.net']));
+    expect(() => expandedSearchTerms(Array.from({ length: 65 }, (_, i) => 'term' + i).join(' '))).toThrow('broad');
+  });
   it('does not mistake short keywords for letters inside unrelated words', () => {
     expect(matchesJobTerm('Psychologischen Studienberatung', 'GIS')).toBe(false);
     expect(matchesJobTerm('Mitarbeit im Vertrieb und Logistik', 'IT')).toBe(false);
@@ -29,6 +35,9 @@ describe('lexical job matching', () => {
     expect(matchesJobTerm('C++ Entwickler', 'C++')).toBe(true);
     expect(matchesJobTerm('C# developer', 'C#')).toBe(true);
     expect(matchesJobTerm('.NET developer', '.NET')).toBe(true);
+    expect(matchesJobTerm('(.NET) developer', '.NET')).toBe(true);
+    expect(matchesJobTerm('ASP.NET Core developer', '.NET')).toBe(true);
+    expect(expandedSearchTerms('ASP.NET')).toContain('dotnet');
     expect(matchesJobTerm('C developer', 'C++')).toBe(false);
     expect(matchesJobTerm('C++ developer', 'C#')).toBe(false);
   });

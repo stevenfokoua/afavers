@@ -102,6 +102,30 @@ def assert_browser_cors(base, origin):
     with urllib.request.urlopen(request, timeout=5) as response:
         assert response.headers.get('Access-Control-Allow-Origin') is None, 'Disposable API must not allow non-loopback origins'
 
+def corpus_search_seed(project, reference=None):
+    reference = time.time() if reference is None else reference
+    fresh = time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime(reference - 60))
+    old = time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime(reference - 90 * 86400))
+    # Keep existing GIS/IT feature fixtures newer than this filler. The separate
+    # QGIS role is deliberately outside the normal latest-1000 client snapshot.
+    rows = [{
+        'external_id': f'{project}-corpus-unrelated-{index:04d}',
+        'title': f'CI retail stock assistant {index:04d}', 'company': 'Afavers CI corpus fixture',
+        'location': 'Berlin', 'description': 'Kasse und Warenverraeumung. Synthetische Testanzeige.',
+        'description_quality': 'summary', 'url': f'https://example.invalid/ci/corpus/{index}',
+        'source': 'bundesagentur', 'language': 'de', 'is_manual': False, 'is_active': True,
+        'created_at': fresh, 'posted_date': fresh[:10], 'last_seen_at': fresh,
+    } for index in range(1100)]
+    rows.append({
+        'external_id': project + '-deep-corpus-qgis', 'title': 'CI Deep-corpus QGIS Specialist',
+        'company': 'Afavers CI corpus fixture', 'location': 'Koeln',
+        'description': 'Develop and maintain QGIS maps, ArcGIS workflows and spatial-data pipelines. The role requires geoinformation database experience, coordinate-reference systems and clear technical documentation. Working language is English. This is a synthetic CI listing for corpus-search acceptance.',
+        'description_quality': 'full', 'url': 'https://example.invalid/ci/deep-corpus-qgis',
+        'source': 'bundesagentur', 'language': 'en', 'is_manual': False, 'is_active': True,
+        'created_at': old, 'posted_date': old[:10], 'last_seen_at': fresh,
+    })
+    return rows
+
 def run():
     owner = os.environ.get('AGENT_RESOURCE_OWNER')
     if not owner:
@@ -156,6 +180,7 @@ def run():
             {'external_id':project+'-it','title':'CI IT Consultant','company':'Afavers CI Studio','location':'Düsseldorf','description':'Deliver information technology and software consulting for customer projects. Requirements include maintaining application services, documenting changes, reviewing technical designs and communicating with engineers and clients. Our working language is English. These are synthetic CI requirements.','description_quality':'full','url':'https://example.invalid/ci/it','source':'bundesagentur','posted_date':now,'language':'en'},
             {'external_id':project+'-unrelated','title':'Psychologischen Studienberatung','company':'Afavers CI Studio','location':'Berlin','description':'Psychologische Einzelberatung und Studienberatung an einer Hochschule. Voraussetzungen sind ein abgeschlossenes Psychologiestudium sowie eine psychotherapeutische Weiterbildung. Die Aufgaben umfassen Beratungsgespräche, die Organisation von Gruppenangeboten und die Zusammenarbeit mit dem Hochschulteam. Sehr gute Deutschkenntnisse sind erforderlich.','description_quality':'full','url':'https://example.invalid/ci/psychology','source':'bundesagentur','posted_date':now,'language':'de'},
         ]
+        rows.extend(corpus_search_seed(project))
         headers = {'apikey':values['ANON_KEY'],'Authorization':'Bearer '+values['SERVICE_ROLE_KEY'],'Content-Type':'application/json'}
         request = urllib.request.Request(base+'/rest/v1/jobs',data=json.dumps(rows).encode(),headers=headers,method='POST')
         for attempt in range(15):

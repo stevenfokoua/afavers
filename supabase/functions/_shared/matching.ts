@@ -103,7 +103,7 @@ export function normalizeMatchText(value: string): string {
     .replace(/&(?:nbsp|amp|quot|apos|lt|gt);/gi, ' ')
     .replace(/\bc\+\+/gi, ' cplusplus ')
     .replace(/\bc#/gi, ' csharp ')
-    .replace(/(?:^|\s)\.net\b/gi, ' dotnet ')
+    .replace(/\.net\b/gi, ' dotnet ')
     .toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g, '').replace(/ß/g, 'ss')
     .replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
 }
@@ -115,6 +115,28 @@ export function splitMatchTerms(value: string): string[] {
     if (key && !terms.has(key)) terms.set(key, term);
   }
   return [...terms.values()];
+}
+
+/** Broad candidate terms for the database; listingSearchScore remains authoritative. */
+export function expandedSearchTerms(query: string): string[] {
+  const wanted = normalizeMatchText(query);
+  if (!wanted) return [];
+  const terms = new Set<string>();
+  const add = (term: string) => {
+    if (term.length > 100) throw new Error('Search terms are too long. Use a shorter role or keyword.');
+    terms.add(term);
+  };
+  const groups = wanted.split(' ');
+  if (wanted.length <= 100) add(wanted);
+  for (const term of [...groups, wanted]) {
+    if (term.length <= 100) add(term);
+    for (const alias of ALIASES[term] ?? []) add(alias);
+  }
+  if (/\bc\+\+/i.test(query)) add('c++');
+  if (/\bc#/i.test(query)) add('c#');
+  if (/\.net\b/i.test(query)) add('.net');
+  if (groups.some(term => term.length > 100) || terms.size > 64) throw new Error('Search is too broad. Use fewer role or skill terms.');
+  return [...terms];
 }
 
 function hasLiteral(text: string, term: string): boolean {
