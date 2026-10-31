@@ -73,3 +73,29 @@ test('concurrent saved-search creation enforces the account quota in the real da
   expect(await rejected!.json()).toMatchObject({ message: 'Your account already has 12 saved searches' });
   expect(await backend.rows(`account_items?select=item_id&user_id=eq.${account.profileId}&collection=eq.saved_searches&deleted=eq.false`)).toHaveLength(12);
 });
+
+test('new account collections keep two real authenticated owners isolated', async ({ account, backend }) => {
+  const other = await backend.createAccount();
+  const tokenFor = async (user: typeof account): Promise<string> => {
+    const response = await backend.api.post('auth/v1/token?grant_type=password', { data: { email: user.email, password: user.password } });
+    expect(response.ok()).toBeTruthy();
+    return (await response.json() as { access_token: string }).access_token;
+  };
+  const token = await tokenFor(account), otherToken = await tokenFor(other);
+  const item = { id: 'owned-calendar', title: 'Only account A', date: futureDate(), type: 'note' };
+  const write = { p_user_id: account.profileId, p_collection: 'calendar_events', p_item_id: item.id, p_expected_revision: null, p_data: item, p_deleted: false, p_operation: randomUUID() };
+  const created = await backend.api.post('rest/v1/rpc/write_account_item', { headers: { Authorization: 'Bearer ' + token }, data: write });
+  expect(created.ok()).toBeTruthy();
+  const readAsOther = await backend.api.get(`rest/v1/account_items?select=item_id,data&user_id=eq.${account.profileId}`, { headers: { Authorization: 'Bearer ' + otherToken } });
+  expect(readAsOther.ok()).toBeTruthy();
+  expect(await readAsOther.json()).toEqual([]);
+  const denied = await backend.api.post('rest/v1/rpc/write_account_item', {
+    headers: { Authorization: 'Bearer ' + otherToken },
+    data: { ...write, p_expected_revision: 1, p_data: { ...item, title: 'Forbidden overwrite' }, p_operation: randomUUID() },
+  });
+  expect(denied.status()).toBe(403);
+  expect(await denied.json()).toMatchObject({ code: '42501', message: 'Sign in to sync your account' });
+  const kept = await backend.api.get(`rest/v1/account_items?select=data,revision&user_id=eq.${account.profileId}&item_id=eq.${item.id}`, { headers: { Authorization: 'Bearer ' + token } });
+  expect(kept.ok()).toBeTruthy();
+  expect(await kept.json()).toEqual([{ data: item, revision: 1 }]);
+});

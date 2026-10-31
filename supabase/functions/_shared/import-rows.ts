@@ -1,4 +1,4 @@
-import type { ExternalJob } from './jobs.ts';
+import type { ExternalJob } from './job-types.ts';
 import type { DetailMetadata } from './bundesagentur-detail.ts';
 
 /** Separate payload shapes: PostgREST must not NULL rich fields omitted by a summary refresh. */

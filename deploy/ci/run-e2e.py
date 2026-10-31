@@ -21,8 +21,8 @@ IMAGES = [
     'nginx:1.30.6-alpine@sha256:0e52bd054126cdc040b1276c0af347aeb02a41b9cfe305d6094767ac30e97949',
 ]
 
-def command(argv, *, data=None, env=None, check=True):
-    result = subprocess.run(argv, input=data, text=True, capture_output=True, env=env, cwd=REPO)
+def command(argv, *, data=None, env=None, check=True, cwd=REPO):
+    result = subprocess.run(argv, input=data, text=True, capture_output=True, env=env, cwd=cwd)
     if check and result.returncode:
         raise RuntimeError(f'{argv[0]} failed (exit {result.returncode}):\n{result.stderr[-3000:]}')
     return result
@@ -166,6 +166,10 @@ def run():
                 time.sleep(1)
         env = {**os.environ,'AGENT_RESOURCE_OWNER':owner,'AFAVERS_E2E_ENV':str(root/'test-env.json'),'AFAVERS_CI_APP_PORT':str(ports['AFAVERS_CI_APP_PORT']),'VITE_SUPABASE_URL':base,'VITE_SUPABASE_ANON_KEY':values['ANON_KEY'],'VITE_APP_VERSION':os.environ.get('GITHUB_SHA','ci-'+project[-8:])[:12],'NODE_OPTIONS':'--max-old-space-size=768'}
         npm = 'npm.cmd' if os.name == 'nt' else 'npm'
+        for step, arguments in [('extension-install', [npm, 'ci']), ('extension-build', [npm, 'run', 'build'])]:
+            result = command(arguments, env=env, check=False, cwd=REPO/'extension')
+            (reports/(step+'.log')).write_text(result.stdout+result.stderr)
+            if result.returncode: raise RuntimeError(step + ' failed; see reports/e2e/' + step + '.log')
         build = command([npm,'run','build'],env=env,check=False)
         (reports/'production-build.log').write_text(build.stdout+build.stderr)
         if build.returncode: raise RuntimeError('Production build failed; see reports/e2e/production-build.log')

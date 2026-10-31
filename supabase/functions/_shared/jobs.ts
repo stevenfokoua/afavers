@@ -5,20 +5,8 @@ import { filterBatches } from './filter-batches.ts';
 import { fetchSearchPages, type SourceReport } from './source-fetch.ts';
 import { enrichBundesagenturDetails, type DetailMetadata } from './bundesagentur-detail.ts';
 import { buildImportRows } from './import-rows.ts';
-
-export interface ExternalJob {
-  id: string;
-  title: string;
-  company: string;
-  location: string;
-  description: string;
-  url: string;
-  postedDate?: string;
-  deadline?: string;
-  salary?: string;
-  descriptionQuality?: 'summary' | 'full';
-  detailsCheckedAt?: string;
-}
+import type { ExternalJob } from './job-types.ts';
+export type { ExternalJob } from './job-types.ts';
 
 export interface SourceFetchResult {
   jobs: ExternalJob[];
