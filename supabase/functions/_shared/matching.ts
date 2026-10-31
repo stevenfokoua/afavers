@@ -139,6 +139,13 @@ export function expandedSearchTerms(query: string): string[] {
   return [...terms];
 }
 
+/** Saved criteria are alternatives (OR); a text-search phrase is not their equivalent. */
+export function expandedPreferenceTerms(keywords: readonly string[]): string[] {
+  const terms = [...new Set(splitMatchTerms(keywords.join(',')).flatMap(expandedSearchTerms))];
+  if (terms.length > 64) throw new Error('Too many preference search terms. Use fewer keywords.');
+  return terms;
+}
+
 function hasLiteral(text: string, term: string): boolean {
   return Boolean(term) && ` ${text} `.includes(` ${term} `);
 }

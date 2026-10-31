@@ -58,10 +58,12 @@ const SOURCE_LABELS: Record<string, { label: string; cls: string }> = {
 
 export const HotpicksPage = () => {
   const navigate = useNavigate();
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const { filterKeywords, filterEnabled } = usePreferencesStore();
   const [queue, setQueue] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
+  const [browseWindowLimited, setBrowseWindowLimited] = useState(false);
   const [exhausted, setExhausted] = useState(false);
   const [lastAction, setLastAction] = useState<'saved' | 'passed' | 'soon' | null>(null);
   const [lastSwiped, setLastSwiped] = useState<{ job: Job; direction: SwipeDirection } | null>(null);
@@ -102,20 +104,17 @@ export const HotpicksPage = () => {
   const fetchMore = async (force = false) => {
     if (fetchingRef.current || (!force && exhausted)) return;
     fetchingRef.current = true;
+    setLoadError('');
     try {
-      const response = await jobsService.getJobs({
-        status: 'new',
-        // The service already merges the corpus in memory. Take one stable
-        // review snapshot instead of paging a result set that shrinks on save.
-        limit: Number.MAX_SAFE_INTEGER,
-        sortBy: 'match_score',
-        sortOrder: 'DESC',
-      });
+      const response = await jobsService.getRecommendations(filterEnabled ? filterKeywords : []);
       const filtered = response.jobs.filter((job) => jobMatchesFilter(job, filterKeywords, filterEnabled));
       setQueue(filtered);
+      setBrowseWindowLimited(Boolean(response.browse_window_limited));
       setExhausted(true);
     } catch (err) {
       console.error('Hotpicks fetch error:', err);
+      setQueue([]);
+      setLoadError(lang === 'de' ? 'Die Empfehlungen konnten nicht vollständig geladen werden. Passe gegebenenfalls deine Suchbegriffe an und versuche es erneut.' : 'Recommendations could not be fully loaded. Refine your keywords if needed, then retry.');
       setExhausted(true);
       useToastStore.getState().show('Jobs could not be loaded. Use Start over to retry.', 'error');
     } finally {
@@ -265,11 +264,11 @@ export const HotpicksPage = () => {
   if (!loading && queue.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center bg-canvas px-6 text-center" style={{ height: 'calc(100dvh - 5rem)' }}>
-        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-md bg-subtle">
+        {!loadError && <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-md bg-subtle">
           <IconCheck size={32} />
-        </div>
-        <h2 className="mb-2 text-xl font-semibold text-ink">{t('allCaughtUp')}</h2>
-        <p className="mb-8 text-sm text-muted">{t('freshPicksHint')}</p>
+        </div>}
+        <h2 className="mb-2 text-xl font-semibold text-ink">{loadError ? lang === 'de' ? 'Empfehlungen nicht verfügbar' : 'Recommendations unavailable' : t('allCaughtUp')}</h2>
+        <p role={loadError ? 'alert' : undefined} className="mb-8 text-sm text-muted">{loadError || (browseWindowLimited ? lang === 'de' ? 'Diese Auswahl umfasst die neuesten 1.000 Stellen. Hinterlege Suchbegriffe in den Einstellungen, um den gesamten Feed zu berücksichtigen.' : 'This queue covers the latest 1,000 vacancies. Add keywords in Settings to include matching jobs from the full feed.' : t('freshPicksHint'))}</p>
         <button
           onClick={handleRefresh}
           className="rounded-lg bg-ink px-6 py-3 font-semibold text-on-ink shadow-none transition hover:bg-ink "
@@ -301,6 +300,7 @@ export const HotpicksPage = () => {
                 {t('hotPicks')}
               </h1>
               <p className="mt-1 max-w-2xl text-xs text-muted sm:text-sm">{t('hotPicksSubtitle')}</p>
+              {browseWindowLimited && <p className="mt-1 max-w-2xl text-xs text-muted sm:text-sm">{lang === 'de' ? 'Neueste 1.000 Stellen. Suchbegriffe in den Einstellungen erweitern die Empfehlungen auf den gesamten Feed.' : 'Latest 1,000 vacancies. Add keywords in Settings for recommendations across the full feed.'}</p>}
             </div>
             <div className="flex items-center gap-2 self-start">
               {lastAction && (

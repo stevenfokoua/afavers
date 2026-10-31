@@ -1,0 +1,35 @@
+import { test, expect, signIn } from './fixtures';
+
+test('Hot Picks finds an older body-only preference match and distinguishes failed loads', async ({ page, account, backend }) => {
+  const title = 'CI Infrastructure Opportunity';
+  const [old] = await backend.rows<{ id: number; title: string; description: string }>('jobs?select=id,title,description&title=eq.' + encodeURIComponent(title));
+  expect(old).toBeDefined();
+  expect(old.title).not.toMatch(/\b(?:GIS|IT|data analyst)\b/i);
+  expect(old.description).toContain('QGIS');
+  expect(old.description).not.toMatch(/\bIT\b/i);
+  const latest = await backend.rows<{ id: number }>('jobs?select=id&is_active=eq.true&is_manual=eq.false&order=created_at.desc,id.desc&limit=1000');
+  expect(latest).toHaveLength(1000);
+  expect(latest.some(job => job.id === old.id)).toBe(false);
+  await signIn(page, account);
+  const endpoint = '**/rest/v1/rpc/search_job_candidates';
+  await page.route(endpoint, route => route.abort('failed'));
+  await page.goto('/hotpicks');
+  await expect(page.getByRole('heading', { name: 'Recommendations unavailable', exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'All caught up!', exact: true })).toHaveCount(0);
+  await page.unroute(endpoint);
+  const remote = page.waitForResponse(response => response.request().method() === 'POST' && response.url().includes('/rest/v1/rpc/search_job_candidates'));
+  await page.getByRole('button', { name: 'Start over', exact: true }).click();
+  const response = await remote;
+  expect(response.ok()).toBeTruthy();
+  expect(response.request().postDataJSON()).toMatchObject({ p_terms: expect.arrayContaining(['gis', 'qgis', 'it', 'data analyst']) });
+  expect((await response.json() as { id: number }[]).some(job => job.id === old.id)).toBe(true);
+  await expect(page.locator('.opportunity-card h2')).toHaveText(title);
+  const relevance = await page.locator('.opportunity-card .job-match').textContent();
+  expect(Number(relevance?.split('/')[0])).toBeGreaterThanOrEqual(70);
+  await page.getByRole('button', { name: page.viewportSize()!.width < 640 ? 'Saved' : 'Save to board', exact: true }).click();
+  await expect.poll(async () => (await backend.rows<{ status: string }>(`user_jobs?select=status&user_id=eq.${account.profileId}&job_id=eq.${old.id}`))[0]?.status).toBe('saved');
+  await page.reload();
+  await expect(page.locator('.opportunity-card h2')).toBeVisible();
+  await expect(page.locator('.opportunity-card h2')).not.toHaveText(title);
+  expect((await backend.rows<{ keywords: string; locations: string }>('user_settings?select=keywords,locations&user_id=eq.' + account.profileId))[0]).toEqual({ keywords: 'GIS, IT, data analyst', locations: 'Köln, Düsseldorf' });
+});

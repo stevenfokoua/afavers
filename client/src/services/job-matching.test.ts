@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { expandedSearchTerms, isRemoteListing, isStudentListing, keywordMatches, listingSearchScore, matchesJobLocation, matchesJobTerm, scoreListing, splitMatchTerms } from '../../../supabase/functions/_shared/matching';
+import { expandedPreferenceTerms, expandedSearchTerms, isRemoteListing, isStudentListing, keywordMatches, listingSearchScore, matchesJobLocation, matchesJobTerm, scoreListing, splitMatchTerms } from '../../../supabase/functions/_shared/matching';
 import { jobMatchesFilter } from '../store/preferencesStore';
 
 const now = Date.parse('2026-10-31T12:00:00Z');
@@ -11,6 +11,9 @@ describe('lexical job matching', () => {
     expect(expandedSearchTerms('energy analyst')).toEqual(expect.arrayContaining(['energy', 'energie', 'analyst']));
     expect(expandedSearchTerms('C++ .NET')).toEqual(expect.arrayContaining(['cplusplus', 'dotnet', 'c++', '.net']));
     expect(() => expandedSearchTerms(Array.from({ length: 65 }, (_, i) => 'term' + i).join(' '))).toThrow('broad');
+    const preferences = expandedPreferenceTerms(['GIS', 'IT', 'data analyst']);
+    expect(preferences).toEqual(expect.arrayContaining(['gis', 'qgis', 'it', 'data analyst']));
+    expect(preferences).not.toContain('gis it data analyst');
   });
   it('does not mistake short keywords for letters inside unrelated words', () => {
     expect(matchesJobTerm('Psychologischen Studienberatung', 'GIS')).toBe(false);

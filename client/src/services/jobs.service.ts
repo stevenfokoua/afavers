@@ -7,7 +7,7 @@ import { settingsService } from './settings.service';
 import { feedHealthService } from './feedHealth.service';
 import { invalidateJobSnapshot, readJobSearchSnapshot, readJobSnapshot } from './jobSnapshot';
 import { discoveryJobs } from '../../../supabase/functions/_shared/job-quality';
-import { expandedSearchTerms, HIGH_MATCH_SCORE, isRemoteListing, isStudentListing, listingSearchScore as searchScore, matchesJobLocation, normalizeMatchText, scoreListing, splitMatchTerms as splitTerms } from '../../../supabase/functions/_shared/matching';
+import { expandedPreferenceTerms, expandedSearchTerms, HIGH_MATCH_SCORE, isRemoteListing, isStudentListing, keywordMatches, listingSearchScore as searchScore, matchesJobLocation, normalizeMatchText, scoreListing, splitMatchTerms as splitTerms } from '../../../supabase/functions/_shared/matching';
 import { confirmedWorkingLanguage } from '../../../supabase/functions/_shared/language';
 
 type UserJobOverlay = Partial<Pick<Job,
@@ -254,9 +254,12 @@ function assertSearchOwner(userId: number): void {
 }
 
 function searchCandidates(userId: number, query: string): Promise<Job[]> {
-  const terms = expandedSearchTerms(query);
+  return loadCandidates(userId, expandedSearchTerms(query), 'text:' + normalizeMatchText(query));
+}
+
+function loadCandidates(userId: number, terms: string[], cacheKey: string): Promise<Job[]> {
   if (!terms.length) return Promise.resolve([]);
-  return readJobSearchSnapshot(userId, normalizeMatchText(query), async () => {
+  return readJobSearchSnapshot(userId, cacheKey, async () => {
     const deadline = Date.now() + 15_000;
     const candidates: Job[] = [];
     for (let page = 0; page < SEARCH_MAX_PAGES; page++) {
@@ -349,6 +352,28 @@ export const jobsService = {
       limit,
       browse_window_limited: !query && fullBrowseWindows.has(base),
     };
+  },
+
+  async getRecommendations(filterKeywords: readonly string[] = []): Promise<JobsResponse> {
+    const userId = getUserId();
+    const [base, settings] = await Promise.all([getMergedJobs(), settingsService.get()]);
+    assertSearchOwner(userId);
+    const keywords = splitTerms(settings.keywords), locations = splitTerms(settings.locations);
+    const alternatives = splitTerms([...keywords, ...filterKeywords].join(','));
+    const candidates = alternatives.length
+      ? await loadCandidates(userId, expandedPreferenceTerms(alternatives), 'preferences:' + JSON.stringify(alternatives)) : [];
+    assertSearchOwner(userId);
+    // Rescore against the explicitly loaded preferences, and let every existing
+    // personal row win its ID. Older saved/hidden/history rows remain excluded
+    // by the same discovery/status rules as the recent review queue.
+    const merged = new Map(base.map(job => [job.id, scoreJob(job, keywords, locations)]));
+    for (const job of candidates) {
+      if (!merged.has(job.id) && keywordMatches(`${job.title} ${job.company ?? ''} ${job.location ?? ''} ${job.description ?? ''}`, alternatives).length) {
+        merged.set(job.id, scoreJob(mergeJob(job), keywords, locations));
+      }
+    }
+    const jobs = applyFilters([...merged.values()], { status: 'new', sortBy: 'match_score', sortOrder: 'DESC' });
+    return { jobs, total: jobs.length, page: 1, limit: jobs.length, browse_window_limited: !alternatives.length && fullBrowseWindows.has(base) };
   },
 
   /**

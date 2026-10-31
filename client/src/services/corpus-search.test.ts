@@ -12,6 +12,7 @@ vi.mock('./feedHealth.service', () => ({ feedHealthService: { get: vi.fn() } }))
 import { supabase } from '../lib/supabase';
 import { jobsService } from './jobs.service';
 import { invalidateJobSnapshot } from './jobSnapshot';
+import { settingsService } from './settings.service';
 
 function job(id: number, title: string, extra: Partial<Job> = {}): Job {
   return { id, title, external_id: 'corpus-' + id, company: 'Example', location: 'Köln', url: 'https://example.com/' + id, source: 'bundesagentur', description: 'Position: ' + title, posted_date: null, deadline: null, status: 'new', created_at: '2026-10-31', ...extra } as Job;
@@ -22,6 +23,7 @@ let pageLoader: ReturnType<typeof vi.fn<(from: number, to: number) => Promise<Pa
 
 beforeEach(() => {
   vi.clearAllMocks(); invalidateJobSnapshot(); state.owner = 1;
+  vi.mocked(settingsService.get).mockResolvedValue({ keywords: 'GIS', locations: '' });
   base = []; tracked = []; overlays = [];
   pageLoader = vi.fn(async () => ({ data: [], error: null }));
   vi.mocked(supabase.from).mockImplementation((table: string) => {
@@ -29,6 +31,54 @@ beforeEach(() => {
     return { select: () => { const chain = { eq: () => chain, order: () => chain, range: async () => ({ data: overlays, error: null }) }; return chain; } } as never;
   });
   vi.mocked(supabase.rpc).mockImplementation(() => ({ range: (from: number, to: number) => ({ abortSignal: () => pageLoader(from, to) }) }) as never);
+});
+
+describe('saved-preference recommendation coverage', () => {
+  const detail = 'The data analyst role maintains QGIS maps and spatial datasets for infrastructure planning. Requirements include coordinate-reference systems, database experience and clear technical documentation for project teams. Our working language is English. Remote work is available.';
+
+  it('ranks an older body-only match from the whole corpus using saved keyword alternatives', async () => {
+    vi.mocked(settingsService.get).mockResolvedValue({ keywords: 'GIS, IT, data analyst', locations: 'Köln' });
+    base = Array.from({ length: 1000 }, (_, i) => job(i + 1, 'Recent unrelated role ' + i));
+    const old = job(2001, 'Infrastructure opportunity', { description: detail, description_quality: 'full', posted_date: new Date().toISOString().slice(0, 10), created_at: '2026-01-01' });
+    pageLoader.mockResolvedValue({ data: [old, job(2002, 'Psychologischen Studienberatung')], error: null });
+    const result = await jobsService.getRecommendations();
+    expect(result.jobs[0].id).toBe(old.id);
+    expect(result.jobs[0].match_score).toBeGreaterThanOrEqual(70);
+    expect(result.jobs.some(row => row.id === 2002)).toBe(false);
+    expect(result.browse_window_limited).toBe(false);
+    expect(supabase.rpc).toHaveBeenCalledWith('search_job_candidates', { p_terms: expect.arrayContaining(['gis', 'qgis', 'it', 'data analyst']) });
+    const terms = vi.mocked(supabase.rpc).mock.calls[0][1] as { p_terms: string[] };
+    expect(terms.p_terms).not.toContain('gis it data analyst');
+  });
+
+  it('preserves private history and excludes saved or hidden older candidates', async () => {
+    tracked = [job(2001, 'QGIS role', { description: detail }), job(2002, 'Saved QGIS role'), job(2003, 'Hidden QGIS role'), job(2004, 'Private QGIS role', { source: 'manual', is_manual: true, owner_user_id: 1 })];
+    overlays = [{ job_id: 2001, status: 'new', notes: 'Private research', history: [{ label: 'Reviewed', type: 'note', at: '2026-10-31' }] }, { job_id: 2002, status: 'saved' }, { job_id: 2003, status: 'new', is_hidden: true }, { job_id: 2004, status: 'new', notes: 'Private manual record' }];
+    pageLoader.mockResolvedValue({ data: tracked.slice(0, 3), error: null });
+    const result = await jobsService.getRecommendations();
+    expect(result.jobs.map(row => row.id).sort()).toEqual([2001, 2004]);
+    expect(result.jobs.find(row => row.id === 2001)).toMatchObject({ notes: 'Private research', history: [{ label: 'Reviewed' }] });
+    expect(result.jobs.find(row => row.id === 2004)).toMatchObject({ notes: 'Private manual record', owner_user_id: 1 });
+  });
+
+  it('rejects an incomplete recommendation load rather than claiming an exhausted queue', async () => {
+    pageLoader.mockResolvedValue({ data: null, error: { message: 'unavailable' } });
+    await expect(jobsService.getRecommendations()).rejects.toThrow('could not be completed');
+    pageLoader.mockResolvedValue({ data: [job(2001, 'QGIS role')], error: null });
+    expect((await jobsService.getRecommendations()).jobs.map(row => row.id)).toEqual([2001]);
+    expect(supabase.rpc).toHaveBeenCalledTimes(2);
+  });
+
+  it('labels a keyword-free bounded queue and honors an explicitly enabled local filter', async () => {
+    vi.mocked(settingsService.get).mockResolvedValue({ keywords: '', locations: '' });
+    base = Array.from({ length: 1000 }, (_, i) => job(i + 1, 'Recent role ' + i));
+    expect((await jobsService.getRecommendations()).browse_window_limited).toBe(true);
+    expect(supabase.rpc).not.toHaveBeenCalled();
+    pageLoader.mockResolvedValue({ data: [job(2001, 'QGIS role')], error: null });
+    const filtered = await jobsService.getRecommendations(['GIS']);
+    expect(filtered.jobs.some(row => row.id === 2001)).toBe(true);
+    expect(filtered.browse_window_limited).toBe(false);
+  });
 });
 
 describe('whole-corpus lexical search', () => {

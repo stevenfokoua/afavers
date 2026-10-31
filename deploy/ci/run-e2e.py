@@ -124,6 +124,14 @@ def corpus_search_seed(project, reference=None):
         'source': 'bundesagentur', 'language': 'en', 'is_manual': False, 'is_active': True,
         'created_at': old, 'posted_date': old[:10], 'updated_at': fresh,
     })
+    rows.append({
+        'external_id': project + '-deep-preference-recommendation', 'title': 'CI Infrastructure Opportunity',
+        'company': 'Afavers CI recommendation fixture', 'location': 'Köln',
+        'description': 'The data analyst role maintains QGIS maps and spatial datasets for infrastructure planning. Requirements include coordinate-reference systems, database experience and clear technical documentation for project teams. Our working language is English. Remote work is available. These are synthetic test requirements.',
+        'description_quality': 'full', 'url': 'https://example.invalid/ci/deep-recommendation',
+        'source': 'bundesagentur', 'language': 'en', 'is_manual': False, 'is_active': True,
+        'created_at': old, 'posted_date': fresh[:10], 'updated_at': fresh,
+    })
     return rows
 
 def validate_job_seed(state, rows):
