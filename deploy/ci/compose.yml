@@ -30,7 +30,7 @@ services:
     volumes:
       - db-data:/var/lib/postgresql/data
       - db-config:/etc/postgresql-custom
-      - ${AFAVERS_REPO:?repo required}/deploy/bootstrap/roles.sql:/docker-entrypoint-initdb.d/init-scripts/99-roles.sql:ro
+      - ${AFAVERS_REPO:?repo required}/deploy/ci/roles.sql:/docker-entrypoint-initdb.d/init-scripts/99-roles.sql:ro
       - ${AFAVERS_REPO}/deploy/bootstrap/jwt.sql:/docker-entrypoint-initdb.d/init-scripts/99-jwt.sql:ro
     command: [postgres, -c, config_file=/etc/postgresql/postgresql.conf, -c, shared_buffers=64MB, -c, work_mem=2MB, -c, maintenance_work_mem=32MB, -c, max_connections=40, -c, log_min_messages=warning, -c, cron.launch_active_jobs=off]
     healthcheck:
