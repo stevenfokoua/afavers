@@ -13,7 +13,7 @@ After=docker.service nginx.service postfix.service
 [Service]
 Type=oneshot
 WorkingDirectory=/opt/afavers
-Environment=AGENT_RESOURCE_OWNER=OWNER
+Environment=AGENT_RESOURCE_OWNER=__RESOURCE_OWNER_VALUE__
 ExecStart=/usr/bin/python3 /opt/afavers/resource-tools/runner.py run --docker --purpose "Afavers periodic health, under 80 MiB" -- /usr/bin/python3 /opt/afavers/deploy/operations.py --notify
 UMask=0077
 Nice=10
@@ -21,7 +21,7 @@ CPUQuota=10%
 MemoryMax=128M
 MemorySwapMax=0
 TimeoutStartSec=150
-'''.replace('OWNER',owner),
+'''.replace('__RESOURCE_OWNER_VALUE__',owner),
  'afavers-operations.timer':'''[Unit]
 Description=Check Afavers health every five minutes
 [Timer]

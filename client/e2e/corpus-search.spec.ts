@@ -32,5 +32,10 @@ test('lexical and alias searches find a real role beyond the latest 1000 public 
   }
   await page.getByRole('button', { name: new RegExp('^' + OLD_ROLE) }).click();
   await expect(page.getByRole('heading', { name: OLD_ROLE, exact: true })).toBeVisible();
-  expect(new URL(page.url()).pathname).toBe('/jobs/' + oldRole.id);
+  if (page.viewportSize()!.width >= 1200) {
+    await expect(page).toHaveURL(url => url.pathname === '/jobs' && url.searchParams.get('job') === String(oldRole.id));
+    await expect(page.getByRole('button', { name: new RegExp('^' + OLD_ROLE) })).toHaveAttribute('aria-current', 'true');
+  } else {
+    await expect(page).toHaveURL(url => url.pathname === '/jobs/' + oldRole.id);
+  }
 });
