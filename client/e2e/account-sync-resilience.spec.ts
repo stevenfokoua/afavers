@@ -34,13 +34,27 @@ async function createReminder(page: Page, backend: Backend, account: Account, ti
   return id;
 }
 
-async function editNotes(page: Page, title: string, notes: string): Promise<void> {
-  await page.getByRole('button', { name: 'Delete: ' + title, exact: true }).click();
+async function openEditor(page: Page, title: string) {
+  const menu = page.getByRole('button', { name: 'Delete: ' + title, exact: true });
+  await expect(menu).toBeVisible();
+  if (await menu.getAttribute('aria-expanded') !== 'true') await menu.click();
   await page.getByRole('button', { name: 'Edit', exact: true }).click();
-  const dialog = page.getByRole('dialog', { name: 'Edit reminder', exact: true });
+  return page.getByRole('dialog', { name: 'Edit reminder', exact: true });
+}
+
+async function expectNotes(page: Page, title: string, notes: string): Promise<void> {
+  const dialog = await openEditor(page, title);
+  await expect(dialog.getByRole('textbox', { name: 'Notes', exact: true })).toHaveValue(notes);
+  await dialog.getByRole('button', { name: 'Cancel', exact: true }).click();
+  await expect(dialog).not.toBeVisible();
+}
+
+async function editNotes(page: Page, title: string, notes: string): Promise<void> {
+  const dialog = await openEditor(page, title);
   await dialog.getByRole('textbox', { name: 'Notes', exact: true }).fill(notes);
   await dialog.getByRole('button', { name: 'Save', exact: true }).click();
-  await expect(page.getByText(notes, { exact: true })).toBeVisible();
+  await expect(dialog).not.toBeVisible();
+  await expectNotes(page, title, notes);
 }
 
 async function interruptCollection(context: BrowserContext): Promise<void> {
@@ -72,7 +86,7 @@ test('an offline edit survives reload and reaches the real account after reconne
   await editNotes(page, title, 'Offline note survives document reload');
   expect((await stored(backend, account, id)).data?.notes).toBe('Initial account note');
   await reloadDuringCollectionOutage(page);
-  await expect(page.getByText('Offline note survives document reload', { exact: true })).toBeVisible();
+  await expectNotes(page, title, 'Offline note survives document reload');
   expect((await stored(backend, account, id)).data?.notes).toBe('Initial account note');
   await reconnect(page);
   await expect.poll(async () => (await stored(backend, account, id)).data?.notes).toBe('Offline note survives document reload');
@@ -81,7 +95,7 @@ test('an offline edit survives reload and reaches the real account after reconne
   try {
     await other.page.goto('/reminders');
     await synced(other.page);
-    await expect(other.page.getByText('Offline note survives document reload', { exact: true })).toBeVisible();
+    await expectNotes(other.page, title, 'Offline note survives document reload');
   } finally { await other.context.close(); }
 });
 
@@ -133,18 +147,18 @@ test('two real devices preserve conflicting edits until each explicit resolution
       await expect(other.page.getByRole('button', { name: 'Retry sync', exact: true })).toBeVisible();
       await reconnect(other.page);
       await expect(other.page.getByText('This device and your account have different changes. Your edits are kept here.', { exact: true })).toBeVisible();
-      await expect(other.page.getByText(localNote, { exact: true })).toBeVisible();
+      await expectNotes(other.page, title, localNote);
       const beforeResolution = await stored(backend, account, id);
       expect(beforeResolution.data?.notes).toBe(accountNote);
       await other.page.getByRole('button', { name: choice === 'local' ? 'Keep this device’s changes' : 'Use account version', exact: true }).click();
       const expected = choice === 'local' ? localNote : accountNote;
       await expect.poll(async () => (await stored(backend, account, id)).data?.notes).toBe(expected);
       await synced(other.page);
-      await expect(other.page.getByText(expected, { exact: true })).toBeVisible();
+      await expectNotes(other.page, title, expected);
       if (choice === 'account') expect((await stored(backend, account, id)).revision).toBe(beforeResolution.revision);
       await page.reload();
       await synced(page);
-      await expect(page.getByText(expected, { exact: true })).toBeVisible();
+      await expectNotes(page, title, expected);
     }
   } finally { await other.context.close(); }
 });

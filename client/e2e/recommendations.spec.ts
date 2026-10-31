@@ -11,9 +11,17 @@ test('Hot Picks finds an older body-only preference match and distinguishes fail
   expect(latest).toHaveLength(1000);
   expect(latest.some(job => job.id === old.id)).toBe(false);
   await signIn(page, account);
-  const endpoint = '**/rest/v1/rpc/search_job_candidates';
-  await page.route(endpoint, route => route.abort('failed'));
+  const endpoint = (url: URL) => url.pathname.endsWith('/rest/v1/rpc/search_job_candidates');
+  let abortedPosts = 0;
+  await page.route(endpoint, route => {
+    if (route.request().method() === 'POST') {
+      abortedPosts++;
+      return route.abort('failed');
+    }
+    return route.continue();
+  });
   await page.goto('/hotpicks');
+  await expect.poll(() => abortedPosts).toBeGreaterThan(0);
   await expect(page.getByRole('heading', { name: 'Recommendations unavailable', exact: true })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'All caught up!', exact: true })).toHaveCount(0);
   await page.unroute(endpoint);
