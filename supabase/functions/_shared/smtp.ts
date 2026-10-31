@@ -51,7 +51,13 @@ export async function sendSmtpEmail(to: string, subject: string, html: string, o
     await writer.write(encoder.encode(line + '\r\n'));
     await response(expected);
   }
-  const encode = (value: string) => btoa(String.fromCharCode(...encoder.encode(value)));
+  const encode = (value: string) => {
+    const bytes = encoder.encode(value);
+    let binary = '';
+    // Escaping a valid long reminder can exceed V8's function-argument limit.
+    for (let start = 0; start < bytes.length; start += 8192) binary += String.fromCharCode(...bytes.subarray(start, start + 8192));
+    return btoa(binary);
+  };
   try {
     await response([220]);
     await command('EHLO afavers.saintcreators.com', [250]);

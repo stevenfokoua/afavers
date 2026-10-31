@@ -38,6 +38,14 @@ async function smtpFixture(mode: 'quit_disconnect' | 'data_disconnect' | 'greeti
   finally { listener.close(); await server; if (oldHost === undefined) Deno.env.delete('SMTP_HOST'); else Deno.env.set('SMTP_HOST',oldHost); if (oldPort === undefined) Deno.env.delete('SMTP_PORT'); else Deno.env.set('SMTP_PORT',oldPort); }
 }
 const assert = (value: unknown, message: string) => { if (!value) throw new Error(message); };
+Deno.test('long escaped reminder content is delivered intact without an argument-limit failure', async () => {
+  const html = '<p>' + '&#39;'.repeat(30000) + '</p>';
+  await smtpFixture('quit_disconnect', async (_port, messages) => {
+    await sendSmtpEmail('test@example.invalid','Long reminder',html);
+    const separator = messages.indexOf('');
+    assert(separator >= 0 && atob(messages.slice(separator + 1).join('')) === html,'Long reminder body was lost or truncated');
+  });
+});
 Deno.test('accepted DATA remains successful when QUIT disconnects; message id is stable', async () => {
   await smtpFixture('quit_disconnect',async (_port,messages) => {
     await sendSmtpEmail('test@example.invalid','Fixture','<p>No external delivery</p>',{messageId:'fixture-stable@saintcreators.com'});

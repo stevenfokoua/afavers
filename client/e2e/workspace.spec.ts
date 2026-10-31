@@ -25,7 +25,10 @@ test('search is lexical; manual application, preparation, stage and settings per
   await page.getByRole('combobox', { name: 'Stage for CI private manual application', exact: true }).selectOption('applied');
   await expect.poll(async () => (await backend.rows<{ status: string }>(`user_jobs?select=status&user_id=eq.${account.profileId}&job_id=eq.${jobId}`))[0]?.status).toBe('applied');
   await page.reload();
-  if (await page.getByRole('combobox', { name: 'Application stage', exact: true }).isVisible()) await page.getByRole('combobox', { name: 'Application stage', exact: true }).selectOption('applied');
+  const stageFilter = page.getByRole('combobox', { name: 'Application stage', exact: true });
+  await expect(stageFilter).toBeVisible();
+  await stageFilter.selectOption('applied');
+  await expect(stageFilter).toHaveValue('applied');
   await expect(page.getByRole('combobox', { name: 'Stage for CI private manual application', exact: true })).toHaveValue('applied');
   await page.goto('/settings');
   await page.getByRole('textbox', { name: 'Job Keywords', exact: true }).fill('GIS, geospatial');
