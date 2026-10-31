@@ -1,45 +1,19 @@
-const EN_WORDS = new Set([
-  'the','and','for','with','you','your','our','we','are','will','this','that',
-  'have','from','has','not','but','they','can','all','been','their','more',
-  'about','which','when','than','its','also','into','other','do','as','an','at',
-  'be','by','if','on','or','so','up','us','was','were','it','in','is','to','of',
-  'a','team','job','work','role','position','experience','skills','required',
-  'responsibilities','candidate','opportunity','apply','offer','company','join',
-  'must','strong','excellent','looking','background','knowledge','ability',
-]);
-
-const DE_WORDS = new Set([
-  'und','der','die','das','für','mit','sie','wir','bei','als','an','auf','im',
-  'ist','des','dem','den','ein','eine','einer','einem','von','zu','nach','oder',
-  'auch','aus','durch','werden','können','haben','sind','sich','nicht','mehr',
-  'ihre','ihrem','ihrer','wird','dass','wenn','aber','alle','noch','unser',
-  'einen','sowie','stelle','erfahrung','kenntnisse','bewerbung','aufgaben',
-  'anforderungen','freude','teamarbeit','vollzeit','teilzeit','standort',
-]);
-
-function tokenize(text: string): string[] {
-  return text
-    .toLowerCase()
-    .replace(/[^a-zäöüß\s/()]/g, ' ')
-    .split(/\s+/)
-    .filter((word) => word.length > 1);
+/** A translated or English-sounding title is not evidence of the working language. */
+export function confirmedWorkingLanguage(description = ''): 'en' | 'de' | null {
+  const text = description.replace(/<[^>]*>/g, '\n').toLowerCase();
+  const clauses = text.split(/[.!?;\n]+/).map(clause => clause.replace(/\s+/g, ' '));
+  const germanRequired = clauses.some(clause =>
+    !/nicht erforderlich|nicht notwendig|not required|optional|nice to have|von vorteil|wünschenswert/.test(clause) &&
+    /(?:sehr gute|verhandlungssichere|fließende|fliessende|fluent|excellent|business fluent)\s+(?:deutsche?(?: sprach)?kenntnisse|deutsch(?:kenntnisse)?|german)|deutsch(?:e sprachkenntnisse|kenntnisse)?[^,]{0,70}(?:c1|c2|erforderlich|voraussetzung)|german[^,]{0,40}(?:c1|c2|required)/.test(clause));
+  const explicitGerman = clauses.some(clause => !/\bnot\b|\bnicht\b|\bkeine?\b/.test(clause) && /(?:arbeits|unternehmens|team)sprache\s*(?:ist|:)?.{0,10}\bdeutsch\b|(?:working|company|team) language\s*(?:is|:)?.{0,10}\bgerman\b/.test(clause));
+  if (germanRequired || explicitGerman) return 'de';
+  const explicitEnglish = clauses.some(clause =>
+    !/(?:not|no|kein(?:e)?)\s+(?:an?\s+)?english(?:[- ]speaking)?|english[^,]{0,25}not (?:our|the) (?:working|company) language/.test(clause) &&
+    /(?:working|business|company|team|primary) language\s*(?:is|:)?.{0,10}\benglish\b|(?:arbeits|unternehmens|team)sprache\s*(?:ist|:)?.{0,10}\benglisch\b|english\s+(?:is\s+)?(?:our|the)\s+(?:working|company|team) language|work(?:ing)?\s+(?:(?:mainly|primarily|entirely)\s+)?in english|english[- ]speaking\s+(?:team|workplace|environment)/.test(clause));
+  return explicitEnglish ? 'en' : null;
 }
 
-export function detectLanguage(title: string, description = ''): 'en' | 'de' | null {
-  const tokens = tokenize(`${title} ${description.slice(0, 800)}`);
-  if (tokens.length < 10) return null;
-
-  let en = 0;
-  let de = 0;
-  for (const token of tokens) {
-    if (EN_WORDS.has(token)) en += 1;
-    if (DE_WORDS.has(token)) de += 1;
-  }
-
-  const total = en + de;
-  if (total < 5) return null;
-  const enRatio = en / total;
-  if (enRatio >= 0.65) return 'en';
-  if (enRatio <= 0.45) return 'de';
-  return null;
+/** Compatibility for importers; title is deliberately ignored. */
+export function detectLanguage(_title: string, description = ''): 'en' | 'de' | null {
+  return confirmedWorkingLanguage(description);
 }

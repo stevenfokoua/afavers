@@ -82,6 +82,26 @@ def wait_http(url, attempts=90):
             if attempt == attempts - 1: raise
         time.sleep(1)
 
+def assert_browser_cors(base, origin):
+    requested_headers = 'authorization,apikey,content-type,x-client-info,x-supabase-api-version'
+    for path in ['/auth/v1/token?grant_type=password', '/rest/v1/jobs']:
+        request = urllib.request.Request(base + path, method='OPTIONS', headers={
+            'Origin': origin, 'Access-Control-Request-Method': 'POST',
+            'Access-Control-Request-Headers': requested_headers,
+        })
+        with urllib.request.urlopen(request, timeout=5) as response:
+            assert response.status == 204, 'Browser API preflight failed'
+            assert response.headers.get_all('Access-Control-Allow-Origin') == [origin], 'Browser API CORS origin missing or duplicated'
+            assert 'POST' in response.headers.get('Access-Control-Allow-Methods', '').split(', '), 'Browser API CORS method missing'
+            allowed = {value.strip().lower() for value in response.headers.get('Access-Control-Allow-Headers', '').split(',')}
+            assert set(requested_headers.split(',')).issubset(allowed), 'Browser API CORS headers missing'
+    request = urllib.request.Request(base + '/auth/v1/health', headers={'Origin': origin})
+    with urllib.request.urlopen(request, timeout=5) as response:
+        assert response.headers.get_all('Access-Control-Allow-Origin') == [origin], 'Browser API response CORS missing or duplicated'
+    request = urllib.request.Request(base + '/auth/v1/health', method='OPTIONS', headers={'Origin': 'https://example.invalid', 'Access-Control-Request-Method': 'GET'})
+    with urllib.request.urlopen(request, timeout=5) as response:
+        assert response.headers.get('Access-Control-Allow-Origin') is None, 'Disposable API must not allow non-loopback origins'
+
 def run():
     owner = os.environ.get('AGENT_RESOURCE_OWNER')
     if not owner:
@@ -128,12 +148,13 @@ def run():
         base = f"http://127.0.0.1:{ports['AFAVERS_CI_API_PORT']}/backend"
         wait_http(base + '/auth/v1/health')
         test_env = {'apiUrl':base,'anonKey':values['ANON_KEY'],'serviceKey':values['SERVICE_ROLE_KEY'],'owner':owner,'mailUrl':f"http://127.0.0.1:{ports['AFAVERS_CI_MAIL_PORT']}",'appUrl':f"http://127.0.0.1:{ports['AFAVERS_CI_APP_PORT']}"}
+        assert_browser_cors(base, test_env['appUrl'])
         (root/'test-env.json').write_text(json.dumps(test_env));(root/'test-env.json').chmod(0o600)
         now = time.strftime('%Y-%m-%d',time.gmtime())
         rows = [
-            {'external_id':project+'-gis','title':'CI GIS Analyst','company':'Afavers CI Studio','location':'Köln','description':'QGIS and ArcGIS spatial analysis.','url':'https://example.invalid/ci/gis','source':'bundesagentur','posted_date':now,'language':'en'},
-            {'external_id':project+'-it','title':'CI IT Consultant','company':'Afavers CI Studio','location':'Düsseldorf','description':'Information technology and software consulting.','url':'https://example.invalid/ci/it','source':'bundesagentur','posted_date':now,'language':'en'},
-            {'external_id':project+'-unrelated','title':'Psychologischen Studienberatung','company':'Afavers CI Studio','location':'Berlin','description':'Studienberatung und Psychologie.','url':'https://example.invalid/ci/psychology','source':'bundesagentur','posted_date':now,'language':'de'},
+            {'external_id':project+'-gis','title':'CI GIS Analyst','company':'Afavers CI Studio','location':'Köln','description':'Maintain spatial datasets and map applications using QGIS and ArcGIS. The data analyst role requires geospatial database experience and the ability to explain analysis to project teams. Our working language is English. These are synthetic CI requirements, not an assessment of any person.','description_quality':'full','url':'https://example.invalid/ci/gis','source':'bundesagentur','posted_date':now,'language':'en'},
+            {'external_id':project+'-it','title':'CI IT Consultant','company':'Afavers CI Studio','location':'Düsseldorf','description':'Deliver information technology and software consulting for customer projects. Requirements include maintaining application services, documenting changes, reviewing technical designs and communicating with engineers and clients. Our working language is English. These are synthetic CI requirements.','description_quality':'full','url':'https://example.invalid/ci/it','source':'bundesagentur','posted_date':now,'language':'en'},
+            {'external_id':project+'-unrelated','title':'Psychologischen Studienberatung','company':'Afavers CI Studio','location':'Berlin','description':'Psychologische Einzelberatung und Studienberatung an einer Hochschule. Voraussetzungen sind ein abgeschlossenes Psychologiestudium sowie eine psychotherapeutische Weiterbildung. Die Aufgaben umfassen Beratungsgespräche, die Organisation von Gruppenangeboten und die Zusammenarbeit mit dem Hochschulteam. Sehr gute Deutschkenntnisse sind erforderlich.','description_quality':'full','url':'https://example.invalid/ci/psychology','source':'bundesagentur','posted_date':now,'language':'de'},
         ]
         headers = {'apikey':values['ANON_KEY'],'Authorization':'Bearer '+values['SERVICE_ROLE_KEY'],'Content-Type':'application/json'}
         request = urllib.request.Request(base+'/rest/v1/jobs',data=json.dumps(rows).encode(),headers=headers,method='POST')

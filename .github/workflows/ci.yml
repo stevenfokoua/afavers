@@ -48,6 +48,7 @@ jobs:
         run: |
           python -m unittest discover -s deploy -p 'test_*.py'
           python -m unittest discover -s deploy/ci -p 'test_*.py'
+          node --test extension/config-validation.test.mjs
 
   # ─── Build ──────────────────────────────────────────────────────────────────
   build:
@@ -142,6 +143,7 @@ jobs:
       AFAVERS_SUPABASE_ANON_KEY: ${{ vars.AFAVERS_SUPABASE_ANON_KEY }}
       VITE_SUPABASE_URL: ${{ vars.AFAVERS_SUPABASE_URL }}
       VITE_SUPABASE_ANON_KEY: ${{ vars.AFAVERS_SUPABASE_ANON_KEY }}
+      VITE_DEMO_EMAIL: ${{ vars.AFAVERS_DEMO_EMAIL }}
       VITE_APP_VERSION: ${{ github.sha }}
     steps:
       - uses: actions/checkout@v4

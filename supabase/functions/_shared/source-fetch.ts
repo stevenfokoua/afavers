@@ -1,3 +1,5 @@
+import type { DetailReport } from './bundesagentur-detail.ts';
+
 /** Source telemetry never contains URLs, query terms, credentials or raw errors. */
 export interface SourceReport {
   source: string;
@@ -16,6 +18,7 @@ export interface SourceReport {
   budget_exhausted: boolean;
   configuration_capped: boolean;
   errors: string[];
+  details?: DetailReport;
 }
 
 export interface FetchResult<T> { jobs: T[]; complete: boolean; report: SourceReport }

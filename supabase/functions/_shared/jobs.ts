@@ -3,6 +3,8 @@ import { detectLanguage } from './language.ts';
 import { BUNDESAGENTUR_URL, parseBundesagenturResponse } from './bundesagentur.ts';
 import { filterBatches } from './filter-batches.ts';
 import { fetchSearchPages, type SourceReport } from './source-fetch.ts';
+import { enrichBundesagenturDetails, type DetailMetadata } from './bundesagentur-detail.ts';
+import { buildImportRows } from './import-rows.ts';
 
 export interface ExternalJob {
   id: string;
@@ -14,6 +16,8 @@ export interface ExternalJob {
   postedDate?: string;
   deadline?: string;
   salary?: string;
+  descriptionQuality?: 'summary' | 'full';
+  detailsCheckedAt?: string;
 }
 
 export interface SourceFetchResult {
@@ -106,8 +110,15 @@ export async function fetchBundesagenturJobs(
     pairs.push(...pairs.splice(0, offset));
   }
 
-  return fetchSearchPages({
-    source: 'bundesagentur', queries: pairs, concurrency: BA_CONCURRENCY, deadlineAt,
+  const headers = {
+    'User-Agent': 'Jobsuche/2.9.2 (de.arbeitsagentur.jobboerse; build:1077; iOS 15.1.0) Alamofire/5.4.4',
+    'X-API-Key': apiKey,
+  };
+  const detailDeadline = Math.min(deadlineAt, Date.now() + FETCH_BUDGET_MS);
+  const detailReserve = Math.min(30_000, Math.max(0, detailDeadline - Date.now()) * .4);
+  // Reserve 30 seconds inside the existing fetch budget for richer descriptions.
+  const searched = await fetchSearchPages({
+    source: 'bundesagentur', queries: pairs, concurrency: BA_CONCURRENCY, deadlineAt: Math.min(detailDeadline - detailReserve, Date.now() + 55_000),
     configurationCapped: keywords.length > 40 || locations.length > 20,
     makeUrl: ({ keyword, location }, page) => {
       const url = new URL(BUNDESAGENTUR_URL);
@@ -121,10 +132,7 @@ export async function fetchBundesagenturJobs(
 
       return url;
     },
-    headers: {
-      'User-Agent': 'Jobsuche/2.9.2 (de.arbeitsagentur.jobboerse; build:1077; iOS 15.1.0) Alamofire/5.4.4',
-      'X-API-Key': apiKey,
-    },
+    headers,
     parse: (payload, { location }, page) => {
       const parsed = parseBundesagenturResponse(payload, location);
       if (!parsed.recognized) throw new Error('unexpected_response');
@@ -135,6 +143,30 @@ export async function fetchBundesagenturJobs(
     },
     key: job => job.id,
   });
+  const metadata: DetailMetadata[] = [];
+  let cacheAvailable = true;
+  const cacheDeadline = Math.min(detailDeadline, Date.now() + 5000);
+  const cacheClient = adminClient();
+  const batches = filterBatches(searched.jobs.map(job => job.id));
+  let next = 0;
+  await Promise.all(Array.from({ length: Math.min(4, batches.length) }, async () => {
+    while (next < batches.length && cacheAvailable) {
+      if (Date.now() >= cacheDeadline) { cacheAvailable = false; break; }
+      const batch = batches[next++];
+      try {
+        const { data, error } = await cacheClient.from('jobs').select('external_id,description_quality,details_checked_at')
+          .in('external_id', batch).abortSignal(AbortSignal.timeout(Math.max(1, cacheDeadline - Date.now())));
+        if (error) { cacheAvailable = false; break; }
+        metadata.push(...(data ?? []));
+      } catch { cacheAvailable = false; }
+    }
+  }));
+  const enriched = await enrichBundesagenturDetails(searched.jobs, metadata, {
+    deadlineAt: detailDeadline, headers, maxJobs: cacheAvailable ? 60 : 0,
+  });
+  enriched.report.cache_unavailable = !cacheAvailable;
+  if (!cacheAvailable) enriched.report.errors.push('detail_cache_unavailable');
+  return { ...searched, jobs: enriched.jobs, report: { ...searched.report, details: enriched.report } };
 }
 
 export async function fetchAdzunaJobs(deadlineAt: number = Number.POSITIVE_INFINITY, keywords = DEFAULT_KEYWORDS, locations = DEFAULT_LOCATIONS): Promise<SourceFetchResult> {
@@ -272,32 +304,18 @@ export async function saveJobs(
   }
 
   const existingIds = new Set<string>();
+  const existingDetails: DetailMetadata[] = [];
   for (const ids of filterBatches(unique.map((job) => job.id))) {
-    const { data, error } = await supabase.from('jobs').select('external_id').in('external_id', ids);
+    const { data, error } = await supabase.from('jobs').select('external_id,description_quality,details_checked_at').in('external_id', ids);
     if (error) throw error;
-    for (const row of data ?? []) existingIds.add(row.external_id);
+    for (const row of data ?? []) { existingIds.add(row.external_id); existingDetails.push(row); }
   }
 
-  const rows = unique.map((job) => ({
-    external_id: job.id,
-    title: job.title,
-    company: job.company,
-    location: job.location,
-    description: job.description,
-    url: job.url,
-    source: job.id.split('_')[0],
-    posted_date: job.postedDate ? new Date(job.postedDate).toISOString().slice(0, 10) : null,
-    deadline: job.deadline ? new Date(job.deadline).toISOString().slice(0, 10) : null,
-    salary: job.salary ?? null,
-    language: detectLanguage(job.title, job.description),
-    // A job returned by a feed is listed again — revive it if it was stale.
-    is_active: true,
-    updated_at: new Date().toISOString(),
-  }));
-
-  for (const batch of chunk(rows, WRITE_CHUNK)) {
-    const { error } = await supabase.from('jobs').upsert(batch, { onConflict: 'external_id' });
-    if (error) throw error;
+  for (const rows of buildImportRows(unique, existingDetails, detectLanguage, new Date().toISOString())) {
+    for (const batch of chunk(rows, WRITE_CHUNK)) {
+      const { error } = await supabase.from('jobs').upsert(batch, { onConflict: 'external_id' });
+      if (error) throw error;
+    }
   }
 
   return {

@@ -131,7 +131,7 @@ describe('scoreJob (via getJobs with user keywords)', () => {
     setupJobsMock([makeJob()]);
     const result = await jobsService.getJobs();
     const job = result.jobs[0];
-    // Base 20 + English (+10) + posted today (+10) = 40
+    // A legacy language tag is not a confirmed working-language claim.
     expect(job.match_score).toBeGreaterThanOrEqual(20);
     expect(job.match_score).toBeLessThanOrEqual(100);
   });
@@ -280,16 +280,14 @@ describe('applyFilters (via getJobs)', () => {
 
   it('filters by highMatchOnly (score >= 70)', async () => {
     const { settingsService } = await import('./settings.service');
-    (settingsService.get as ReturnType<typeof vi.fn>).mockResolvedValue({ keywords: '', locations: '' });
-    // Give one job a pre-set match_score via the overlay-merged data
+    (settingsService.get as ReturnType<typeof vi.fn>).mockResolvedValue({ keywords: 'react,typescript', locations: 'Berlin' });
     setupJobsMock([
-      makeJob({ id: 1, match_score: 80 }),
-      makeJob({ id: 2, match_score: 50 }),
+      makeJob({ id: 1, description: 'Build production interfaces with React and TypeScript. Work with designers and engineers to make accessible customer experiences, review changes and maintain our shared components. Our working language is English.' }),
+      makeJob({ id: 2, description: 'Position: Software Engineer', match_score: 100 }),
     ]);
     const result = await jobsService.getJobs({ highMatchOnly: true });
-    // Note: scoreJob recalculates scores — this test verifies the filter gate logic
-    // by asserting all returned jobs have score >= 70 post-scoring
-    expect(result.jobs.every((j) => (j.match_score ?? 0) >= 70)).toBe(true);
+    expect(result.jobs.map(job => job.id)).toEqual([1]);
+    expect(result.jobs[0].match_score).toBeGreaterThanOrEqual(70);
   });
 
   it('pagination: returns correct slice and total', async () => {

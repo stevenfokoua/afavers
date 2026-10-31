@@ -4,6 +4,7 @@ import { APPLICATION_CHECKLIST, jobsService } from '../../services/jobs.service'
 import type { Job } from '../../types';
 import { useAuthStore } from '../../store/authStore';
 import { useLanguage } from '../../store/languageStore';
+import { ListingEvidence } from './ListingEvidence';
 import { useToastStore } from '../../store/toastStore';
 import { useDirtyNavigation } from '../../hooks/useDirtyNavigation';
 import { Button, EmptyState, Icon, InlineError, Skeleton } from '../ui';
@@ -184,7 +185,8 @@ export function JobDetails({
         }
       }} onClick={() => setTab(key)}>{label}</button>)}</div>
     <section role="tabpanel" id={`${statusId}-panel-overview`} aria-labelledby={`${statusId}-overview`} hidden={tab !== 'overview'}>
-      {job.match_score != null && <details className="job-match-details"><summary>{de ? 'Warum dieser Job passt' : 'Why this matches'} <span className="job-match">{job.match_score}%</span></summary><ul>{job.match_reasons?.map(reason => <li key={reason}>{reason}</li>)}{job.match_gaps?.map(gap => <li key={gap}>{de ? 'Fehlt' : 'Missing'}: {gap}</li>)}</ul></details>}
+      {job.match_score != null && <details className="job-match-details"><summary>{de ? 'Relevanz dieser Anzeige' : 'Listing relevance'} <span className="job-match">{job.match_score}/100</span></summary><p className="ui-muted text-sm">{de ? 'Vergleicht Suchbegriffe und Standort. Bitte prüfe die Anforderungen selbst.' : 'Compares search terms and location. Check the requirements before applying.'}</p><ul>{job.match_reasons?.map(reason => <li key={reason}>{reason}</li>)}{job.match_gaps?.map(gap => <li key={gap}>{de ? 'Fehlt' : 'Missing'}: {gap}</li>)}</ul></details>}
+      <ListingEvidence job={job} t={t} />
       <div className="job-prose" dangerouslySetInnerHTML={{
         __html: DOMPurify.sanitize(job.description?.includes('<') ? job.description : job.description?.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/\n/g, '<br>') || '')
       }} />

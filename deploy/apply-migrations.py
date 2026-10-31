@@ -1,6 +1,7 @@
 """Run under the VPS Docker resource runner. Never print backend credentials."""
 import hashlib
 import json
+import os
 from pathlib import Path
 import subprocess
 
@@ -27,7 +28,10 @@ for path in sorted((root/'supabase/migrations').glob('*.sql')):
     if sql(f"SELECT count(*) FROM afavers_internal.migrations WHERE name = '{name}';").splitlines()[2].strip() != '0':
         raise RuntimeError(f'Applied migration changed: {name}')
     source = path.read_text().replace('https://YOUR-PROJECT-REF.supabase.co', 'http://host.docker.internal:18980').replace('YOUR_CRON_SECRET', env['CRON_SECRET'])
-    sql('BEGIN;\n'+source+f"\nINSERT INTO afavers_internal.migrations(name,sha256) VALUES ('{name}','{digest}');\nCOMMIT;")
+    # Deployment-only pause, in the same transaction as cron.schedule: no
+    # minute-boundary window may send mail before the new worker is healthy.
+    pause = "\nSELECT cron.alter_job(jobid, active := false) FROM cron.job WHERE jobname='send-reminders-every-minute';" if os.environ.get('AFAVERS_PAUSE_REMINDER_SCHEDULE') == '1' else ''
+    sql('BEGIN;\n'+source+pause+f"\nINSERT INTO afavers_internal.migrations(name,sha256) VALUES ('{name}','{digest}');\nCOMMIT;")
     applied.append(name)
     print('Applied', name, flush=True)
 sql("NOTIFY pgrst, 'reload schema';")

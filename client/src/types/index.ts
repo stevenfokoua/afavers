@@ -38,6 +38,8 @@ export interface Job {
   match_score?: number;
   match_reasons?: string[];
   match_gaps?: string[];
+  match_limitations?: ('requirements_unavailable' | 'working_language_unknown')[];
+  description_quality?: 'summary' | 'full' | null;
 }
 
 export interface JobHistoryEvent {

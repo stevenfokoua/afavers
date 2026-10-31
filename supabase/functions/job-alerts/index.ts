@@ -1,4 +1,4 @@
-import { scoreListing, splitMatchTerms } from '../_shared/matching.ts';
+import { listingLimitations, scoreListing, splitMatchTerms } from '../_shared/matching.ts';
 import { handleOptions, jsonResponse } from '../_shared/cors.ts';
 import { sendSmtpEmail } from '../_shared/smtp.ts';
 import { runJobAlerts } from '../_shared/job-alert-runner.ts';
@@ -63,8 +63,8 @@ function shouldSkipForFrequency(alert: JobAlert): boolean {
 function buildEmail(alert: JobAlert, jobs: ScoredJob[]) {
   const preview = jobs.slice(0, 10);
   const title = preview.length === 1
-    ? `1 high-priority job matched your Afavers alert`
-    : `${preview.length} high-priority jobs matched your Afavers alert`;
+    ? `1 job listing matched your Afavers alert`
+    : `${preview.length} job listings matched your Afavers alert`;
   const appUrl = env('APP_URL') || env('SITE_URL') || 'https://afavers.online';
 
   const rows = preview.map((job) => {
@@ -75,6 +75,8 @@ function buildEmail(alert: JobAlert, jobs: ScoredJob[]) {
       ? `<p style="margin:8px 0 0;color:#475569;font-size:13px;">${escapeHtml(job.reasons.join(' - '))}</p>`
       : '';
     const href = job.url || `${appUrl}/jobs/${job.id}`;
+    const limitations = listingLimitations(job);
+    const evidence = limitations.length ? `<p style="margin:8px 0 0;color:#475569;font-size:13px;">${limitations.includes('requirements_unavailable') ? 'Requirements are unavailable in this feed. Check the original listing. ' : ''}${limitations.includes('working_language_unknown') ? 'Working language is unconfirmed.' : ''}</p>` : '';
 
     return `
       <tr>
@@ -83,9 +85,10 @@ function buildEmail(alert: JobAlert, jobs: ScoredJob[]) {
           <p style="margin:0;color:#334155;font-size:14px;">${company} - ${location}</p>
           ${salary}
           ${reasons}
+          ${evidence}
           <p style="margin:12px 0 0;">
             <a href="${escapeHtml(href)}" style="color:#2563eb;font-weight:700;text-decoration:none;">Open job &rarr;</a>
-            <span style="color:#94a3b8;font-size:13px;"> ${job.score}% match</span>
+            <span style="color:#94a3b8;font-size:13px;"> ${job.score}/100 listing relevance</span>
           </p>
         </td>
       </tr>
@@ -98,6 +101,7 @@ function buildEmail(alert: JobAlert, jobs: ScoredJob[]) {
       <h1 style="margin:0 0 10px;font-size:24px;line-height:1.25;">${escapeHtml(title)}</h1>
       <p style="margin:0 0 20px;color:#475569;font-size:15px;line-height:1.6;">
         These matched what you are currently looking for: ${escapeHtml(alert.keywords || 'your saved keywords')} in ${escapeHtml(alert.locations || 'your saved locations')}.
+        Relevance compares listing terms and location; it does not establish that you meet the requirements.
       </p>
       <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;">${rows}</table>
       <p style="margin:24px 0 0;">

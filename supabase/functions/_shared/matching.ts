@@ -1,3 +1,5 @@
+import { confirmedWorkingLanguage } from './language.ts';
+
 /** Lexical relevance shared by discovery, Hot Picks and priority email alerts.
  * Scores describe observable listing matches, not a probability of employment.
  */
@@ -11,9 +13,11 @@ export interface MatchListing {
   posted_date?: string | null;
   deadline?: string | null;
   is_active?: boolean;
+  description_quality?: 'summary' | 'full' | null;
 }
 
-export interface ListingMatch { score: number; reasons: string[]; gaps: string[] }
+export type MatchLimitation = 'requirements_unavailable' | 'working_language_unknown';
+export interface ListingMatch { score: number; reasons: string[]; gaps: string[]; limitations: MatchLimitation[] }
 export const HIGH_MATCH_SCORE = 70;
 
 const ALIASES: Readonly<Record<string, readonly string[]>> = {
@@ -61,6 +65,37 @@ const WORD_FAMILIES: Readonly<Record<string, RegExp>> = {
 const REMOTE_TERMS = ['remote', 'homeoffice', 'home office', 'hybrid', 'mobiles arbeiten'];
 const STUDENT_TERMS = ['werkstudent', 'working student', 'studentische', 'student assistant', 'praktikum', 'internship'];
 const NRW_CITIES = ['dusseldorf', 'koln', 'essen', 'dortmund', 'bochum', 'bonn', 'wuppertal', 'duisburg', 'munster', 'aachen', 'bielefeld', 'hagen', 'hamm', 'herne', 'krefeld', 'monchengladbach', 'oberhausen', 'solingen', 'leverkusen', 'paderborn', 'gelsenkirchen', 'bottrop', 'remscheid', 'recklinghausen', 'gutersloh'];
+
+const EVIDENCE_GROUPS = [
+  ['gis', 'qgis', 'arcgis', 'geoinformatik', 'geospatial', 'geomatics', 'geoinformation'],
+  ['it', 'information technology', 'informationstechnologie', 'informatik'],
+  ['consulting', 'consultant', 'consultants', 'beratung', 'berater', 'beraterin'],
+  ['energy', 'energie'], ['developer', 'developers', 'entwickler', 'entwicklerin'],
+  ['engineer', 'engineers', 'engineering', 'ingenieur', 'ingenieurin'],
+  ['werkstudent', 'werkstudentin', 'working student', 'studentische'],
+  ['praktikum', 'praktikant', 'praktikantin', 'internship'],
+];
+
+/** Synonymous preferences contribute one concept rather than inflating relevance. */
+function keywordEvidenceCount(hits: readonly string[]): number {
+  return new Set(hits.map(hit => {
+    const normalized = normalizeMatchText(hit);
+    return EVIDENCE_GROUPS.find(group => group.includes(normalized))?.[0] ?? normalized;
+  })).size;
+}
+
+export function hasDetailedDescription(job: MatchListing): boolean {
+  const description = normalizeMatchText(job.description ?? '');
+  if (!description || job.description_quality === 'summary' || /^position\s/.test(description)) return false;
+  return description !== normalizeMatchText(job.title ?? '') && description.split(' ').length >= 20;
+}
+
+export function listingLimitations(job: MatchListing): MatchLimitation[] {
+  const limitations: MatchLimitation[] = [];
+  if (!hasDetailedDescription(job)) limitations.push('requirements_unavailable');
+  if (!confirmedWorkingLanguage(job.description ?? '')) limitations.push('working_language_unknown');
+  return limitations;
+}
 
 export function normalizeMatchText(value: string): string {
   return value
@@ -157,13 +192,15 @@ export function scoreListing(job: MatchListing, keywords: readonly string[], loc
   const keywordHits = keywordMatches(text, uniqueKeywords);
   const locationHits = splitMatchTerms(locations.join(',')).filter(term => matchesJobLocation(job.location, term));
   const remote = isRemoteListing(job);
+  const limitations = listingLimitations(job);
+  const workingLanguage = confirmedWorkingLanguage(job.description ?? '');
   let score = 20;
-  if (keywordHits.length) { score += Math.min(35, keywordHits.length * 12); reasons.push(`Keyword: ${keywordHits.slice(0, 2).join(', ')}`); }
+  if (keywordHits.length) { score += Math.min(35, keywordEvidenceCount(keywordHits) * 12); reasons.push(`Keyword: ${keywordHits.slice(0, 2).join(', ')}`); }
   else if (uniqueKeywords.length) gaps.push('No saved keyword hit');
   if (locationHits.length) { score += 20; reasons.push(`Location: ${locationHits[0]}`); }
   else if (locations.length && !remote) gaps.push('Outside your saved cities');
-  if (job.language === 'en') { score += 10; reasons.push('Working language: English'); }
-  else if (uniqueKeywords.some(term => matchesJobTerm(term, 'english')) && job.language === 'de') gaps.push('Likely German-language role');
+  if (workingLanguage === 'en') { score += 10; reasons.push('Working language stated: English'); }
+  else if (uniqueKeywords.some(term => matchesJobTerm(term, 'english')) && workingLanguage === 'de') gaps.push('German is required or stated as the working language');
   if (remote) { score += 10; reasons.push('Remote-friendly'); }
   if (isStudentListing(job)) { score += 8; reasons.push('Werkstudent'); }
   if (isSeniorTitle(job.title) && uniqueKeywords.some(term => ['junior', 'entry', 'werkstudent', 'praktikum', 'internship'].some(level => matchesJobTerm(term, level)))) {
@@ -180,7 +217,8 @@ export function scoreListing(job: MatchListing, keywords: readonly string[], loc
   // Metadata bonuses cannot make a listing a strong match when an explicit
   // search criterion is missing. Keep the explanatory gaps visible in the UI.
   if ((uniqueKeywords.length > 0 && keywordHits.length === 0) || (locations.length > 0 && locationHits.length === 0 && !remote)) score = Math.min(score, HIGH_MATCH_SCORE - 1);
-  return { score: Math.max(0, Math.min(100, score)), reasons: reasons.slice(0, 5), gaps: gaps.slice(0, 3) };
+  if (limitations.includes('requirements_unavailable')) score = Math.min(score, HIGH_MATCH_SCORE - 1);
+  return { score: Math.max(0, Math.min(100, score)), reasons: reasons.slice(0, 5), gaps: gaps.slice(0, 3), limitations };
 }
 
 /** Text search requires all query words (or a complete phrase alias), with

@@ -8,6 +8,7 @@ import { feedHealthService } from './feedHealth.service';
 import { invalidateJobSnapshot, readJobSnapshot } from './jobSnapshot';
 import { discoveryJobs } from '../../../supabase/functions/_shared/job-quality';
 import { HIGH_MATCH_SCORE, isRemoteListing, isStudentListing, listingSearchScore as searchScore, matchesJobLocation, scoreListing, splitMatchTerms as splitTerms } from '../../../supabase/functions/_shared/matching';
+import { confirmedWorkingLanguage } from '../../../supabase/functions/_shared/language';
 
 type UserJobOverlay = Partial<Pick<Job,
   'status' | 'notes' | 'cover_letter' | 'applied_date' | 'follow_up_date' | 'interview_date' | 'is_hidden' | 'checklist' | 'history'
@@ -48,6 +49,7 @@ function defaultJob(job: Job): Job {
     is_active: job.is_active ?? true,
     checklist: job.checklist ?? {},
     history: job.history ?? [],
+    language: confirmedWorkingLanguage(job.description ?? ''),
   };
 }
 
@@ -81,7 +83,7 @@ function mergeJob(job: Job, overlay?: UserJobOverlay): Job {
 
 function scoreJob(job: Job, keywords: string[], locations: string[]): Job {
   const match = scoreListing(job, keywords, locations);
-  return { ...job, match_score: match.score, match_reasons: match.reasons, match_gaps: match.gaps };
+  return { ...job, match_score: match.score, match_reasons: match.reasons, match_gaps: match.gaps, match_limitations: match.limitations };
 }
 
 function dateInDays(days: number, from?: string): string {

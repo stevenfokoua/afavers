@@ -25,9 +25,11 @@ describe('task-specific cards', () => {
   });
   it('keeps a real zero score and supplied reasons visible', () => {
     act(() => root.render(<FeaturedOpportunity job={{ ...job, match_score: 0, match_reasons: ['Location matches'], match_gaps: ['German'] }} source="Manual" t={key => key}>{null}</FeaturedOpportunity>));
-    expect(host.textContent).toContain('0% match');
+    expect(host.textContent).toContain('0/100 relevance');
     expect(host.textContent).toContain('Location matches');
     expect(host.textContent).toContain('missing: German');
+    expect(host.textContent).toContain('requirementsUnavailable');
+    expect(host.textContent).toContain('workingLanguageUnconfirmed');
   });
   it('opens the correct application through its named action', () => {
     const onClick = vi.fn();

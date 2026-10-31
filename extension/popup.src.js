@@ -13,6 +13,7 @@
 // ────────────────────────────────────────────────────────────────────────────
 
 import { createClient } from '@supabase/supabase-js';
+import { isExtensionConfigured } from './config-validation.mjs';
 
 // ── Config ────────────────────────────────────────────────────────────────
 // `config.js` is loaded by popup.html BEFORE this bundle and assigns the
@@ -24,10 +25,7 @@ const SUPABASE_URL = CONFIG.SUPABASE_URL || '';
 const SUPABASE_ANON_KEY = CONFIG.SUPABASE_ANON_KEY || '';
 const DASHBOARD_URL = CONFIG.DASHBOARD_URL || 'https://afavers.online/jobs';
 
-const CONFIG_OK = /^https:\/\/[a-z0-9-]+\.supabase\.co$/i.test(SUPABASE_URL)
-  && SUPABASE_ANON_KEY
-  && !SUPABASE_URL.includes('YOUR-PROJECT-REF')
-  && !SUPABASE_ANON_KEY.includes('YOUR-SUPABASE');
+const CONFIG_OK = isExtensionConfigured(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // ── chrome.storage-backed session adapter ─────────────────────────────────
 // The Supabase client wants a localStorage-like interface.  We use

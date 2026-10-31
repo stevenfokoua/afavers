@@ -76,6 +76,26 @@ describe('transparent relevance and search', () => {
   it('does not inflate scores when an identical keyword is repeated', () => {
     expect(scoreListing(role, ['gis', 'GIS', 'gis'], ['Köln'], now)).toEqual(scoreListing(role, ['gis'], ['Köln'], now));
   });
+  it('counts synonymous saved keywords as one evidence concept', () => {
+    const consulting = { ...role, title: 'Consultant / Berater', description: 'Business consulting and Unternehmensberatung' };
+    expect(scoreListing(consulting, ['consulting', 'beratung', 'berater'], [], now).score).toBe(scoreListing(consulting, ['consulting'], [], now).score);
+  });
+  it('keeps title-only search summaries below high relevance and explains missing evidence', () => {
+    const summary = { title: 'Studienberater in der Psychologischen Studienberatung', location: 'Dortmund · Remote', description: 'Position: Studienberater in der Psychologischen Studienberatung', language: 'en', posted_date: '2026-10-31', description_quality: 'summary' as const };
+    const match = scoreListing(summary, ['gis', 'consulting', 'beratung', 'berater'], ['Dortmund'], now);
+    expect(match.score).toBeLessThan(70);
+    expect(match.limitations).toEqual(['requirements_unavailable', 'working_language_unknown']);
+    expect(match.reasons).not.toContain('Working language stated: English');
+    expect(keywordMatches(summary.title, ['GIS'])).toEqual([]);
+  });
+  it('does not trust legacy language tags and grants the language bonus only for an explicit claim', () => {
+    const detailed = { ...role, description: 'Build and maintain geospatial datasets and mapping applications with the engineering team. This role needs database experience and confidence explaining technical results to customers.' };
+    const unknown = scoreListing({ ...detailed, language: 'en' }, ['GIS'], [], now);
+    const confirmed = scoreListing({ ...detailed, language: null, description: detailed.description + ' Our working language is English.' }, ['GIS'], [], now);
+    expect(unknown.limitations).toContain('working_language_unknown');
+    expect(confirmed.score).toBe(unknown.score + 10);
+    expect(confirmed.reasons).toContain('Working language stated: English');
+  });
   it('does not turn metadata bonuses into a high match when explicit criteria miss', () => {
     const unrelated = { title: 'Working student', location: 'Köln · Remote', language: 'en', posted_date: '2026-10-31' };
     const keywordMiss = scoreListing(unrelated, ['GIS'], ['Köln'], now);
