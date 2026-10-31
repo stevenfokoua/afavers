@@ -114,7 +114,7 @@ def corpus_search_seed(project, reference=None):
         'location': 'Berlin', 'description': 'Kasse und Warenverraeumung. Synthetische Testanzeige.',
         'description_quality': 'summary', 'url': f'https://example.invalid/ci/corpus/{index}',
         'source': 'bundesagentur', 'language': 'de', 'is_manual': False, 'is_active': True,
-        'created_at': fresh, 'posted_date': fresh[:10], 'last_seen_at': fresh,
+        'created_at': fresh, 'posted_date': fresh[:10], 'updated_at': fresh,
     } for index in range(1100)]
     rows.append({
         'external_id': project + '-deep-corpus-qgis', 'title': 'CI Deep-corpus QGIS Specialist',
@@ -122,9 +122,21 @@ def corpus_search_seed(project, reference=None):
         'description': 'Develop and maintain QGIS maps, ArcGIS workflows and spatial-data pipelines. The role requires geoinformation database experience, coordinate-reference systems and clear technical documentation. Working language is English. This is a synthetic CI listing for corpus-search acceptance.',
         'description_quality': 'full', 'url': 'https://example.invalid/ci/deep-corpus-qgis',
         'source': 'bundesagentur', 'language': 'en', 'is_manual': False, 'is_active': True,
-        'created_at': old, 'posted_date': old[:10], 'last_seen_at': fresh,
+        'created_at': old, 'posted_date': old[:10], 'updated_at': fresh,
     })
     return rows
+
+def validate_job_seed(state, rows):
+    if not rows or any(set(row) != set(rows[0]) for row in rows):
+        raise ValueError('PostgREST bulk seed rows must have identical column keys')
+    columns = set(sql(state, "COPY (SELECT column_name FROM information_schema.columns WHERE table_schema='public' AND table_name='jobs') TO STDOUT;").splitlines())
+    unsupported = set(rows[0]) - columns
+    if unsupported:
+        raise ValueError('Seed contains unsupported jobs columns: ' + ', '.join(sorted(unsupported)))
+    payload = json.dumps(rows).encode()
+    if len(payload) > 1_000_000:
+        raise ValueError('Seed payload exceeds the disposable gateway request bound')
+    return payload
 
 def run():
     owner = os.environ.get('AGENT_RESOURCE_OWNER')
@@ -180,14 +192,23 @@ def run():
             {'external_id':project+'-it','title':'CI IT Consultant','company':'Afavers CI Studio','location':'Düsseldorf','description':'Deliver information technology and software consulting for customer projects. Requirements include maintaining application services, documenting changes, reviewing technical designs and communicating with engineers and clients. Our working language is English. These are synthetic CI requirements.','description_quality':'full','url':'https://example.invalid/ci/it','source':'bundesagentur','posted_date':now,'language':'en'},
             {'external_id':project+'-unrelated','title':'Psychologischen Studienberatung','company':'Afavers CI Studio','location':'Berlin','description':'Psychologische Einzelberatung und Studienberatung an einer Hochschule. Voraussetzungen sind ein abgeschlossenes Psychologiestudium sowie eine psychotherapeutische Weiterbildung. Die Aufgaben umfassen Beratungsgespräche, die Organisation von Gruppenangeboten und die Zusammenarbeit mit dem Hochschulteam. Sehr gute Deutschkenntnisse sind erforderlich.','description_quality':'full','url':'https://example.invalid/ci/psychology','source':'bundesagentur','posted_date':now,'language':'de'},
         ]
+        fresh = time.strftime('%Y-%m-%dT%H:%M:%SZ',time.gmtime())
+        for row in rows:
+            row.update({'created_at':fresh,'updated_at':fresh,'is_manual':False,'is_active':True})
         rows.extend(corpus_search_seed(project))
+        payload = validate_job_seed(state, rows)
         headers = {'apikey':values['ANON_KEY'],'Authorization':'Bearer '+values['SERVICE_ROLE_KEY'],'Content-Type':'application/json'}
-        request = urllib.request.Request(base+'/rest/v1/jobs',data=json.dumps(rows).encode(),headers=headers,method='POST')
+        request = urllib.request.Request(base+'/rest/v1/jobs',data=payload,headers=headers,method='POST')
         for attempt in range(15):
             try:
                 with urllib.request.urlopen(request,timeout=10): break
             except urllib.error.HTTPError as error:
-                if attempt==14: raise
+                if attempt==14:
+                    body = error.read(3000).decode(errors='replace')
+                    for value in values.values():
+                        if isinstance(value,str) and len(value)>15: body=body.replace(value,'[redacted]')
+                    (reports/'seed-failure.json').write_text(json.dumps({'status':error.code,'body':body},indent=2))
+                    raise RuntimeError('Fixture seeding failed; see reports/e2e/seed-failure.json') from None
                 time.sleep(1)
         env = {**os.environ,'AGENT_RESOURCE_OWNER':owner,'AFAVERS_E2E_ENV':str(root/'test-env.json'),'AFAVERS_CI_APP_PORT':str(ports['AFAVERS_CI_APP_PORT']),'VITE_SUPABASE_URL':base,'VITE_SUPABASE_ANON_KEY':values['ANON_KEY'],'VITE_APP_VERSION':os.environ.get('GITHUB_SHA','ci-'+project[-8:])[:12],'NODE_OPTIONS':'--max-old-space-size=768'}
         npm = 'npm.cmd' if os.name == 'nt' else 'npm'
